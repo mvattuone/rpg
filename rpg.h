@@ -5,38 +5,38 @@
 #include <SDL2/SDL.h>
 
 #define PIXELS_PER_METER 1000
+#define GAME_OVER 0
 #define IS_ACTIVE 1
 #define IS_PAUSED 2
 #define IS_RESTING 3
 
 typedef enum {
-  RIGHT,
-  LEFT,
   UP,
-  DOWN
-} direction;
+  UPRIGHT,
+  RIGHT,
+  DOWNRIGHT,
+  DOWN,
+  DOWNLEFT,
+  LEFT,
+  UPLEFT
+} Direction;
 
 typedef enum {
-  CAT_WALKING_RIGHT_LEFT_FOOT = 0,
-  CAT_STANDING_RIGHT = 1,
-  CAT_WALKING_RIGHT_RIGHT_FOOT = 2,
-  CAT_RESTING_RIGHT = 3,
-  CAT_WALKING_UP_RIGHT_FOOT = 0,
-  CAT_STANDING_UP = 1,
-  CAT_WALKING_UP_LEFT_FOOT = 2,
-  CAT_WALKING_DOWN_RIGHT_FOOT = 0,
-  CAT_STANDING_DOWN = 1,
-  CAT_WALKING_DOWN_LEFT_FOOT = 2,
-  CAT_RESTING_UP = 4,
-  CAT_WALKING_LEFT_RIGHT_FOOT = 0,
-  CAT_STANDING_LEFT = 1,
-  CAT_WALKING_LEFT_LEFT_FOOT = 2,
-  CAT_RESTING_LEFT = 3,
+  IS_IDLE,
+  IS_RUNNING
+} Status;
+
+typedef enum {
+  MAN_UP = 0,
+  MAN_LEFT = 0,
+  MAN_DOWN = 0,
+  MAN_RIGHT = 0
 } sprites;
 
 typedef struct {
   float x, y;
   int w, h;
+  float angle;
   float dx, dy;
   float mass;
   float force;
@@ -49,18 +49,13 @@ typedef struct {
   char *name; // string
   int sprite;
   int isOnFloor;
-  int direction;
+  Direction direction;
+  Status status;
   int isFacingX;
   int isFacingY;
-  SDL_Texture *texture;
-} Cat;
-
-typedef struct {
-  int sprite;
-  int speed;
-  int x,y,w,h;
-  SDL_Texture *texture;
-} Dog;
+  SDL_Texture *idleTexture;
+  SDL_Texture *runningTexture;
+} Man;
 
 typedef struct {
   int x,y,w,h;
@@ -73,8 +68,7 @@ typedef struct {
 
 typedef struct {
   SDL_Window *window;
-  Cat cat;
-  Dog dogs[100];
+  Man man;
   Floor floors[100];
   Text text;
   float scrollX;
