@@ -59,7 +59,8 @@ typedef struct {
 
 typedef struct {
   int x,y,w,h;
-} Floor;
+  char* tileId;
+} Tile;
 
 typedef struct {
   SDL_Texture *texture;
@@ -69,7 +70,7 @@ typedef struct {
 typedef struct {
   SDL_Window *window;
   Man man;
-  Floor floors[100];
+  Tile tiles[288];
   Text text;
   float scrollX;
   float scrollY;
@@ -77,7 +78,8 @@ typedef struct {
   int status;
   int time;
   int life;
-  int row;
+  int rowLength;
+  int columnLength;
   time_t startTime;
   time_t dt;
   float gravity;

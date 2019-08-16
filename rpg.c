@@ -223,11 +223,6 @@ void renderMan(Game * game, int x, int y) {
   }
 }
 
-void renderFloor(Game *game, int x, int y, int w, int h) { 
-  SDL_Rect floorRect = {x, y, w, h};
-  SDL_RenderFillRect(game->renderer, &floorRect);
-}
-
 void renderHealthBar(Game *game) {
   SDL_Rect healthBoundaryRect = { 200, 30, 200, 20 };
   SDL_Rect healthRect = { 200, 30, game->man.health, 20 };
@@ -271,37 +266,15 @@ void renderTile(Game *game, int x, int y, char* tileId) {
 
 void doRender(Game *game) {
   SDL_RenderClear(game->renderer);
-  char* tiles[96] = {
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "&", "&", "&", "&", "&", "&", "@",
-    "@", "&", "&", "&", "&", "&", "&", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@"
-  };
 
   for (int y = -game->scrollY/80; y < (-game->scrollY + 480)/ 80; y++)
     for (int x = -game->scrollX/80; x < (-game->scrollX + 640)/ 80; x++) {
       if (x >= 0 && x < 8 && y>= 0 && y < 12) {
-        char* tileId = tiles[(x) + y*8];
-        renderTile(game, x * 80, y * 80, tileId);
+        renderTile(game, x * 80, y * 80, game->tiles[x+y*8].tileId);
       }
     }
 
   renderMan(game, game->scrollX+game->man.x, game->scrollY+game->man.y);
-
-  // Floor color
-  SDL_SetRenderDrawColor(game->renderer, 139, 69, 19, 255);
-
-  for (int i=0;i<100;i++) {
-    renderFloor(game, game->scrollX+game->floors[i].x, game->scrollY+game->floors[i].y, game->floors[i].w, game->floors[i].h);
-  }
 
   renderHealthBar(game);
 
@@ -366,17 +339,28 @@ void loadGame(Game *game) {
   initializeTerrain(game);
   initializeMan(game, MAN_UP);
 
-  for(int i=0; i < 100; i++) {
-    game->floors[i].w = 256;
-    game->floors[i].h = 50;
-    game->floors[i].x = rand() % 6400;
-    game->floors[i].y = rand() % 640;
+  char* tiles[96] = {
+    "@", "@", "@", "@", "@", "@", "@", "@",
+    "@", "@", "@", "@", "@", "@", "@", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "&", "&", "&", "&", "&", "&", "@",
+    "@", "&", "&", "&", "&", "&", "&", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "@", "@", "@", "@", "@", "@", "@"
+  };
+
+  for(int i=0; i < 96; i++) {
+    game->tiles[i].w = 80;
+    game->tiles[i].h = 80;
+    game->tiles[i].x = (i % 8) * 80;
+    game->tiles[i].y = floor(i/8) * 80;
+    game->tiles[i].tileId = tiles[i];
   }
-
-  game->floors[0].y = 400;
-
-  game->floors[99].x = 350;
-  game->floors[99].y = 200;
 
   game->status = IS_ACTIVE;
 };
@@ -387,44 +371,49 @@ int hasCollision(float x1, float y1, float x2, float y2, float w1, float h1, flo
 }
 
 void detectCollisions(Game *game) {
-  for (int i=0;i<100;i++) {
+  for (int y = -game->scrollY/80; y < (-game->scrollY + 480)/ 80; y++)
+    for (int x = -game->scrollX/80; x < (-game->scrollX + 640)/ 80; x++) {
     float manX = game->man.x;
     float manY = game->man.y;
     float manW = game->man.w;
     float manH = game->man.h;
     
-    float floorX = game->floors[i].x;
-    float floorY = game->floors[i].y;
-    float floorW = game->floors[i].w;
-    float floorH = game->floors[i].h;
+    float floorX = game->tiles[x + y * 8].x;
+    float floorY = game->tiles[x + y * 8].y;
+    float floorW = game->tiles[x + y * 8].w;
+    float floorH = game->tiles[x + y * 8].h;
 
-    if (manX+manW/2 > floorX && manX+manW/2<floorX+floorW) {
-      if (manY < floorH+floorY && manY > floorY && game->man.dy < 0) {
-        game->man.y = floorY+floorH;
-        manY = floorY+floorH;
-        game->man.dy = 0;
-        game->man.isOnFloor = 1;
-      } 
-    }
-      
-    if (manX+manW > floorX && manX<floorX+floorW) {
-      if (manY+manH > floorY && manY < floorY && game->man.dy > 0) {
-        game->man.y = floorY-manH;
-        manY = floorY-manH;
-        game->man.dy = 0;
-        game->man.isOnFloor = 1;
-      }
-    }
+    if (x >= 0 && x < 8 && y>= 0 && y < 12) {
+      if (!strcmp(game->tiles[x + y * 8].tileId, "#")) {
+        if (manX+manW/2 > floorX && manX+manW/2<floorX+floorW) {
+          if (manY < floorH+floorY && manY > floorY && game->man.dy < 0) {
+            game->man.y = floorY+floorH;
+            manY = floorY+floorH;
+            game->man.dy = 0;
+            game->man.isOnFloor = 1;
+          } 
+        }
+        
+        if (manX+manW > floorX && manX<floorX+floorW) {
+          if (manY+manH > floorY && manY < floorY && game->man.dy > 0) {
+            game->man.y = floorY-manH;
+            manY = floorY-manH;
+            game->man.dy = 0;
+            game->man.isOnFloor = 1;
+          }
+        }
 
-    if (manY+manH > floorY && manY<floorY+floorH) {
-      if (manX < floorX+floorW && manX+manW > floorX+floorW && game->man.dx < 0) {
-        game->man.x = floorX+floorW;
-        manX = floorX + floorW;
-        game->man.dx = 0;
-      } else if (manX+manW > floorX && manX < floorX && game->man.dx > 0) {
-        game->man.x = floorX-manW;
-        manX = floorX - manW;
-        game->man.dx = 0;
+        if (manY+manH > floorY && manY<floorY+floorH) {
+          if (manX < floorX+floorW && manX+manW > floorX+floorW && game->man.dx < 0) {
+            game->man.x = floorX+floorW;
+            manX = floorX + floorW;
+            game->man.dx = 0;
+          } else if (manX+manW > floorX && manX < floorX && game->man.dx > 0) {
+            game->man.x = floorX-manW;
+            manX = floorX - manW;
+            game->man.dx = 0;
+          }
+        }
       }
     }
   }
