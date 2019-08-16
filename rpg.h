@@ -68,9 +68,15 @@ typedef struct {
 } Text;
 
 typedef struct {
+  int rowL;
+  int columnL;
+  Tile tiles[96];
+} Map;
+
+typedef struct {
   SDL_Window *window;
   Man man;
-  Tile tiles[288];
+  Map map;
   Text text;
   float scrollX;
   float scrollY;
@@ -78,8 +84,6 @@ typedef struct {
   int status;
   int time;
   int life;
-  int rowLength;
-  int columnLength;
   time_t startTime;
   time_t dt;
   float gravity;

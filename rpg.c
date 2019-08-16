@@ -270,7 +270,7 @@ void doRender(Game *game) {
   for (int y = -game->scrollY/80; y < (-game->scrollY + 480)/ 80; y++)
     for (int x = -game->scrollX/80; x < (-game->scrollX + 640)/ 80; x++) {
       if (x >= 0 && x < 8 && y>= 0 && y < 12) {
-        renderTile(game, x * 80, y * 80, game->tiles[x+y*8].tileId);
+        renderTile(game, x * 80, y * 80, game->map.tiles[x+y*8].tileId);
       }
     }
 
@@ -328,16 +328,12 @@ void initializeTerrain(Game *game) {
   SDL_FreeSurface(surface);
 }
 
-void loadGame(Game *game) {
-  game->text.font = TTF_OpenFont("fonts/slkscr.ttf", 48);
-  if (game->text.font == NULL) {
-    printf("Could not find font");
-    SDL_Quit();
-    exit(1);
-  }
-  
-  initializeTerrain(game);
-  initializeMan(game, MAN_UP);
+Map initializeMap(int mapSize, int columnL, int rowL, int tileWidth, int tileHeight) {
+  // @TODO: Read values from external file and fill that way
+  Map map;
+
+  map.rowL = rowL;
+  map.columnL = columnL;
 
   char* tiles[96] = {
     "@", "@", "@", "@", "@", "@", "@", "@",
@@ -354,13 +350,32 @@ void loadGame(Game *game) {
     "@", "@", "@", "@", "@", "@", "@", "@"
   };
 
-  for(int i=0; i < 96; i++) {
-    game->tiles[i].w = 80;
-    game->tiles[i].h = 80;
-    game->tiles[i].x = (i % 8) * 80;
-    game->tiles[i].y = floor(i/8) * 80;
-    game->tiles[i].tileId = tiles[i];
+  for(int i=0; i < mapSize; i++) {
+    map.tiles[i].w = tileWidth;
+    map.tiles[i].h = tileHeight;
+    map.tiles[i].x = (i % map.rowL) * tileWidth;
+    map.tiles[i].y = floor(i/map.rowL) * tileHeight;
+    map.tiles[i].tileId = tiles[i];
   }
+
+  return map;
+};
+
+void loadGame(Game *game) {
+  game->text.font = TTF_OpenFont("fonts/slkscr.ttf", 48);
+  if (game->text.font == NULL) {
+    printf("Could not find font");
+    SDL_Quit();
+    exit(1);
+  }
+  
+  initializeTerrain(game);
+  initializeMan(game, MAN_UP);
+  // @TODO - how to dynamically create map without 
+  // hardcoding things...
+  game->map = initializeMap(96, 12, 8, 80, 80);
+
+
 
   game->status = IS_ACTIVE;
 };
@@ -378,13 +393,13 @@ void detectCollisions(Game *game) {
     float manW = game->man.w;
     float manH = game->man.h;
     
-    float floorX = game->tiles[x + y * 8].x;
-    float floorY = game->tiles[x + y * 8].y;
-    float floorW = game->tiles[x + y * 8].w;
-    float floorH = game->tiles[x + y * 8].h;
+    float floorX = game->map.tiles[x + y * 8].x;
+    float floorY = game->map.tiles[x + y * 8].y;
+    float floorW = game->map.tiles[x + y * 8].w;
+    float floorH = game->map.tiles[x + y * 8].h;
 
     if (x >= 0 && x < 8 && y>= 0 && y < 12) {
-      if (!strcmp(game->tiles[x + y * 8].tileId, "#")) {
+      if (!strcmp(game->map.tiles[x + y * 8].tileId, "#")) {
         if (manX+manW/2 > floorX && manX+manW/2<floorX+floorW) {
           if (manY < floorH+floorY && manY > floorY && game->man.dy < 0) {
             game->man.y = floorY+floorH;
