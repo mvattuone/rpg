@@ -315,14 +315,38 @@ void initializeTerrain(Game *game) {
 }
 
 Map initializeMap(int mapSize, int columnL, int rowL, int tileSize) {
-  // @TODO: Read values from external file and fill that way
   Map map;
 
   map.rowL = rowL;
   map.columnL = columnL;
   map.tileSize = tileSize;
 
-  char* tiles[96] = {
+  // @TODO: Read values from external file and fill that way
+  char* tiles[288] = {
+    "@", "@", "@", "@", "@", "@", "@", "@",
+    "@", "@", "@", "@", "@", "@", "@", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "&", "&", "&", "&", "&", "&", "@",
+    "@", "&", "&", "&", "&", "&", "&", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "@", "@", "@", "@", "@", "@", "@",
+    "@", "@", "@", "@", "@", "@", "@", "@",
+    "@", "@", "@", "@", "@", "@", "@", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "&", "&", "&", "&", "&", "&", "@",
+    "@", "&", "&", "&", "&", "&", "&", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "@", "@", "@", "@", "@", "@", "@",
     "@", "@", "@", "@", "@", "@", "@", "@",
     "@", "@", "@", "@", "@", "@", "@", "@",
     "@", "#", "#", "#", "#", "#", "#", "@",
@@ -360,7 +384,7 @@ void loadGame(Game *game) {
   initializeMan(game, MAN_UP);
   // @TODO - how to dynamically create map without 
   // hardcoding things...
-  game->map = initializeMap(96, 8, 12, 80);
+  game->map = initializeMap(288, 16, 18, 80);
   game->status = IS_ACTIVE;
 };
 
@@ -468,8 +492,6 @@ void process(Game *game) {
   if(game->scrollY < -game->map.columnL * game->map.tileSize+480) {
     game->scrollY = -game->map.columnL * game->map.tileSize+480;
   }
-
-  // @TODO Make sure character can't go beyond width or height of tilemap
 
   // handle animation
   game->man.angle = getAngle(game);
