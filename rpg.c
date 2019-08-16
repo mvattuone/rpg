@@ -245,74 +245,115 @@ void renderText(Game *game, char* text, SDL_Color color, int x, int y, int w, in
   SDL_FreeSurface(surface);
 }
 
-void fadeOut() {
-
-}
+void renderTile(Game *game, int x, int y, char* tileId) {
+  int tileRow;
+  int tileColumn;
+  if (!strcmp(tileId,"%")) {
+    tileRow = 1;
+    tileColumn = 1;
+  } else if (!strcmp(tileId, "@")) {
+    tileRow = 4;
+    tileColumn = 4;
+  } else if (!strcmp(tileId, "#")) {
+    tileRow = 12;
+    tileColumn = 12;
+  } else if (!strcmp(tileId, "&")) {
+    tileRow = 2;
+    tileColumn = 3;
+  } else {
+    tileRow = 12;
+    tileColumn = 7;
+  }
+  SDL_Rect srcRect = {tileRow * 16, tileColumn * 16, 16, 16};
+  SDL_Rect tileRect = {x + game->scrollX, y + game->scrollY, 80, 80};
+  SDL_RenderCopy(game->renderer, game->terrainTexture, &srcRect, &tileRect);
+};
 
 void doRender(Game *game) {
   SDL_RenderClear(game->renderer);
+  char* tiles[96] = {
+    "@", "@", "@", "@", "@", "@", "@", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "&", "&", "&", "&", "&", "&", "@",
+    "@", "&", "&", "&", "&", "&", "&", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "#", "#", "#", "#", "#", "#", "@",
+    "@", "@", "@", "@", "@", "@", "@", "@"
+  };
 
-  if (game->status == IS_RESTING) {
-    // Game Over Screen
-    renderMan(game, 640/2-game->man.w, 480/2-game->man.h/2);
-    SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 0);
-    SDL_Color color = {255,255,255};
-    renderText(game, "Game Over", color, 640/2-game->man.w-150, 480/2-game->man.h-100, 300, 48);
-  } else {
-    renderMan(game, game->scrollX+game->man.x, game->scrollY+game->man.y);
-
-    // Floor color
-    SDL_SetRenderDrawColor(game->renderer, 139, 69, 19, 255);
-
-    for (int i=0;i<100;i++) {
-      renderFloor(game, game->scrollX+game->floors[i].x, game->scrollY+game->floors[i].y, game->floors[i].w, game->floors[i].h);
+  for (int y = -game->scrollY/80; y < (-game->scrollY + 480)/ 80; y++)
+    for (int x = -game->scrollX/80; x < (-game->scrollX + 640)/ 80; x++) {
+      if (x >= 0 && x < 8 && y>= 0 && y < 12) {
+        char* tileId = tiles[(x) + y*8];
+        renderTile(game, x * 80, y * 80, tileId);
+      }
     }
 
-    renderHealthBar(game);
+  renderMan(game, game->scrollX+game->man.x, game->scrollY+game->man.y);
 
-    SDL_Color color = {0,0,0};
-    renderText(game, "Health", color, 10, 20, 150, 48);
-    if (0) {
-      /* char bufferX[sizeof(game->man.x) * 4 + 1]; */
-      /* char bufferY[sizeof(game->man.y) * 4 + 1]; */
-      char bufferDX[sizeof(game->man.dx) * 4 + 1];
-      char bufferDY[sizeof(game->man.dy) * 4 + 1];
-      char bufferAX[sizeof(game->man.ax) * 4 + 1];
-      char bufferAY[sizeof(game->man.ay) * 4 + 1];
-      char bufferTX[sizeof(game->man.thrustX) * 4 + 1];
-      char bufferTY[sizeof(game->man.thrustY) * 4 + 1];
-      char bufferT[sizeof(game->dt) * 4 + 1];
-      char bufferF[sizeof(game->man.angle) * 4 + 1];
-      char bufferD[sizeof(game->man.direction) * 4 + 1];
-      /* sprintf(bufferX, "%f", game->man.x); */
-      /* sprintf(bufferY, "Y Position %f", game->man.y); */
-      sprintf(bufferDX, "%f", game->man.dx);
-      sprintf(bufferDY, "%f", game->man.dy);
-      sprintf(bufferAX, "%f", game->man.ax);
-      sprintf(bufferAY, "%f", game->man.ay);
-      sprintf(bufferTX, "%f", game->man.thrustX);
-      sprintf(bufferTY, "%f", game->man.thrustY);
-      sprintf(bufferT, "%ld", game->dt);
-      sprintf(bufferF, "%f", game->man.angle);
-      sprintf(bufferD, "%i", game->man.direction);
-      /* renderText(game, bufferX, color, 400, 20, 150, 20); */
-      /* renderText(game, bufferY, color, 400, 40, 150, 20); */
-      renderText(game, bufferDX, color, 400, 60, 150, 20);
-      renderText(game, bufferDY, color, 400, 80, 150, 20);
-      renderText(game, bufferAX, color, 400, 100, 150, 20);
-      renderText(game, bufferAY, color, 400, 120, 150, 20);
-      renderText(game, bufferTX, color, 400, 140, 150, 20);
-      renderText(game, bufferTY, color, 400, 160, 150, 20);
-      renderText(game, bufferT, color, 400, 180, 150, 20);
-      renderText(game, bufferF, color, 400, 200, 150, 20);
-      renderText(game, bufferD, color, 400, 220, 150, 20);
-    }
+  // Floor color
+  SDL_SetRenderDrawColor(game->renderer, 139, 69, 19, 255);
 
-    SDL_SetRenderDrawColor(game->renderer, 25, 100, 155, 255);
+  for (int i=0;i<100;i++) {
+    renderFloor(game, game->scrollX+game->floors[i].x, game->scrollY+game->floors[i].y, game->floors[i].w, game->floors[i].h);
   }
+
+  renderHealthBar(game);
+
+  SDL_Color color = {0,0,0};
+  renderText(game, "Health", color, 10, 20, 150, 48);
+
+  if (0) {
+    /* char bufferX[sizeof(game->man.x) * 4 + 1]; */
+    /* char bufferY[sizeof(game->man.y) * 4 + 1]; */
+    char bufferDX[sizeof(game->man.dx) * 4 + 1];
+    char bufferDY[sizeof(game->man.dy) * 4 + 1];
+    char bufferAX[sizeof(game->man.ax) * 4 + 1];
+    char bufferAY[sizeof(game->man.ay) * 4 + 1];
+    char bufferTX[sizeof(game->man.thrustX) * 4 + 1];
+    char bufferTY[sizeof(game->man.thrustY) * 4 + 1];
+    char bufferT[sizeof(game->dt) * 4 + 1];
+    char bufferF[sizeof(game->man.angle) * 4 + 1];
+    char bufferD[sizeof(game->man.direction) * 4 + 1];
+    /* sprintf(bufferX, "%f", game->man.x); */
+    /* sprintf(bufferY, "Y Position %f", game->man.y); */
+    sprintf(bufferDX, "%f", game->man.dx);
+    sprintf(bufferDY, "%f", game->man.dy);
+    sprintf(bufferAX, "%f", game->man.ax);
+    sprintf(bufferAY, "%f", game->man.ay);
+    sprintf(bufferTX, "%f", game->man.thrustX);
+    sprintf(bufferTY, "%f", game->man.thrustY);
+    sprintf(bufferT, "%ld", game->dt);
+    sprintf(bufferF, "%f", game->man.angle);
+    sprintf(bufferD, "%i", game->man.direction);
+    /* renderText(game, bufferX, color, 400, 20, 150, 20); */
+    /* renderText(game, bufferY, color, 400, 40, 150, 20); */
+    renderText(game, bufferDX, color, 400, 60, 150, 20);
+    renderText(game, bufferDY, color, 400, 80, 150, 20);
+    renderText(game, bufferAX, color, 400, 100, 150, 20);
+    renderText(game, bufferAY, color, 400, 120, 150, 20);
+    renderText(game, bufferTX, color, 400, 140, 150, 20);
+    renderText(game, bufferTY, color, 400, 160, 150, 20);
+    renderText(game, bufferT, color, 400, 180, 150, 20);
+    renderText(game, bufferF, color, 400, 200, 150, 20);
+    renderText(game, bufferD, color, 400, 220, 150, 20);
+  }
+
+  SDL_SetRenderDrawColor(game->renderer, 25, 100, 155, 255);
 
   SDL_RenderPresent(game->renderer);
 };
+
+void initializeTerrain(Game *game) {
+  SDL_Surface *surface = createSurface("images/terrain.png");
+  game->terrainTexture = SDL_CreateTextureFromSurface(game->renderer, surface);
+  SDL_FreeSurface(surface);
+}
 
 void loadGame(Game *game) {
   game->text.font = TTF_OpenFont("fonts/slkscr.ttf", 48);
@@ -322,6 +363,7 @@ void loadGame(Game *game) {
     exit(1);
   }
   
+  initializeTerrain(game);
   initializeMan(game, MAN_UP);
 
   for(int i=0; i < 100; i++) {
@@ -407,6 +449,19 @@ void process(Game *game) {
   game->scrollX = -game->man.x+320;
   game->scrollY = -game->man.y+240;
 
+  if(game->scrollX > 0) {
+    game->scrollX = 0;
+  }
+  if(game->scrollX < -38000+320) {
+    game->scrollX = -38000+320;
+  }
+  if(game->scrollY > 0) {
+    game->scrollY = 0;
+  }
+  if(game->scrollY < -38000+240) {
+    game->scrollY = -38000+240;
+  }
+
   // @TODO Make sure character can't go beyond width or height of tilemap
 
   if (game->man.health< 0) {
@@ -433,6 +488,7 @@ void process(Game *game) {
 };
 
 void shutdownGame(Game *game) {
+  SDL_DestroyTexture(game->terrainTexture);
   SDL_DestroyTexture(game->man.idleTexture);
   SDL_DestroyTexture(game->man.runningTexture);
   TTF_CloseFont(game->text.font);
