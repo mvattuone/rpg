@@ -70,6 +70,7 @@ typedef struct {
 typedef struct {
   int rowL;
   int columnL;
+  int tileSize;
   Tile tiles[96];
 } Map;
 

@@ -203,7 +203,6 @@ void initializeMan(Game *game, int spriteValue) {
   game->man.dx = 0;
   game->man.dy = 0;
   game->man.status = IS_IDLE;
-  game->man.health= 200;
   game->man.isOnFloor = 0;
   game->man.sprite = spriteValue;
   game->man.direction = RIGHT;
@@ -221,15 +220,6 @@ void renderMan(Game * game, int x, int y) {
   } else {
     SDL_RenderCopy(game->renderer, game->man.idleTexture, &manSrcRect, &manRect);
   }
-}
-
-void renderHealthBar(Game *game) {
-  SDL_Rect healthBoundaryRect = { 200, 30, 200, 20 };
-  SDL_Rect healthRect = { 200, 30, game->man.health, 20 };
-  SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
-  SDL_RenderFillRect(game->renderer, &healthBoundaryRect);
-  SDL_SetRenderDrawColor(game->renderer, 255, 0, 0, 255);
-  SDL_RenderFillRect(game->renderer, &healthRect);
 }
 
 void renderText(Game *game, char* text, SDL_Color color, int x, int y, int w, int h) { 
@@ -260,26 +250,22 @@ void renderTile(Game *game, int x, int y, char* tileId) {
     tileColumn = 7;
   }
   SDL_Rect srcRect = {tileRow * 16, tileColumn * 16, 16, 16};
-  SDL_Rect tileRect = {x + game->scrollX, y + game->scrollY, 80, 80};
+  SDL_Rect tileRect = {x + game->scrollX, y + game->scrollY, game->map.tileSize, game->map.tileSize};
   SDL_RenderCopy(game->renderer, game->terrainTexture, &srcRect, &tileRect);
 };
 
 void doRender(Game *game) {
   SDL_RenderClear(game->renderer);
+  SDL_Color textColor = {0, 0, 0};
 
-  for (int y = -game->scrollY/80; y < (-game->scrollY + 480)/ 80; y++)
-    for (int x = -game->scrollX/80; x < (-game->scrollX + 640)/ 80; x++) {
-      if (x >= 0 && x < 8 && y>= 0 && y < 12) {
-        renderTile(game, x * 80, y * 80, game->map.tiles[x+y*8].tileId);
+  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + 480)/ game->map.tileSize; y++)
+    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + 640)/ game->map.tileSize; x++) {
+      if (x >= 0 && x < game->map.rowL && y>= 0 && y < game->map.columnL) {
+        renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.rowL].tileId);
       }
     }
 
   renderMan(game, game->scrollX+game->man.x, game->scrollY+game->man.y);
-
-  renderHealthBar(game);
-
-  SDL_Color color = {0,0,0};
-  renderText(game, "Health", color, 10, 20, 150, 48);
 
   if (0) {
     /* char bufferX[sizeof(game->man.x) * 4 + 1]; */
@@ -304,17 +290,17 @@ void doRender(Game *game) {
     sprintf(bufferT, "%ld", game->dt);
     sprintf(bufferF, "%f", game->man.angle);
     sprintf(bufferD, "%i", game->man.direction);
-    /* renderText(game, bufferX, color, 400, 20, 150, 20); */
-    /* renderText(game, bufferY, color, 400, 40, 150, 20); */
-    renderText(game, bufferDX, color, 400, 60, 150, 20);
-    renderText(game, bufferDY, color, 400, 80, 150, 20);
-    renderText(game, bufferAX, color, 400, 100, 150, 20);
-    renderText(game, bufferAY, color, 400, 120, 150, 20);
-    renderText(game, bufferTX, color, 400, 140, 150, 20);
-    renderText(game, bufferTY, color, 400, 160, 150, 20);
-    renderText(game, bufferT, color, 400, 180, 150, 20);
-    renderText(game, bufferF, color, 400, 200, 150, 20);
-    renderText(game, bufferD, color, 400, 220, 150, 20);
+    /* renderText(game, bufferX, textColor, 400, 20, 150, 20); */
+    /* renderText(game, bufferY, textColor, 400, 40, 150, 20); */
+    renderText(game, bufferDX, textColor, 400, 60, 150, 20);
+    renderText(game, bufferDY, textColor, 400, 80, 150, 20);
+    renderText(game, bufferAX, textColor, 400, 100, 150, 20);
+    renderText(game, bufferAY, textColor, 400, 120, 150, 20);
+    renderText(game, bufferTX, textColor, 400, 140, 150, 20);
+    renderText(game, bufferTY, textColor, 400, 160, 150, 20);
+    renderText(game, bufferT, textColor, 400, 180, 150, 20);
+    renderText(game, bufferF, textColor, 400, 200, 150, 20);
+    renderText(game, bufferD, textColor, 400, 220, 150, 20);
   }
 
   SDL_SetRenderDrawColor(game->renderer, 25, 100, 155, 255);
@@ -328,12 +314,13 @@ void initializeTerrain(Game *game) {
   SDL_FreeSurface(surface);
 }
 
-Map initializeMap(int mapSize, int columnL, int rowL, int tileWidth, int tileHeight) {
+Map initializeMap(int mapSize, int columnL, int rowL, int tileSize) {
   // @TODO: Read values from external file and fill that way
   Map map;
 
   map.rowL = rowL;
   map.columnL = columnL;
+  map.tileSize = tileSize;
 
   char* tiles[96] = {
     "@", "@", "@", "@", "@", "@", "@", "@",
@@ -351,10 +338,10 @@ Map initializeMap(int mapSize, int columnL, int rowL, int tileWidth, int tileHei
   };
 
   for(int i=0; i < mapSize; i++) {
-    map.tiles[i].w = tileWidth;
-    map.tiles[i].h = tileHeight;
-    map.tiles[i].x = (i % map.rowL) * tileWidth;
-    map.tiles[i].y = floor(i/map.rowL) * tileHeight;
+    map.tiles[i].w = tileSize;
+    map.tiles[i].h = tileSize;
+    map.tiles[i].x = (i % map.rowL) * tileSize;
+    map.tiles[i].y = floor(i/map.rowL) * tileSize;
     map.tiles[i].tileId = tiles[i];
   }
 
@@ -373,33 +360,31 @@ void loadGame(Game *game) {
   initializeMan(game, MAN_UP);
   // @TODO - how to dynamically create map without 
   // hardcoding things...
-  game->map = initializeMap(96, 12, 8, 80, 80);
-
-
-
+  game->map = initializeMap(96, 8, 12, 80);
   game->status = IS_ACTIVE;
 };
 
+// Detect if two objects in space have a collision
 int hasCollision(float x1, float y1, float x2, float y2, float w1, float h1, float w2, float h2)
 {
   return (!((x1 > (x2+w2)) || (x2 > (x1+w1)) || (y1 > (y2+h2)) || (y2 > (y1+h1))));
 }
 
 void detectCollisions(Game *game) {
-  for (int y = -game->scrollY/80; y < (-game->scrollY + 480)/ 80; y++)
-    for (int x = -game->scrollX/80; x < (-game->scrollX + 640)/ 80; x++) {
+  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + 480)/ game->map.tileSize; y++)
+    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + 640)/ game->map.tileSize; x++) {
     float manX = game->man.x;
     float manY = game->man.y;
     float manW = game->man.w;
     float manH = game->man.h;
     
-    float floorX = game->map.tiles[x + y * 8].x;
-    float floorY = game->map.tiles[x + y * 8].y;
-    float floorW = game->map.tiles[x + y * 8].w;
-    float floorH = game->map.tiles[x + y * 8].h;
+    float floorX = game->map.tiles[x + y * game->map.rowL].x;
+    float floorY = game->map.tiles[x + y * game->map.rowL].y;
+    float floorW = game->map.tiles[x + y * game->map.rowL].w;
+    float floorH = game->map.tiles[x + y * game->map.rowL].h;
 
-    if (x >= 0 && x < 8 && y>= 0 && y < 12) {
-      if (!strcmp(game->map.tiles[x + y * 8].tileId, "#")) {
+    if (x >= 0 && x < game->map.rowL && y>= 0 && y < game->map.columnL) {
+      if (!strcmp(game->map.tiles[x + y * game->map.rowL].tileId, "#")) {
         if (manX+manW/2 > floorX && manX+manW/2<floorX+floorW) {
           if (manY < floorH+floorY && manY > floorY && game->man.dy < 0) {
             game->man.y = floorY+floorH;
@@ -453,39 +438,50 @@ void process(Game *game) {
   game->scrollX = -game->man.x+320;
   game->scrollY = -game->man.y+240;
 
+  if (game->man.x < 0) {
+    game->man.x = 0;
+  }
+
+  if (game->man.x > game->map.rowL * game->map.tileSize - game->man.w) {
+    game->man.x = game->map.rowL * game->map.tileSize - game->man.w;
+  }
+
+  if (game->man.y < 0) {
+    game->man.y = 0;
+  }
+
+  if (game->man.y > game->map.columnL * game->map.tileSize - game->man.h) {
+    game->man.y = game->map.columnL * game->map.tileSize - game->man.h;
+  }
+
   if(game->scrollX > 0) {
     game->scrollX = 0;
   }
-  if(game->scrollX < -38000+320) {
-    game->scrollX = -38000+320;
+  if(game->scrollX < -game->map.rowL * game->map.tileSize+640) {
+    game->scrollX = -game->map.rowL * game->map.tileSize+640;
   }
+
   if(game->scrollY > 0) {
     game->scrollY = 0;
   }
-  if(game->scrollY < -38000+240) {
-    game->scrollY = -38000+240;
+
+  if(game->scrollY < -game->map.columnL * game->map.tileSize+480) {
+    game->scrollY = -game->map.columnL * game->map.tileSize+480;
   }
 
   // @TODO Make sure character can't go beyond width or height of tilemap
-
-  if (game->man.health< 0) {
-    game->man.health= 0;
-  }
-
-  if (game->man.health== 0) {
-    // @TODO What happens
-  }
 
   // handle animation
   game->man.angle = getAngle(game);
   game->man.direction = getDirection(game);
   if (game->man.dx != 0 || game->man.dy != 0) {
     game->man.status = IS_RUNNING;
-    if (game->time * 10 % 75 == 0) {
-      game->man.sprite = (game->man.sprite + 1) % 8;
-    }
   } else {
     game->man.status = IS_IDLE;
+  }
+
+  if (game->time * 10 % 75 == 0) {
+    game->man.sprite = (game->man.sprite + 1) % 8;
   }
    
   detectCollisions(game);
