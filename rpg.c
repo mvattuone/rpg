@@ -32,6 +32,7 @@ int handleEvents(Game *game) {
     }
   }
  
+
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -163,8 +164,8 @@ void initializeMan(Game *game, int spriteValue) {
   SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
   game->man.idleTexture= SDL_CreateTextureFromSurface(game->renderer, manIdleSurface);
   game->man.runningTexture= SDL_CreateTextureFromSurface(game->renderer, manRunningSurface);
-  game->man.x = 320;
-  game->man.y = 240;
+  game->man.x = WINDOW_WIDTH/2;
+  game->man.y = WINDOW_HEIGHT/2;
   game->man.angle = 0;
   game->man.w = manIdleSurface->w / 8;
   game->man.h = manIdleSurface->h / 8;
@@ -222,8 +223,8 @@ void renderTile(Game *game, int x, int y, char tileId) {
 void doRender(Game *game) {
   SDL_RenderClear(game->renderer);
 
-  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + 480)/ game->map.tileSize; y++)
-    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + 640)/ game->map.tileSize; x++) {
+  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
+    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
         renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.width].tileId);
       }
@@ -263,8 +264,8 @@ int hasCollision(float x1, float y1, float x2, float y2, float w1, float h1, flo
 }
 
 void detectCollisions(Game *game) {
-  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + 480)/ game->map.tileSize; y++)
-    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + 640)/ game->map.tileSize; x++) {
+  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
+    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
     float manX = game->man.x;
     float manY = game->man.y;
     float manW = game->man.w;
@@ -326,8 +327,8 @@ void process(Game *game) {
   game->man.y += game->man.dy;
 
 
-  game->scrollX = -game->man.x+320;
-  game->scrollY = -game->man.y+240;
+  game->scrollX = -game->man.x+WINDOW_WIDTH/2;
+  game->scrollY = -game->man.y+WINDOW_HEIGHT/2;
 
   if (game->man.x < 0) {
     game->man.x = 0;
@@ -348,16 +349,16 @@ void process(Game *game) {
   if(game->scrollX > 0) {
     game->scrollX = 0;
   }
-  if(game->scrollX < -game->map.width * game->map.tileSize+640) {
-    game->scrollX = -game->map.width * game->map.tileSize+640;
+  if(game->scrollX < -game->map.width * game->map.tileSize+WINDOW_WIDTH) {
+    game->scrollX = -game->map.width * game->map.tileSize+WINDOW_WIDTH;
   }
 
   if(game->scrollY > 0) {
     game->scrollY = 0;
   }
 
-  if(game->scrollY < -game->map.height * game->map.tileSize+480) {
-    game->scrollY = -game->map.height * game->map.tileSize+480;
+  if(game->scrollY < -game->map.height * game->map.tileSize+WINDOW_HEIGHT) {
+    game->scrollY = -game->map.height * game->map.tileSize+WINDOW_HEIGHT;
   }
 
   // handle animation
@@ -403,8 +404,8 @@ int main(int argc, char *argv[]) {
       "Man Jump",
       SDL_WINDOWPOS_UNDEFINED,           
       SDL_WINDOWPOS_UNDEFINED,           
-      640,                               
-      480,                               
+      WINDOW_WIDTH,                               
+      WINDOW_HEIGHT,                               
       SDL_WINDOW_SHOWN
       );
 
