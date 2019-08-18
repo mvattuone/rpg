@@ -370,7 +370,7 @@ void process(Game *game) {
     game->man.status = IS_IDLE;
   }
 
-  if (game->time * 10 % 75 == 0) {
+  if (fmod(game->time, 7.5) == 0) {
     game->man.sprite = (game->man.sprite + 1) % 8;
   }
    
