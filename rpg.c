@@ -188,8 +188,8 @@ void initializeMan(Game *game, int spriteValue) {
   SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
   game->man.idleTexture= SDL_CreateTextureFromSurface(game->renderer, manIdleSurface);
   game->man.runningTexture= SDL_CreateTextureFromSurface(game->renderer, manRunningSurface);
-  game->man.x = 0;
-  game->man.y = 0;
+  game->man.x = 320;
+  game->man.y = 240;
   game->man.angle = 0;
   game->man.w = manIdleSurface->w / 8;
   game->man.h = manIdleSurface->h / 8;
@@ -230,21 +230,12 @@ void renderText(Game *game, char* text, SDL_Color color, int x, int y, int w, in
   SDL_FreeSurface(surface);
 }
 
-void renderTile(Game *game, int x, int y, char* tileId) {
+void renderTile(Game *game, int x, int y, char tileId) {
   int tileRow;
   int tileColumn;
-  if (!strcmp(tileId,"%")) {
-    tileRow = 1;
-    tileColumn = 1;
-  } else if (!strcmp(tileId, "@")) {
+  if (tileId == '@') {
     tileRow = 4;
     tileColumn = 4;
-  } else if (!strcmp(tileId, "#")) {
-    tileRow = 12;
-    tileColumn = 12;
-  } else if (!strcmp(tileId, "&")) {
-    tileRow = 2;
-    tileColumn = 3;
   } else {
     tileRow = 12;
     tileColumn = 7;
@@ -256,52 +247,15 @@ void renderTile(Game *game, int x, int y, char* tileId) {
 
 void doRender(Game *game) {
   SDL_RenderClear(game->renderer);
-  SDL_Color textColor = {0, 0, 0};
 
   for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + 480)/ game->map.tileSize; y++)
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + 640)/ game->map.tileSize; x++) {
-      if (x >= 0 && x < game->map.rowL && y>= 0 && y < game->map.columnL) {
-        renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.rowL].tileId);
+      if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
+        renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.width].tileId);
       }
     }
 
   renderMan(game, game->scrollX+game->man.x, game->scrollY+game->man.y);
-
-  if (0) {
-    /* char bufferX[sizeof(game->man.x) * 4 + 1]; */
-    /* char bufferY[sizeof(game->man.y) * 4 + 1]; */
-    char bufferDX[sizeof(game->man.dx) * 4 + 1];
-    char bufferDY[sizeof(game->man.dy) * 4 + 1];
-    char bufferAX[sizeof(game->man.ax) * 4 + 1];
-    char bufferAY[sizeof(game->man.ay) * 4 + 1];
-    char bufferTX[sizeof(game->man.thrustX) * 4 + 1];
-    char bufferTY[sizeof(game->man.thrustY) * 4 + 1];
-    char bufferT[sizeof(game->dt) * 4 + 1];
-    char bufferF[sizeof(game->man.angle) * 4 + 1];
-    char bufferD[sizeof(game->man.direction) * 4 + 1];
-    /* sprintf(bufferX, "%f", game->man.x); */
-    /* sprintf(bufferY, "Y Position %f", game->man.y); */
-    sprintf(bufferDX, "%f", game->man.dx);
-    sprintf(bufferDY, "%f", game->man.dy);
-    sprintf(bufferAX, "%f", game->man.ax);
-    sprintf(bufferAY, "%f", game->man.ay);
-    sprintf(bufferTX, "%f", game->man.thrustX);
-    sprintf(bufferTY, "%f", game->man.thrustY);
-    sprintf(bufferT, "%ld", game->dt);
-    sprintf(bufferF, "%f", game->man.angle);
-    sprintf(bufferD, "%i", game->man.direction);
-    /* renderText(game, bufferX, textColor, 400, 20, 150, 20); */
-    /* renderText(game, bufferY, textColor, 400, 40, 150, 20); */
-    renderText(game, bufferDX, textColor, 400, 60, 150, 20);
-    renderText(game, bufferDY, textColor, 400, 80, 150, 20);
-    renderText(game, bufferAX, textColor, 400, 100, 150, 20);
-    renderText(game, bufferAY, textColor, 400, 120, 150, 20);
-    renderText(game, bufferTX, textColor, 400, 140, 150, 20);
-    renderText(game, bufferTY, textColor, 400, 160, 150, 20);
-    renderText(game, bufferT, textColor, 400, 180, 150, 20);
-    renderText(game, bufferF, textColor, 400, 200, 150, 20);
-    renderText(game, bufferD, textColor, 400, 220, 150, 20);
-  }
 
   SDL_SetRenderDrawColor(game->renderer, 25, 100, 155, 255);
 
@@ -314,64 +268,6 @@ void initializeTerrain(Game *game) {
   SDL_FreeSurface(surface);
 }
 
-Map initializeMap(int mapSize, int columnL, int rowL, int tileSize) {
-  Map map;
-
-  map.rowL = rowL;
-  map.columnL = columnL;
-  map.tileSize = tileSize;
-
-  // @TODO: Read values from external file and fill that way
-  char* tiles[288] = {
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "&", "&", "&", "&", "&", "&", "@",
-    "@", "&", "&", "&", "&", "&", "&", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "&", "&", "&", "&", "&", "&", "@",
-    "@", "&", "&", "&", "&", "&", "&", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "&", "&", "&", "&", "&", "&", "@",
-    "@", "&", "&", "&", "&", "&", "&", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "#", "#", "#", "#", "#", "#", "@",
-    "@", "@", "@", "@", "@", "@", "@", "@"
-  };
-
-  for(int i=0; i < mapSize; i++) {
-    map.tiles[i].w = tileSize;
-    map.tiles[i].h = tileSize;
-    map.tiles[i].x = (i % map.rowL) * tileSize;
-    map.tiles[i].y = floor(i/map.rowL) * tileSize;
-    map.tiles[i].tileId = tiles[i];
-  }
-
-  return map;
-};
-
 void loadGame(Game *game) {
   game->text.font = TTF_OpenFont("fonts/slkscr.ttf", 48);
   if (game->text.font == NULL) {
@@ -382,9 +278,7 @@ void loadGame(Game *game) {
   
   initializeTerrain(game);
   initializeMan(game, MAN_UP);
-  // @TODO - how to dynamically create map without 
-  // hardcoding things...
-  game->map = initializeMap(288, 16, 18, 80);
+  game->map = initializeMap("map.lvl", 32);
   game->status = IS_ACTIVE;
 };
 
@@ -402,13 +296,14 @@ void detectCollisions(Game *game) {
     float manW = game->man.w;
     float manH = game->man.h;
     
-    float floorX = game->map.tiles[x + y * game->map.rowL].x;
-    float floorY = game->map.tiles[x + y * game->map.rowL].y;
-    float floorW = game->map.tiles[x + y * game->map.rowL].w;
-    float floorH = game->map.tiles[x + y * game->map.rowL].h;
+    float floorX = game->map.tiles[x + y * game->map.width].x;
+    float floorY = game->map.tiles[x + y * game->map.width].y;
+    int floorW = game->map.tiles[x + y * game->map.width].w;
+    int floorH = game->map.tiles[x + y * game->map.width].h; 
 
-    if (x >= 0 && x < game->map.rowL && y>= 0 && y < game->map.columnL) {
-      if (!strcmp(game->map.tiles[x + y * game->map.rowL].tileId, "#")) {
+    if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
+      if (game->map.tiles[x + y * game->map.width].tileId == '@') {
+
         if (manX+manW/2 > floorX && manX+manW/2<floorX+floorW) {
           if (manY < floorH+floorY && manY > floorY && game->man.dy < 0) {
             game->man.y = floorY+floorH;
@@ -427,7 +322,7 @@ void detectCollisions(Game *game) {
           }
         }
 
-        if (manY+manH > floorY && manY<floorY+floorH) {
+        if (manY+manH/2 > floorY && manY<floorY+floorH) {
           if (manX < floorX+floorW && manX+manW > floorX+floorW && game->man.dx < 0) {
             game->man.x = floorX+floorW;
             manX = floorX + floorW;
@@ -466,31 +361,31 @@ void process(Game *game) {
     game->man.x = 0;
   }
 
-  if (game->man.x > game->map.rowL * game->map.tileSize - game->man.w) {
-    game->man.x = game->map.rowL * game->map.tileSize - game->man.w;
+  if (game->man.x > game->map.width * game->map.tileSize - game->man.w) {
+    game->man.x = game->map.width * game->map.tileSize - game->man.w;
   }
 
   if (game->man.y < 0) {
     game->man.y = 0;
   }
 
-  if (game->man.y > game->map.columnL * game->map.tileSize - game->man.h) {
-    game->man.y = game->map.columnL * game->map.tileSize - game->man.h;
+  if (game->man.y > game->map.height * game->map.tileSize - game->man.h) {
+    game->man.y = game->map.height * game->map.tileSize - game->man.h;
   }
 
   if(game->scrollX > 0) {
     game->scrollX = 0;
   }
-  if(game->scrollX < -game->map.rowL * game->map.tileSize+640) {
-    game->scrollX = -game->map.rowL * game->map.tileSize+640;
+  if(game->scrollX < -game->map.width * game->map.tileSize+640) {
+    game->scrollX = -game->map.width * game->map.tileSize+640;
   }
 
   if(game->scrollY > 0) {
     game->scrollY = 0;
   }
 
-  if(game->scrollY < -game->map.columnL * game->map.tileSize+480) {
-    game->scrollY = -game->map.columnL * game->map.tileSize+480;
+  if(game->scrollY < -game->map.height * game->map.tileSize+480) {
+    game->scrollY = -game->map.height * game->map.tileSize+480;
   }
 
   // handle animation

@@ -3,6 +3,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
+#include "map.h"
 
 #define PIXELS_PER_METER 1000
 #define GAME_OVER 0
@@ -58,21 +59,9 @@ typedef struct {
 } Man;
 
 typedef struct {
-  int x,y,w,h;
-  char* tileId;
-} Tile;
-
-typedef struct {
   SDL_Texture *texture;
   TTF_Font *font;
 } Text;
-
-typedef struct {
-  int rowL;
-  int columnL;
-  int tileSize;
-  Tile tiles[288];
-} Map;
 
 typedef struct {
   SDL_Window *window;

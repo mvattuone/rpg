@@ -1,4 +1,4 @@
 run: compile
-	./rpg.o
+	./rpg
 compile:
-	gcc -o rpg.o rpg.c physics.c -g -D_THREAD_SAFE -I/usr/local/include/SDL2 -L/usr/local/lib -lSDL2 -lSDL2_image -lSDL2_ttf
+	gcc -o rpg rpg.c physics.c map.c -g -D_THREAD_SAFE -I/usr/local/include/SDL2 -L/usr/local/lib -lSDL2 -lSDL2_image -lSDL2_ttf
