@@ -238,24 +238,30 @@ void doRender(Game *game) {
   SDL_RenderPresent(game->renderer);
 };
 
-void initializeTerrain(Game *game) {
+SDL_Texture* initializeTerrain(SDL_Renderer *renderer) {
   SDL_Surface *surface = createSurface("images/terrain.png");
-  game->terrainTexture = SDL_CreateTextureFromSurface(game->renderer, surface);
+  SDL_Texture *terrainTexture = SDL_CreateTextureFromSurface(renderer, surface);
   SDL_FreeSurface(surface);
+
+  return terrainTexture;
 }
 
-void loadGame(Game *game) {
-  game->text.font = TTF_OpenFont("fonts/slkscr.ttf", 48);
-  if (game->text.font == NULL) {
+TTF_Font* initializeFont(char* fileName, int fontSize) {
+  TTF_Font *font = TTF_OpenFont(fileName, fontSize);
+  if (font == NULL) {
     printf("Could not find font");
     SDL_Quit();
     exit(1);
   }
 
+  return font;
+}
+
+void loadGame(Game *game) {
+  game->text.font = initializeFont("fonts/slkscr.ttf", 48);
   game->scrollX = 0;
   game->scrollY = 0;
-  
-  initializeTerrain(game);
+  game->terrainTexture = initializeTerrain(game->renderer);
   game->man = initializeMan(game->renderer, MAN_UP, game->gravity);
   game->map = initializeMap("map.lvl", 32);
   game->status = IS_ACTIVE;
