@@ -159,32 +159,33 @@ SDL_Surface* createSurface(char* filename) {
   return surface;
 }
 
-void initializeMan(Game *game, int spriteValue) {
+Man initializeMan(SDL_Renderer *renderer, int spriteValue, float gravity) {
   SDL_Surface *manIdleSurface = createSurface("images/man-idle.png");
   SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
-  game->man.idleTexture= SDL_CreateTextureFromSurface(game->renderer, manIdleSurface);
-  game->man.runningTexture= SDL_CreateTextureFromSurface(game->renderer, manRunningSurface);
-  game->man.x = WINDOW_WIDTH/2;
-  game->man.y = WINDOW_HEIGHT/2;
-  game->man.angle = 0;
-  game->man.w = manIdleSurface->w / 8;
-  game->man.h = manIdleSurface->h / 8;
-  game->man.mass = 45;
-  game->man.force = game->man.mass * game->gravity * cos(90*M_PI);
-  game->man.maxThrust = 1000.0f / 1000.0f / 1000.0f * PIXELS_PER_METER;
-  game->man.thrustX = 0;
-  game->man.thrustY = 0;
-  game->man.ax= 0;
-  game->man.ay= 0;
-  game->man.dx = 0;
-  game->man.dy = 0;
-  game->man.status = IS_IDLE;
-  game->man.sprite = spriteValue;
-  game->man.direction = RIGHT;
-  game->scrollX = 0;
-  game->scrollY = 0;
+  Man man;
+  man.idleTexture= SDL_CreateTextureFromSurface(renderer, manIdleSurface);
+  man.runningTexture= SDL_CreateTextureFromSurface(renderer, manRunningSurface);
+  man.x = WINDOW_WIDTH/2;
+  man.y = WINDOW_HEIGHT/2;
+  man.angle = 0;
+  man.w = manIdleSurface->w / 8;
+  man.h = manIdleSurface->h / 8;
+  man.mass = 45;
+  man.force = man.mass * gravity * cos(90*M_PI);
+  man.maxThrust = 1000.0f / 1000.0f / 1000.0f * PIXELS_PER_METER;
+  man.thrustX = 0;
+  man.thrustY = 0;
+  man.ax= 0;
+  man.ay= 0;
+  man.dx = 0;
+  man.dy = 0;
+  man.status = IS_IDLE;
+  man.sprite = spriteValue;
+  man.direction = RIGHT;
   SDL_FreeSurface(manRunningSurface);
   SDL_FreeSurface(manIdleSurface);
+
+  return man;
 }
 
 void renderMan(Game * game, int x, int y) {
@@ -250,9 +251,12 @@ void loadGame(Game *game) {
     SDL_Quit();
     exit(1);
   }
+
+  game->scrollX = 0;
+  game->scrollY = 0;
   
   initializeTerrain(game);
-  initializeMan(game, MAN_UP);
+  game->man = initializeMan(game->renderer, MAN_UP, game->gravity);
   game->map = initializeMap("map.lvl", 32);
   game->status = IS_ACTIVE;
 };
@@ -370,6 +374,7 @@ void process(Game *game) {
     game->man.status = IS_IDLE;
   }
 
+  // 60 FPS / 8 animations 
   if (fmod(game->time, 7.5) == 0) {
     game->man.sprite = (game->man.sprite + 1) % 8;
   }
@@ -399,7 +404,7 @@ int main(int argc, char *argv[]) {
   }
 
   Game game;
-  // Create an applimanion window with the following settings:
+  // Create an application window with the following settings:
   game.window = SDL_CreateWindow( 
       "Man Jump",
       SDL_WINDOWPOS_UNDEFINED,           
