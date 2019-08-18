@@ -302,7 +302,7 @@ void detectCollisions(Game *game) {
     int floorH = game->map.tiles[x + y * game->map.width].h; 
 
     if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
-      if (game->map.tiles[x + y * game->map.width].tileId == '@') {
+      if (game->map.tiles[x + y * game->map.width].tileState == IS_SOLID) {
 
         if (manX+manW/2 > floorX && manX+manW/2<floorX+floorW) {
           if (manY < floorH+floorY && manY > floorY && game->man.dy < 0) {

@@ -1,7 +1,13 @@
 #define MAX_TILE_SIZE 5000
 
+typedef enum {
+  IS_WALKABLE,
+  IS_SOLID,
+} TileState;
+
 typedef struct {
   char tileId;
+  TileState tileState;
   int x,y,w,h;
 } Tile;
 

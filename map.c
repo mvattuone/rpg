@@ -31,6 +31,7 @@ Map initializeMap(char* fileName, int tileSize) {
     while ((c = fgetc(mapData)) && count < map.width * map.height) {
       if (c != '\n' && !isspace(c)) {
         arr[count]->tileId = c; 
+        arr[count]->tileState = fgetc(mapData) - '0'; 
         count++;
       }
 
