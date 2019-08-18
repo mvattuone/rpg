@@ -15,14 +15,6 @@ int handleEvents(Game *game) {
       case SDL_QUIT:
         return 1;
         break;
-      case SDL_KEYUP:
-        switch (event.key.keysym.sym) {
-          case SDLK_LEFT:
-          case SDLK_RIGHT:
-          case SDLK_UP:
-          case SDLK_DOWN: 
-            break;
-        }
       case SDL_KEYDOWN:
         switch (event.key.keysym.sym) {
           case SDLK_LEFT:
@@ -34,29 +26,12 @@ int handleEvents(Game *game) {
             }
             break;
         }
-        switch (event.key.keysym.sym) {
-          case SDLK_ESCAPE:
-            return 1;
-            break;
-          case SDLK_LEFT:
-            break; 
-          case SDLK_RIGHT:
-            break;
-          case SDLK_UP:
-            break;
-          case SDLK_DOWN:
-            break;
-          // TODO: Can we jump in 2d without isomorphic view?
-          default:
-            break;
-        }
         break;
       default:
         break;
     }
   }
  
-
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -203,7 +178,6 @@ void initializeMan(Game *game, int spriteValue) {
   game->man.dx = 0;
   game->man.dy = 0;
   game->man.status = IS_IDLE;
-  game->man.isOnFloor = 0;
   game->man.sprite = spriteValue;
   game->man.direction = RIGHT;
   game->scrollX = 0;
@@ -309,7 +283,6 @@ void detectCollisions(Game *game) {
             game->man.y = floorY+floorH;
             manY = floorY+floorH;
             game->man.dy = 0;
-            game->man.isOnFloor = 1;
           } 
         }
         
@@ -318,7 +291,6 @@ void detectCollisions(Game *game) {
             game->man.y = floorY-manH;
             manY = floorY-manH;
             game->man.dy = 0;
-            game->man.isOnFloor = 1;
           }
         }
 

@@ -34,7 +34,6 @@ Map initializeMap(char* fileName, int tileSize) {
         arr[count]->tileState = fgetc(mapData) - '0'; 
         count++;
       }
-
     } 
 
     for (int i = 0; i < map.width * map.height; i++) {
@@ -42,7 +41,6 @@ Map initializeMap(char* fileName, int tileSize) {
       free(arr[i]);
     }
 
-    fflush(stdout);
     free(arr);
   }
 

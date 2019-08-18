@@ -46,14 +46,10 @@ typedef struct {
   float ax;
   float ay;
   float maxThrust;
-  short health;
   char *name; // string
   int sprite;
-  int isOnFloor;
   Direction direction;
   Status status;
-  int isFacingX;
-  int isFacingY;
   SDL_Texture *idleTexture;
   SDL_Texture *runningTexture;
 } Man;
@@ -73,7 +69,6 @@ typedef struct {
   SDL_Renderer *renderer;
   int status;
   int time;
-  int life;
   time_t startTime;
   time_t dt;
   float gravity;
