@@ -5,7 +5,7 @@
 #include <SDL2/SDL.h>
 #include "map.h"
 
-#define PIXELS_PER_METER 1000
+#define PIXELS_PER_METER 16
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 #define GAME_OVER 0
@@ -42,12 +42,15 @@ typedef struct {
   float angle;
   float dx, dy;
   float mass;
-  float force;
+  float forceX;
+  float forceY;
+  float normalForce;
   float thrustX;
   float thrustY;
   float ax;
   float ay;
-  float maxThrust;
+  float walkThrust;
+  float runThrust;
   char *name; // string
   int sprite;
   Direction direction;

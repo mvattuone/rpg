@@ -36,68 +36,97 @@ int handleEvents(Game *game) {
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
-    time_t timer;
+    time_t timer = SDL_GetTicks() * .001;
     if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_UP] || state[SDL_SCANCODE_DOWN]) {
-      timer = SDL_GetTicks() * .001;
-      game->dt =+ timer - game->startTime + 1;
+      game->dt = timer - game->startTime + 1;
     } else {
-      game->startTime = SDL_GetTicks() * .001;
-      game->dt = (SDL_GetTicks() * .001) - game->startTime * .001 + 1;
+      if (game->man.dx == 0) {
+        game->startTime = timer;
+        game->dt = (SDL_GetTicks() * .001) - game->startTime + 1;
+      }
     }
     if (state[SDL_SCANCODE_LEFT]) {
-      if (game->man.thrustX < game->man.maxThrust) {
-        game->man.thrustX += game->man.maxThrust / 4.0f;
+      if (state[SDL_SCANCODE_SPACE]) {
+        game->man.thrustX = game->man.runThrust; 
+      } else {
+        game->man.thrustX = game->man.walkThrust; 
       }
-      game->man.ax = (game->man.thrustX - (1 * game->man.force)) / game->man.mass;
+      game->man.ax = ((game->man.thrustX - (0.41 * game->man.normalForce)) / game->man.mass) / PIXELS_PER_METER;
       game->man.dx = accelerate(game->man.dx, -game->man.ax, game->dt); 
     } else if (!state[SDL_SCANCODE_LEFT]) {
-      if (game->man.dx < 0) {
-        game->man.ax = (game->man.thrustX + (1 * game->man.force)) / game->man.mass;
+      if (game->man.ax > 0) {
+        game->man.ax = ((game->man.thrustX - (0.41 * game->man.normalForce)) / game->man.mass) / PIXELS_PER_METER ;
+      } else {
+        game->man.ax = 0;
+      }
+      if (game->man.dx < 0 && state[SDL_SCANCODE_RIGHT]) {
         game->man.dx = accelerate(game->man.dx, game->man.ax, game->dt); 
+      } else {
+        game->man.dx = 0;
       }
       if (game->man.thrustX > 0 && !state[SDL_SCANCODE_RIGHT] && game->man.dx >= 0) {
         game->man.thrustX = 0;
       }
     }
     if (state[SDL_SCANCODE_RIGHT]) {
-      if (game->man.thrustX < game->man.maxThrust) {
-        game->man.thrustX += game->man.maxThrust / 4.0f;
+      if (state[SDL_SCANCODE_SPACE]) {
+        game->man.thrustX = game->man.runThrust; 
+      } else {
+        game->man.thrustX = game->man.walkThrust; 
       }
-      game->man.ax = (game->man.thrustX - (1 * game->man.force)) / game->man.mass;
-      game->man.dx = accelerate(game->man.dx, game->man.ax, game->dt); 
+      if (!state[SDL_SCANCODE_LEFT]) {
+        game->man.ax = ((game->man.thrustX - (0.41 * game->man.normalForce)) / game->man.mass) / PIXELS_PER_METER;
+        game->man.dx = accelerate(game->man.dx, game->man.ax, game->dt); 
+      }
     } else if (!state[SDL_SCANCODE_RIGHT]) {
+      if (game->man.ax > 0) {
+        game->man.ax = ((game->man.thrustX - (0.41 * game->man.normalForce)) / game->man.mass) / PIXELS_PER_METER;
+      } 
       if (game->man.dx > 0) {
-        game->man.ax = (game->man.thrustX + (1 * game->man.force)) / game->man.mass;
         game->man.dx = accelerate(game->man.dx, -game->man.ax, game->dt); 
       }
+      
       if (game->man.thrustX > 0 && !state[SDL_SCANCODE_LEFT] && game->man.dx <= 0) {
         game->man.thrustX = 0;
       }
     }
     if (state[SDL_SCANCODE_UP]) {
-      if (game->man.thrustY < game->man.maxThrust) {
-        game->man.thrustY += game->man.maxThrust / 4.0f;
+      if (state[SDL_SCANCODE_SPACE]) {
+        game->man.thrustY = game->man.runThrust; 
+      } else {
+        game->man.thrustY = game->man.walkThrust; 
       }
-      game->man.ay = (game->man.thrustY - (1 * game->man.force)) / game->man.mass;
+      game->man.ay = ((game->man.thrustY - (0.41 * game->man.normalForce)) / game->man.mass) / PIXELS_PER_METER;
       game->man.dy = accelerate(game->man.dy, -game->man.ay, game->dt);
     } else if (!state[SDL_SCANCODE_UP]) {
-      if (game->man.dy < 0) {
-        game->man.ay = (game->man.thrustY + (1 * game->man.force)) / game->man.mass;
+      if (game->man.ay > 0) {
+        game->man.ay = ((game->man.thrustY - (0.41 * game->man.normalForce)) / game->man.mass) / PIXELS_PER_METER;
+      } else {
+        game->man.ay = 0;
+      }
+      if (game->man.dy < 0 && state[SDL_SCANCODE_DOWN]) {
         game->man.dy = accelerate(game->man.dy, game->man.ay, game->dt); 
+      } else {
+        game->man.dy = 0;
       }
       if (game->man.thrustY > 0 && !state[SDL_SCANCODE_DOWN] && game->man.dy >= 0) {
         game->man.thrustY = 0;
       }
     }
     if (state[SDL_SCANCODE_DOWN]) {
-      if (game->man.thrustY < game->man.maxThrust) {
-        game->man.thrustY += game->man.maxThrust / 4.0f;
+      if (state[SDL_SCANCODE_SPACE]) {
+        game->man.thrustY = game->man.runThrust; 
+      } else {
+        game->man.thrustY = game->man.walkThrust; 
       }
-      game->man.ay = (game->man.thrustY - (1 * game->man.force)) / game->man.mass;
+
+      game->man.ay = ((game->man.thrustY - (0.41 * game->man.normalForce)) / game->man.mass) / PIXELS_PER_METER;
       game->man.dy = accelerate(game->man.dy, game->man.ay, game->dt);
     } else if (!state[SDL_SCANCODE_DOWN]) {
+      if (game->man.ay > 0) {
+        game->man.ay = ((game->man.thrustY - (0.41 * game->man.normalForce)) / game->man.mass) / PIXELS_PER_METER;
+      }
       if (game->man.dy > 0) {
-        game->man.ay = (game->man.thrustY + (1 * game->man.force)) / game->man.mass;
         game->man.dy = accelerate(game->man.dy, -game->man.ay, game->dt); 
       }
       if (game->man.thrustY > 0 && !state[SDL_SCANCODE_UP] && game->man.dy <= 0) {
@@ -106,37 +135,68 @@ int handleEvents(Game *game) {
     }
 
     if (!state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_DOWN]) {
-      if (fabs(game->man.dy) < 0.5f) {
+      if (fabs(game->man.dy) < 0.7f) {
         game->man.dy = 0;
       }
     }
 
     if (!state[SDL_SCANCODE_LEFT] && !state[SDL_SCANCODE_RIGHT]) {
-      if (fabs(game->man.dx) < 0.5f) {
+      if (fabs(game->man.dx) < 0.7f) {
         game->man.dx = 0;
       }
     }
 
     if (!state[SDL_SCANCODE_LEFT] && !state[SDL_SCANCODE_RIGHT] && !state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_DOWN]) {
-      if (fabs(game->man.dx) < 0.5f) {
+      if (fabs(game->man.dx) < 0.7f) {
         game->man.dx = 0;
       }
-      if (fabs(game->man.dy) < 0.5f) {
+      if (fabs(game->man.dy) < 0.7f) {
         game->man.dy = 0;
       }
     }
 
-    if (game->man.dx > 3.0f) {
-      game->man.dx = 3.0f;
-    }
-    if (game->man.dx < -3.0f) {
-      game->man.dx = -3.0f;
-    }
-    if (game->man.dy > 3.0f) {
-      game->man.dy = 3.0f;
-    }
-    if (game->man.dy < -3.0f) {
-      game->man.dy = -3.0f;
+    if (state[SDL_SCANCODE_SPACE]) {
+      if (state[SDL_SCANCODE_RIGHT]) {
+        if (game->man.dx > 4.4f) {
+          game->man.dx = 4.4f;
+        }
+      }
+      if (state[SDL_SCANCODE_LEFT]) {
+        if (game->man.dx < -4.4f) {
+          game->man.dx = -4.4f;
+        }
+      }
+      if (state[SDL_SCANCODE_DOWN]) {
+        if (game->man.dy > 4.4) {
+          game->man.dy = 3.0f;
+        }
+      }
+      if (state[SDL_SCANCODE_UP]) {
+        if (game->man.dy < -4.4) {
+          game->man.dy = -3.0f;
+        }
+      }
+    } else {
+      if (state[SDL_SCANCODE_RIGHT]) {
+        if (game->man.dx > 0.8) {
+          game->man.dx = 0.8f;
+        }
+      }
+      if (state[SDL_SCANCODE_LEFT]) {
+        if (game->man.dx < -0.8f) {
+          game->man.dx = -0.8f;
+        }
+      }
+      if (state[SDL_SCANCODE_DOWN]) {
+        if (game->man.dy > 0.8f) {
+          game->man.dy = 0.8f;
+        }
+      }
+      if (state[SDL_SCANCODE_UP]) {
+        if (game->man.dy < -0.8f) {
+          game->man.dy = -0.8f;
+        }
+      }
     }
   }
  
@@ -170,9 +230,10 @@ Man initializeMan(SDL_Renderer *renderer, int spriteValue, float gravity) {
   man.angle = 0;
   man.w = manIdleSurface->w / 8;
   man.h = manIdleSurface->h / 8;
-  man.mass = 45;
-  man.force = man.mass * gravity * cos(90*M_PI);
-  man.maxThrust = 1000.0f / 1000.0f / 1000.0f * PIXELS_PER_METER;
+  man.mass = 80;
+  man.normalForce = man.mass * gravity * cos(90*M_PI); 
+  man.walkThrust = 1000.0f * PIXELS_PER_METER;
+  man.runThrust = 2000.0f * PIXELS_PER_METER;
   man.thrustX = 0;
   man.thrustY = 0;
   man.ax= 0;
@@ -420,7 +481,7 @@ int main(int argc, char *argv[]) {
       SDL_WINDOW_SHOWN
       );
 
-  game.gravity = 9.8 / 1000 / 1000 * PIXELS_PER_METER;
+  game.gravity = 9.8 * PIXELS_PER_METER;
 
   if (game.window == NULL) {
     fprintf(stderr, "could not create window: %s\n", SDL_GetError());
@@ -440,6 +501,16 @@ int main(int argc, char *argv[]) {
     done = handleEvents(&game);
     process(&game);
     doRender(&game);
+
+    printf("velocity x is %f\n", game.man.dx);
+    printf("velocity y is %f\n", game.man.dy);
+    printf("acceleration x is %f\n", game.man.ax);
+    printf("acceleration y is %f\n", game.man.ay);
+    printf("thrust x is %f\n", game.man.thrustX);
+    printf("thrust y is %f\n", game.man.thrustY);
+    printf("frictionalforce is %f\n", game.man.normalForce * 0.41);
+    printf("dt is %ld\n", game.dt);
+    fflush(stdout);
 
     SDL_Delay(10);
   }
