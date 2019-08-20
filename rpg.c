@@ -46,18 +46,6 @@ int handleEvents(Game *game) {
       frictionalForceX = cof * game->man.normalForce;
       frictionalForceY = cof * game->man.normalForce;
     } 
-    if (fabs(game->man.dx) < 4) {
-      game->man.dx = 0;
-      game->man.ax = 0;
-      game->man.thrustX = 0;
-      directionX = 0;
-    }
-    if (fabs(game->man.dy) < 4) {
-      game->man.dy = 0;
-      game->man.ay = 0;
-      game->man.thrustY = 0;
-      directionY = 0;
-    }
     if (state[SDL_SCANCODE_LEFT]) {
       directionX = -1;
       if (state[SDL_SCANCODE_SPACE]) {
@@ -136,10 +124,33 @@ int handleEvents(Game *game) {
       }
     }
 
+    if (frictionalForceX > game->man.thrustX) {
+      frictionalForceX = game->man.thrustX;
+    }
+
+    if (frictionalForceY > game->man.thrustY) {
+      frictionalForceY = game->man.thrustY;
+    }
+
     game->man.ax = (((directionX * game->man.thrustX) - (directionX * frictionalForceX)) / game->man.mass);
     game->man.ay = (((directionY * game->man.thrustY) - (directionY * frictionalForceY)) / game->man.mass);
     game->man.dx = accelerate(game->man.dx, game->man.ax, game->dt); 
     game->man.dy = accelerate(game->man.dy, game->man.ay, game->dt); 
+
+    if (!state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_DOWN] && !state[SDL_SCANCODE_LEFT] && !state[SDL_SCANCODE_RIGHT]) {
+      if (fabs(game->man.dx) < 2) {
+        game->man.dx = 0;
+        game->man.ax = 0;
+        game->man.thrustX = 0;
+        directionX = 0;
+      }
+      if (fabs(game->man.dy) < 2) {
+        game->man.dy = 0;
+        game->man.ay = 0;
+        game->man.thrustY = 0;
+        directionY = 0;
+      }
+    }
 
     // @TODO cap speed
 
@@ -188,8 +199,8 @@ Man initializeMan(SDL_Renderer *renderer, int spriteValue, float gravity) {
   man.h = manIdleSurface->h / 8;
   man.mass = 80;
   man.normalForce = man.mass * gravity * cos(90*M_PI); 
-  man.walkThrust = 2000.0f * PIXELS_PER_METER;
-  man.runThrust = 2500.0f * PIXELS_PER_METER;
+  man.walkThrust = 1000.0f * PIXELS_PER_METER;
+  man.runThrust = 1500.0f * PIXELS_PER_METER;
   man.thrustX = 0;
   man.thrustY = 0;
   man.ax= 0;
