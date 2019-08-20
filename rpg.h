@@ -75,7 +75,7 @@ typedef struct {
   int status;
   int time;
   time_t startTime;
-  time_t dt;
+  float dt;
   float gravity;
   SDL_Texture *terrainTexture;
 } Game;
