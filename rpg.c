@@ -22,7 +22,7 @@ int handleEvents(Game *game) {
           case SDLK_UP:
           case SDLK_DOWN: 
             if (!game->startTime) {
-              game->startTime = SDL_GetTicks() * .001;
+              game->startTime = toSeconds(SDL_GetTicks());
             }
             break;
         }
@@ -32,27 +32,21 @@ int handleEvents(Game *game) {
     }
   }
  
-
-  int directionX = 0;
-  int directionY = 0;
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     float frictionalForceX = 0;
     float frictionalForceY = 0;
     float cof = 0.41; // This will be attached to the tile the player is on eventually
+    int directionX = 0;
+    int directionY = 0;
     if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_UP] || state[SDL_SCANCODE_DOWN]) {
-      game->dt = 1.0f/60.0f;
       frictionalForceX = cof * game->man.normalForce;
       frictionalForceY = cof * game->man.normalForce;
     } 
     if (state[SDL_SCANCODE_LEFT]) {
       directionX = -1;
-      if (state[SDL_SCANCODE_SPACE]) {
-        game->man.thrustX = game->man.runThrust; 
-      } else {
-        game->man.thrustX = game->man.walkThrust; 
-      }
+      game->man.thrustX = state[SDL_SCANCODE_SPACE] ? game->man.runThrust : game->man.walkThrust;
       if (state[SDL_SCANCODE_RIGHT]) {
         directionX = 0;
       }
@@ -66,11 +60,7 @@ int handleEvents(Game *game) {
     }
     if (state[SDL_SCANCODE_RIGHT]) {
       directionX = 1;
-      if (state[SDL_SCANCODE_SPACE]) {
-        game->man.thrustX = game->man.runThrust; 
-      } else {
-        game->man.thrustX = game->man.walkThrust; 
-      }
+      game->man.thrustX = state[SDL_SCANCODE_SPACE] ? game->man.runThrust : game->man.walkThrust;
       if (state[SDL_SCANCODE_LEFT]) {
         directionX = 0;
       }
@@ -79,18 +69,13 @@ int handleEvents(Game *game) {
       directionX = game->man.dx < 0 ? 1 : directionX;
       if (state[SDL_SCANCODE_LEFT]) {
         directionX = -1;
-        game->man.thrustX *= 1;
       } else {
         game->man.thrustX *= -1;
       }
     }
     if (state[SDL_SCANCODE_UP]) {
       directionY = -1;
-      if (state[SDL_SCANCODE_SPACE]) {
-        game->man.thrustY = game->man.runThrust; 
-      } else {
-        game->man.thrustY = game->man.walkThrust; 
-      }
+      game->man.thrustY = state[SDL_SCANCODE_SPACE] ? game->man.runThrust : game->man.walkThrust; 
       if (state[SDL_SCANCODE_DOWN]) {
         directionY = 0;
       }
@@ -98,18 +83,13 @@ int handleEvents(Game *game) {
       directionY = game->man.dy < 0 ? 1 : 0;
       if (state[SDL_SCANCODE_DOWN]) {
         directionY = 1;
-        game->man.thrustY *= 1;
       } else {
         game->man.thrustY *= -1;
       }
     }
     if (state[SDL_SCANCODE_DOWN]) {
       directionY = 1;
-      if (state[SDL_SCANCODE_SPACE]) {
-        game->man.thrustY = game->man.runThrust; 
-      } else {
-        game->man.thrustY = game->man.walkThrust; 
-      }
+      game->man.thrustY = state[SDL_SCANCODE_SPACE] ? game->man.runThrust : game->man.walkThrust; 
       if (state[SDL_SCANCODE_UP]) {
         directionY = 0;
       }
@@ -118,7 +98,6 @@ int handleEvents(Game *game) {
       directionY = game->man.dy < 0 ? 1 : directionY;
       if (state[SDL_SCANCODE_UP]) {
         directionY = -1;
-        game->man.thrustY *= 1;
       } else {
         game->man.thrustY *= -1;
       }
@@ -151,39 +130,9 @@ int handleEvents(Game *game) {
         directionY = 0;
       }
     }
-
-    // @TODO cap speed
-
-    printf("velocity x is %f\n", game->man.dx);
-    printf("velocity y is %f\n", game->man.dy);
-    printf("acceleration x is %f\n", game->man.ax);
-    printf("acceleration y is %f\n", game->man.ay);
-    printf("thrust x is %f\n", game->man.thrustX);
-    printf("thrust y is %f\n", game->man.thrustY);
-    printf("frictionalforceX is %f\n", frictionalForceX);
-    printf("frictionalforceY is %f\n", frictionalForceY);
-    printf("directionX is %d\n", directionX);
-    printf("directionY is %d\n", directionY);
-    fflush(stdout);
-
   }
  
   return 0;
-}
-
-
-SDL_Surface* createSurface(char* filename) {
-  SDL_Surface *surface;
-
-  surface = IMG_Load(filename);
-
-  if (surface == NULL) {
-    printf("Could not find %s\n\n", filename);
-    SDL_Quit();
-    exit(1);
-  }
-
-  return surface;
 }
 
 Man initializeMan(SDL_Renderer *renderer, int spriteValue, float gravity) {
@@ -286,6 +235,7 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
 }
 
 void loadGame(Game *game) {
+  game->dt = 1.0f/60.0f;
   game->text.font = initializeFont("fonts/slkscr.ttf", 48);
   game->scrollX = 0;
   game->scrollY = 0;
@@ -402,11 +352,7 @@ void process(Game *game) {
   // handle animation
   game->man.angle = getAngle(game);
   game->man.direction = getDirection(game);
-  if (game->man.dx != 0 || game->man.dy != 0) {
-    game->man.status = IS_RUNNING;
-  } else {
-    game->man.status = IS_IDLE;
-  }
+  game->man.status = game->man.dx != 0 || game->man.dy != 0 ? IS_RUNNING : IS_IDLE;
 
   // 60 FPS / 8 animations 
   if (fmod(game->time, 7.5) == 0) {

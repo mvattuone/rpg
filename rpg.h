@@ -4,6 +4,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
 #include "map.h"
+#include "utils.h"
 
 #define PIXELS_PER_METER 16
 #define WINDOW_WIDTH 640
