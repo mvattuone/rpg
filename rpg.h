@@ -68,6 +68,7 @@ typedef struct {
 typedef struct {
   SDL_Window *window;
   Man man;
+  Man man2;
   Map map;
   Text text;
   float scrollX;

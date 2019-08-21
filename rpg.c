@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include "rpg.h"
 #include "physics.h"
+#define GRAVITY 9.8 * PIXELS_PER_METER
 
 int handleEvents(Game *game) {
   SDL_Event event;
@@ -135,44 +136,42 @@ int handleEvents(Game *game) {
   return 0;
 }
 
-Man initializeMan(SDL_Renderer *renderer, int spriteValue, float gravity) {
+Man initializeMan(SDL_Renderer *renderer, int spriteValue, float x, float y, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction) {
   SDL_Surface *manIdleSurface = createSurface("images/man-idle.png");
   SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
   Man man;
   man.idleTexture= SDL_CreateTextureFromSurface(renderer, manIdleSurface);
   man.runningTexture= SDL_CreateTextureFromSurface(renderer, manRunningSurface);
-  man.x = WINDOW_WIDTH/2;
-  man.y = WINDOW_HEIGHT/2;
-  man.angle = 0;
+  man.x = x;
+  man.y = y;
+  man.angle = angle;
   man.w = manIdleSurface->w / 8;
   man.h = manIdleSurface->h / 8;
-  man.mass = 80;
-  man.normalForce = man.mass * gravity * cos(90*M_PI); 
-  man.walkThrust = 1000.0f * PIXELS_PER_METER;
-  man.runThrust = 1500.0f * PIXELS_PER_METER;
+  man.mass = mass;
+  man.normalForce = man.mass * GRAVITY * cos(90*M_PI); 
+  man.walkThrust = walkThrust * PIXELS_PER_METER;
+  man.runThrust = runThrust * PIXELS_PER_METER;
   man.thrustX = 0;
   man.thrustY = 0;
   man.ax= 0;
   man.ay= 0;
   man.dx = 0;
   man.dy = 0;
-  man.status = IS_IDLE;
+  man.status = status;
   man.sprite = spriteValue;
-  man.direction = RIGHT;
+  man.direction = direction;
   SDL_FreeSurface(manRunningSurface);
   SDL_FreeSurface(manIdleSurface);
 
   return man;
 }
 
-void renderMan(Game * game, int x, int y) {
-  SDL_Rect manSrcRect = { game->man.sprite * game->man.w, game->man.h * game->man.direction, game->man.w, game->man.h};
-  SDL_Rect manRect = {x, y, game->man.w, game->man.h};
-  if (game->man.status == IS_RUNNING) {
-    SDL_RenderCopy(game->renderer, game->man.runningTexture, &manSrcRect, &manRect);
-  } else {
-    SDL_RenderCopy(game->renderer, game->man.idleTexture, &manSrcRect, &manRect);
-  }
+void renderMan(Man *man, int x, int y, SDL_Renderer *renderer) {
+  SDL_Rect manSrcRect = { man->sprite * man->w, man->h * man->direction, man->w, man->h};
+  SDL_Rect manRect = {x, y, man->w, man->h};
+  man->status == IS_RUNNING
+    ? SDL_RenderCopy(renderer, man->runningTexture, &manSrcRect, &manRect)
+    : SDL_RenderCopy(renderer, man->idleTexture, &manSrcRect, &manRect);
 }
 
 void renderText(Game *game, char* text, SDL_Color color, int x, int y, int w, int h) { 
@@ -208,7 +207,8 @@ void doRender(Game *game) {
       }
     }
 
-  renderMan(game, game->scrollX+game->man.x, game->scrollY+game->man.y);
+  renderMan(&game->man, game->man.x+game->scrollX, game->man.y+game->scrollY, game->renderer);
+  renderMan(&game->man2, game->man2.x+game->scrollX, game->man2.y+game->scrollY, game->renderer);
 
   SDL_SetRenderDrawColor(game->renderer, 25, 100, 155, 255);
 
@@ -240,7 +240,8 @@ void loadGame(Game *game) {
   game->scrollX = 0;
   game->scrollY = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
-  game->man = initializeMan(game->renderer, MAN_UP, game->gravity);
+  game->man = initializeMan(game->renderer, MAN_UP, WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 0, 80, 1250, 2400, IS_IDLE, RIGHT);
+  game->man2 = initializeMan(game->renderer, MAN_UP, 220, 440, 45, 55, 1250, 2400, IS_IDLE, RIGHT);
   game->map = initializeMap("map.lvl", 32);
   game->status = IS_ACTIVE;
 };
@@ -263,9 +264,21 @@ void detectCollisions(Game *game) {
     float floorY = game->map.tiles[x + y * game->map.width].y;
     int floorW = game->map.tiles[x + y * game->map.width].w;
     int floorH = game->map.tiles[x + y * game->map.width].h; 
+    int tileIndex = x + y * game->map.width;
+
+    // @TODO make this better
+    int man2IndexX = (game->man2.x + game->man2.w)/game->map.tileSize;
+    int man2IndexY = (game->man2.y + game->man2.h)/game->map.tileSize;
+    printf("%d\n", man2IndexX);
+    printf("%d\n", man2IndexY);
+    int man2Index = (man2IndexX) + (man2IndexY) * game->map.width;
+    if (tileIndex == man2Index) {
+      game->map.tiles[tileIndex].isOccupied = 1;
+    }
+
 
     if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
-      if (game->map.tiles[x + y * game->map.width].tileState == IS_SOLID) {
+      if (game->map.tiles[tileIndex].tileState == IS_SOLID || game->map.tiles[tileIndex].isOccupied == 1) {
 
         if (manX+manW/2 > floorX && manX+manW/2<floorX+floorW) {
           if (manY < floorH+floorY && manY > floorY && game->man.dy < 0) {
