@@ -255,22 +255,22 @@ int hasCollision(float x1, float y1, float x2, float y2, float w1, float h1, flo
 void detectCollisions(Game *game) {
   for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
-    float manX = game->man.x;
-    float manY = game->man.y;
-    float manW = game->man.w;
-    float manH = game->man.h;
+    float* manX = &game->man.x;
+    float* manY = &game->man.y;
+    int* manW = &game->man.w;
+    int* manH = &game->man.h;
     
     float floorX = game->map.tiles[x + y * game->map.width].x;
     float floorY = game->map.tiles[x + y * game->map.width].y;
     int floorW = game->map.tiles[x + y * game->map.width].w;
     int floorH = game->map.tiles[x + y * game->map.width].h; 
+
     int tileIndex = x + y * game->map.width;
 
     // @TODO make this better
     int man2IndexX = (game->man2.x + game->man2.w)/game->map.tileSize;
     int man2IndexY = (game->man2.y + game->man2.h)/game->map.tileSize;
-    printf("%d\n", man2IndexX);
-    printf("%d\n", man2IndexY);
+
     int man2Index = (man2IndexX) + (man2IndexY) * game->map.width;
     if (tileIndex == man2Index) {
       game->map.tiles[tileIndex].isOccupied = 1;
@@ -280,30 +280,26 @@ void detectCollisions(Game *game) {
     if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
       if (game->map.tiles[tileIndex].tileState == IS_SOLID || game->map.tiles[tileIndex].isOccupied == 1) {
 
-        if (manX+manW/2 > floorX && manX+manW/2<floorX+floorW) {
-          if (manY < floorH+floorY && manY > floorY && game->man.dy < 0) {
-            game->man.y = floorY+floorH;
-            manY = floorY+floorH;
+        if (*manX + *manW / 2 > floorX && *manX + *manW/ 2 < floorX+floorW) {
+          if (*manY < floorH+floorY && *manY > floorY && game->man.dy < 0) {
+            *manY = floorY+floorH;
             game->man.dy = 0;
           } 
         }
         
-        if (manX+manW > floorX && manX<floorX+floorW) {
-          if (manY+manH > floorY && manY < floorY && game->man.dy > 0) {
-            game->man.y = floorY-manH;
-            manY = floorY-manH;
+        if (*manX + *manW > floorX && *manX<floorX+floorW) {
+          if (*manY + *manH > floorY && *manY < floorY && game->man.dy > 0) {
+            *manY = floorY-*manH;
             game->man.dy = 0;
           }
         }
 
-        if (manY+manH/2 > floorY && manY<floorY+floorH) {
-          if (manX < floorX+floorW && manX+manW > floorX+floorW && game->man.dx < 0) {
-            game->man.x = floorX+floorW;
-            manX = floorX + floorW;
+        if (*manY + *manH/2 > floorY && *manY<floorY+floorH) {
+          if (*manX < floorX+floorW && *manX+*manW > floorX+floorW && game->man.dx < 0) {
+            *manX = floorX + floorW;
             game->man.dx = 0;
-          } else if (manX+manW > floorX && manX < floorX && game->man.dx > 0) {
-            game->man.x = floorX-manW;
-            manX = floorX - manW;
+          } else if (*manX+*manW > floorX && *manX < floorX && game->man.dx > 0) {
+            *manX = floorX - *manW;
             game->man.dx = 0;
           }
         }
