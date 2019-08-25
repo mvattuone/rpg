@@ -16,32 +16,48 @@ Map initializeMap(char* fileName, int tileSize) {
     printf("Map could not be loaded.");
     exit(1);
   } else {
-    fscanf(mapData, "%d %d\n", &map.width, &map.height);
-    Tile **arr = malloc(map.width * map.height * sizeof(Tile));
+    fscanf(mapData, "%d %d %d\n", &map.width, &map.height, &map.characterCount);
+    Tile **tiles = malloc(map.width * map.height * sizeof(Tile));
+    Man **characters = malloc(map.characterCount * sizeof(Man));
     char c;
     for(int i=0; i < map.width * map.height; i++) {
-      arr[i] = (Tile *)malloc(sizeof(Tile));
-      arr[i]->w = tileSize;
-      arr[i]->h = tileSize;
-      arr[i]->x = (i % map.width) * tileSize;
-      arr[i]->y = floor(i/map.width) * tileSize;
+      tiles[i] = (Tile *)malloc(sizeof(Tile));
+      tiles[i]->w = tileSize;
+      tiles[i]->h = tileSize;
+      tiles[i]->x = (i % map.width) * tileSize;
+      tiles[i]->y = floor(i/map.width) * tileSize;
     }
 
     int count = 0;
+    int characterCount = 0;
+    char d;
     while ((c = fgetc(mapData)) && count < map.width * map.height) {
       if (c != '\n' && !isspace(c)) {
-        arr[count]->tileId = c; 
-        arr[count]->tileState = fgetc(mapData) - '0'; 
+        tiles[count]->tileId = c; 
+        tiles[count]->tileState = fgetc(mapData) - '0'; 
+        if ((d = fgetc(mapData)) != '\n' && !isspace(d)) {
+          characters[characterCount] = (Man *)malloc(sizeof(Man));
+          characters[characterCount]->id = d;
+          characters[characterCount]->x = count % map.width * tileSize;
+          characters[characterCount]->y = ceil(count/map.width) * tileSize; 
+          characterCount++;
+        }
         count++;
       }
     } 
 
     for (int i = 0; i < map.width * map.height; i++) {
-      map.tiles[i] = *arr[i];
-      free(arr[i]);
+      map.tiles[i] = *tiles[i];
+      free(tiles[i]);
     }
 
-    free(arr);
+    for (int i = 0; i < map.characterCount; i++) {
+      map.characters[i] = *characters[i];
+      free(characters[i]);
+    }
+
+    free(tiles);
+    free(characters);
   }
 
   fclose(mapData);
