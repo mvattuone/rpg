@@ -17,6 +17,7 @@ typedef enum {
   IS_IDLE,
   IS_RUNNING
 } Status;
+
 typedef struct {
   char id;
   float x, y;
@@ -34,6 +35,7 @@ typedef struct {
   float walkThrust;
   float runThrust;
   int isMain;
+  int currentTile;
   char *name; // string
   int sprite;
   Direction direction;

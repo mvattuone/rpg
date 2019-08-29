@@ -177,7 +177,6 @@ void doRender(Game *game) {
       }
     }
 
-  // for character in map.characters renderMan
   for (int i = 0; i < game->map.characterCount; i++) {
     renderMan(&game->map.characters[i], game->map.characters[i].x+game->scrollX, game->map.characters[i].y+game->scrollY, game->renderer);
   }
@@ -206,20 +205,24 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
   return font;
 }
 
-void loadGame(Game *game) {
-  game->dt = 1.0f/60.0f;
-  game->text.font = initializeFont("fonts/slkscr.ttf", 48);
-  game->scrollX = 0;
-  game->scrollY = 0;
-  game->terrainTexture = initializeTerrain(game->renderer);
-  game->map = initializeMap("map.lvl", 32);
+void loadMap(Game *game, char* fileName) {
+  game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.characterCount; i++) {
     game->map.characters[i] = initializeMan(game->renderer, &game->map.characters[i], UP, 0, 80, 1250, 2400, IS_IDLE, RIGHT);
     if (game->map.characters[i].isMain) { 
       game->mainCharacter = &game->map.characters[i];
     }
   }
+}
+
+void loadGame(Game *game) {
+  game->dt = 1.0f/60.0f;
+  game->text.font = initializeFont("fonts/slkscr.ttf", 48);
+  game->scrollX = 0;
+  game->scrollY = 0;
+  game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
+  loadMap(game, "map_02.lvl");
 };
 
 // Detect if two objects in space have a collision
@@ -238,27 +241,31 @@ void detectCollisions(Game *game) {
     int* manW = &game->mainCharacter->w;
     int* manH = &game->mainCharacter->h;
     
-    float floorX = game->map.tiles[x + y * game->map.width].x;
-    float floorY = game->map.tiles[x + y * game->map.width].y;
-    int floorW = game->map.tiles[x + y * game->map.width].w;
-    int floorH = game->map.tiles[x + y * game->map.width].h; 
-
     int tileIndex = x + y * game->map.width;
+    float floorX = game->map.tiles[tileIndex].x;
+    float floorY = game->map.tiles[tileIndex].y;
+    int floorW = game->map.tiles[tileIndex].w;
+    int floorH = game->map.tiles[tileIndex].h; 
+
 
     for (int i = 0; i < game->map.characterCount; i++) {
+      int characterIndexX = (game->map.characters[i].x + game->map.characters[i].w/2)/game->map.tileSize;
+      int characterIndexY = (game->map.characters[i].y + game->map.characters[i].h/2)/game->map.tileSize;
+      game->map.characters[i].currentTile = characterIndexX + characterIndexY * game->map.width;
       if (!game->map.characters[i].isMain) {
-        int characterIndexX = (game->map.characters[i].x + game->map.characters[i].w/2)/game->map.tileSize;
-        int characterIndexY = (game->map.characters[i].y + game->map.characters[i].h/2)/game->map.tileSize;
-
-        int characterIndex = (characterIndexX) + (characterIndexY) * game->map.width;
-        if (tileIndex == characterIndex) {
+        if (tileIndex == game->map.characters[i].currentTile) {
           game->map.tiles[tileIndex].isOccupied = 1;
         }
-      }
+      } 
     }
 
 
     if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
+      if (game->map.tiles[tileIndex].tileState == IS_TELEPORT) {
+        if (tileIndex == game->mainCharacter->currentTile) {
+          loadMap(game, game->map.tiles[tileIndex].teleportTo);
+        }
+      }
       if (game->map.tiles[tileIndex].tileState == IS_SOLID || game->map.tiles[tileIndex].isOccupied == 1) {
 
         if (*manX + *manW / 2 > floorX && *manX + *manW/ 2 < floorX+floorW) {
@@ -284,7 +291,6 @@ void detectCollisions(Game *game) {
             *manDx = 0;
           }
         }
-        fflush(stdout);
       }
     }
   }

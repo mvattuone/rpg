@@ -5,6 +5,7 @@
 typedef enum {
   IS_WALKABLE,
   IS_SOLID,
+  IS_TELEPORT
 } TileState;
 
 typedef struct {
@@ -12,6 +13,7 @@ typedef struct {
   TileState tileState;
   int isOccupied;
   int x,y,w,h;
+  char teleportTo[20];
 } Tile;
 
 typedef struct {

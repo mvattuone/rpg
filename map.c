@@ -32,14 +32,37 @@ Map initializeMap(char* fileName, int tileSize) {
     int characterCount = 0;
     char d;
     while ((c = fgetc(mapData)) && count < map.width * map.height) {
-      if (c != '\n' && !isspace(c)) {
+      if (c != '\n' && c != ' ' && !isspace(c)) {
         tiles[count]->tileId = c; 
         tiles[count]->tileState = fgetc(mapData) - '0'; 
-        if ((d = fgetc(mapData)) != '\n' && !isspace(d)) {
+        if (tiles[count]->tileState == IS_TELEPORT) {
+          char mapId[2] = {0, 0};
+          int n = 0;
+          while (n < 2) {
+              char e = fgetc(mapData);
+              if (e == '\n' && e == ' ' && isspace(e)) {
+                continue;
+              }
+              printf("%c", e); 
+              fflush(stdout);
+              mapId[n] = e; 
+              fflush(stdout);
+              n++;
+          }
+          printf("my map id -> %s\n", mapId);
+          fflush(stdout);
+          printf("initial teleport to %s\n", tiles[count]->teleportTo);
+          fflush(stdout);
+          snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
+          printf("later teleport to %s\n", tiles[count]->teleportTo);
+          /* printf("Bar Baz %s", tiles[count]->teleportTo); */
+          fflush(stdout);
+        } else if ((d = fgetc(mapData)) != '\n' && !isspace(d)) {
           characters[characterCount] = (Man *)malloc(sizeof(Man));
           characters[characterCount]->id = d;
           characters[characterCount]->x = count % map.width * tileSize;
           characters[characterCount]->y = ceil(count/map.width) * tileSize; 
+          characters[characterCount]->currentTile = count % map.width + ceil(count/map.width) * map.width;
           characterCount++;
         }
         count++;
