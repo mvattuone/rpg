@@ -25,6 +25,8 @@ Man initializeMan(SDL_Renderer *renderer, Man *man, int spriteValue, float angle
   man->moveRight = 0;
   man->moveUp = 0;
   man->moveDown = 0;
+  man->totalMovedX = 0;
+  man->totalMovedY = 0;
   man->ax= 0;
   man->ay= 0;
   man->dx = 0;

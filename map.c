@@ -76,7 +76,8 @@ Map initializeMap(char* fileName, int tileSize) {
            
           characters[characterCount]->x = count % map.width * tileSize;
           characters[characterCount]->y = ceil(count/map.width) * tileSize; 
-          characters[characterCount]->currentTile = count % map.width + ceil(count/map.width) * map.width;
+          characters[characterCount]->startingTile = count % map.width + ceil(count/map.width) * map.width;
+          characters[characterCount]->currentTile = characters[characterCount]->startingTile;
           characterCount++;
         }
         count++;

@@ -40,12 +40,15 @@ typedef struct {
   int moveRight;
   int moveUp;
   int moveDown;
+  float totalMovedX;
+  float totalMovedY;
   float ax;
   float ay;
   float walkThrust;
   float runThrust;
   int isMain;
   int currentTile;
+  int startingTile;
   char *name; // string
   int sprite;
   Direction direction;

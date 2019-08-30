@@ -284,7 +284,7 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
 void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.characterCount; i++) {
-    game->map.characters[i] = initializeMan(game->renderer, &game->map.characters[i], UP, 0, 80, 1250, 2400, IS_IDLE, RIGHT);
+    game->map.characters[i] = initializeMan(game->renderer, &game->map.characters[i], UP, 0, 80, 950, 2400, IS_IDLE, RIGHT);
     if (game->map.characters[i].isMain) {
       game->mainCharacter = &game->map.characters[i];
     }
@@ -310,6 +310,8 @@ int hasCollision(float x1, float y1, float x2, float y2, float w1, float h1, flo
 void detectCollisions(Game *game) {
   for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
+    int tileIndex = x + y * game->map.width;
+    if (tileIndex < 0) continue;
     float* manX = &game->mainCharacter->x;
     float* manY = &game->mainCharacter->y;
     float* manDx = &game->mainCharacter->dx;
@@ -317,18 +319,21 @@ void detectCollisions(Game *game) {
     int* manW = &game->mainCharacter->w;
     int* manH = &game->mainCharacter->h;
     
-    int tileIndex = x + y * game->map.width;
     float floorX = game->map.tiles[tileIndex].x;
     float floorY = game->map.tiles[tileIndex].y;
     int floorW = game->map.tiles[tileIndex].w;
     int floorH = game->map.tiles[tileIndex].h; 
-
 
     for (int i = 0; i < game->map.characterCount; i++) {
       int characterIndexX = (game->map.characters[i].x + game->map.characters[i].w/2)/game->map.tileSize;
       int characterIndexY = (game->map.characters[i].y + game->map.characters[i].h/2)/game->map.tileSize;
       game->map.characters[i].currentTile = characterIndexX + characterIndexY * game->map.width;
       if (!game->map.characters[i].isMain) {
+        if (game->map.tiles[tileIndex].isOccupied && tileIndex != game->map.characters[i].currentTile) {
+          printf("tileIndex %d", tileIndex);
+          fflush(stdout);
+          game->map.tiles[tileIndex].isOccupied = 0;
+        }
         if (tileIndex == game->map.characters[i].currentTile) {
           game->map.tiles[tileIndex].isOccupied = 1;
         }
@@ -393,11 +398,44 @@ Man* getCharacter(Game *game, char* id) {
   exit(1);
 }
 
+void moveLeft(Game *game, Man *man, int tileDistance) {
+  if (man->totalMovedX >= -(tileDistance * game->map.tileSize)) {
+    man->isMoving = 1;
+    man->moveLeft = 1;
+    man->totalMovedX += man->dx * game->dt;
+    printf("left left %d\n", abs(man->currentTile - man->startingTile));
+    if (abs(man->currentTile - man->startingTile) >= tileDistance) {
+      man->isMoving = 0;
+      man->moveLeft = 0;
+      man->totalMovedX = 0;
+    }
+  }
+}
+
+void moveRight(Game *game, Man *man, int tileDistance) {
+  printf("totalmovedX in moveRight is %f\n", man->totalMovedX);
+  if (man->totalMovedX <= tileDistance * game->map.tileSize) {
+    man->isMoving = 1;
+    man->moveRight = 1;
+    man->totalMovedX += man->dx * game->dt;
+    printf(" right right %d\n", abs(man->currentTile - man->startingTile));
+    if (abs(man->currentTile - man->startingTile) >= tileDistance) {
+      man->isMoving = 0;
+      man->moveRight = 0;
+      man->totalMovedX = 0;
+    }
+  } 
+}
+
 void process(Game *game) {
   game->time++;
 
   if (!strncmp(game->map.name, "map_003.lvl", sizeof *game->map.name)) { 
-    /* Man* townsperson = getCharacter(game, "001"); */
+    Man* townsperson = getCharacter(game, "001");
+    printf("current %d\n", townsperson->currentTile);
+    printf("start %d\n", townsperson->startingTile);
+    fflush(stdout);
+    moveLeft(game, townsperson, 2);
   }
 
   for (int i = 0; i < game->map.characterCount; i++) {
@@ -505,8 +543,8 @@ int main(int argc, char *argv[]) {
   int done = 0;
   while (!done) {
     done = handleEvents(&game);
-    process(&game);
     handlePhysics(&game);
+    process(&game);
     doRender(&game);
 
     SDL_Delay(10);
