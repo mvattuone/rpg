@@ -15,18 +15,6 @@ int handleEvents(Game *game) {
       case SDL_QUIT:
         return 1;
         break;
-      case SDL_KEYDOWN:
-        switch (event.key.keysym.sym) {
-          case SDLK_LEFT:
-          case SDLK_RIGHT:
-          case SDLK_UP:
-          case SDLK_DOWN: 
-            if (!game->startTime) {
-              game->startTime = toSeconds(SDL_GetTicks());
-            }
-            break;
-        }
-        break;
       default:
         break;
     }
@@ -35,99 +23,187 @@ int handleEvents(Game *game) {
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
-    float frictionalForceX = 0;
-    float frictionalForceY = 0;
-    float cof = 0.41; // This will be attached to the tile the player is on eventually
-    int directionX = 0;
-    int directionY = 0;
     if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_UP] || state[SDL_SCANCODE_DOWN]) {
-      frictionalForceX = cof * game->mainCharacter->normalForce;
-      frictionalForceY = cof * game->mainCharacter->normalForce;
+      game->mainCharacter->isMoving = 1;
     } 
+    if (state[SDL_SCANCODE_SPACE]) {
+      game->mainCharacter->isRunning = 1;
+    }
     if (state[SDL_SCANCODE_LEFT]) {
-      directionX = -1;
-      game->mainCharacter->thrustX = state[SDL_SCANCODE_SPACE] ? game->mainCharacter->runThrust : game->mainCharacter->walkThrust;
+      game->mainCharacter->moveLeft = 1;
       if (state[SDL_SCANCODE_RIGHT]) {
-        directionX = 0;
+        game->mainCharacter->moveLeft  = 0;
       }
     } else if (!state[SDL_SCANCODE_LEFT]) {
-      directionX = game->mainCharacter->dx < 0 ? 1 : 0;
+      game->mainCharacter->moveLeft = 0;
       if (state[SDL_SCANCODE_RIGHT]) {
-        directionX = 1;
+        game->mainCharacter->moveRight = 1;
       } else {
-        game->mainCharacter->thrustX *= -1;
+        game->mainCharacter->moveRight = 0;
       }
     }
     if (state[SDL_SCANCODE_RIGHT]) {
-      directionX = 1;
-      game->mainCharacter->thrustX = state[SDL_SCANCODE_SPACE] ? game->mainCharacter->runThrust : game->mainCharacter->walkThrust;
+      game->mainCharacter->moveRight = 1;
       if (state[SDL_SCANCODE_LEFT]) {
-        directionX = 0;
+        game->mainCharacter->moveRight = 0;
       }
     } else if (!state[SDL_SCANCODE_RIGHT]) {
-      directionX = game->mainCharacter->dx > 0 ? -1 : 0;
-      directionX = game->mainCharacter->dx < 0 ? 1 : directionX;
+      game->mainCharacter->moveRight = 0;
       if (state[SDL_SCANCODE_LEFT]) {
-        directionX = -1;
+        game->mainCharacter->moveLeft = 1;
       } else {
-        game->mainCharacter->thrustX *= -1;
+        game->mainCharacter->moveLeft = 0;
       }
     }
     if (state[SDL_SCANCODE_UP]) {
-      directionY = -1;
-      game->mainCharacter->thrustY = state[SDL_SCANCODE_SPACE] ? game->mainCharacter->runThrust : game->mainCharacter->walkThrust; 
+      game->mainCharacter->moveUp = 1;
       if (state[SDL_SCANCODE_DOWN]) {
-        directionY = 0;
+        game->mainCharacter->moveUp = 0;
       }
     } else if (!state[SDL_SCANCODE_UP]) {
-      directionY = game->mainCharacter->dy < 0 ? 1 : 0;
+      game->mainCharacter->moveUp = 0;
       if (state[SDL_SCANCODE_DOWN]) {
-        directionY = 1;
+        game->mainCharacter->moveDown = 1;
       } else {
-        game->mainCharacter->thrustY *= -1;
+        game->mainCharacter->moveDown = 0;
       }
     }
     if (state[SDL_SCANCODE_DOWN]) {
-      directionY = 1;
-      game->mainCharacter->thrustY = state[SDL_SCANCODE_SPACE] ? game->mainCharacter->runThrust : game->mainCharacter->walkThrust; 
+      game->mainCharacter->moveDown = 1;
       if (state[SDL_SCANCODE_UP]) {
-        directionY = 0;
+        game->mainCharacter->moveDown = 0;
       }
     } else if (!state[SDL_SCANCODE_DOWN]) {
-      directionY = game->mainCharacter->dy > 0 ? -1 : 0;
-      directionY = game->mainCharacter->dy < 0 ? 1 : directionY;
+      game->mainCharacter->moveDown = 0;
       if (state[SDL_SCANCODE_UP]) {
-        directionY = -1;
+        game->mainCharacter->moveUp = 1;
       } else {
-        game->mainCharacter->thrustY *= -1;
+        game->mainCharacter->moveUp = 0;
+        game->mainCharacter->moveDown = 0;
       }
     }
 
-    if (frictionalForceX > game->mainCharacter->thrustX) {
-      frictionalForceX = game->mainCharacter->thrustX;
-    }
+    printf("%d\n", game->mainCharacter->moveLeft);
+    printf("%d\n", game->mainCharacter->moveRight);
+    printf("%d\n", game->mainCharacter->moveUp);
+    printf("%d\n", game->mainCharacter->moveDown);
+    fflush(stdout);
 
-    if (frictionalForceY > game->mainCharacter->thrustY) {
-      frictionalForceY = game->mainCharacter->thrustY;
-    }
-
-    game->mainCharacter->ax = (((directionX * game->mainCharacter->thrustX) - (directionX * frictionalForceX)) / game->mainCharacter->mass);
-    game->mainCharacter->ay = (((directionY * game->mainCharacter->thrustY) - (directionY * frictionalForceY)) / game->mainCharacter->mass);
-    game->mainCharacter->dx = accelerate(game->mainCharacter->dx, game->mainCharacter->ax, game->dt); 
-    game->mainCharacter->dy = accelerate(game->mainCharacter->dy, game->mainCharacter->ay, game->dt); 
-
+    // Clamp
     if (!state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_DOWN] && !state[SDL_SCANCODE_LEFT] && !state[SDL_SCANCODE_RIGHT]) {
-      if (fabs(game->mainCharacter->dx) < 2) {
-        game->mainCharacter->dx = 0;
-        game->mainCharacter->ax = 0;
-        game->mainCharacter->thrustX = 0;
-        directionX = 0;
+      game->mainCharacter->isMoving = 0;
+      game->mainCharacter->isRunning = 0;
+      game->mainCharacter->moveLeft = 0;
+      game->mainCharacter->moveRight = 0;
+      game->mainCharacter->moveUp = 0;
+      game->mainCharacter->moveDown = 0;
+    }
+  }
+ 
+  return 0;
+}
+
+int handlePhysics(Game *game) {
+  if (game->status == IS_ACTIVE) {
+    float cof = 0.41; // This will be attached to the tile the player is on eventually
+    for (int i = 0; i < game->map.characterCount; i++) {
+      if (game->map.characters[i].isMoving) {
+        game->map.characters[i].frictionalForceX = cof * game->map.characters[i].normalForce;
+        game->map.characters[i].frictionalForceY = cof * game->map.characters[i].normalForce;
+      } 
+      if (game->map.characters[i].moveLeft) {
+        game->map.characters[i].directionX = -1;
+        game->map.characters[i].thrustX = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust;
+        if (game->map.characters[i].moveRight) {
+          game->map.characters[i].directionX = 0;
+        }
+      } else if (!game->map.characters[i].moveLeft) {
+        game->map.characters[i].directionX = game->map.characters[i].dx < 0 ? 1 : 0;
+        if (game->map.characters[i].moveRight) {
+          game->map.characters[i].directionX = 1;
+        } else {
+          game->map.characters[i].thrustX *= -1;
+        }
       }
-      if (fabs(game->mainCharacter->dy) < 2) {
-        game->mainCharacter->dy = 0;
-        game->mainCharacter->ay = 0;
-        game->mainCharacter->thrustY = 0;
-        directionY = 0;
+      if (game->map.characters[i].moveRight) {
+        game->map.characters[i].directionX = 1;
+        game->map.characters[i].thrustX = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust;
+        if (game->map.characters[i].moveLeft) {
+          game->map.characters[i].directionX = 0;
+        }
+      } else if (!game->map.characters[i].moveRight) {
+        game->map.characters[i].directionX = game->map.characters[i].dx > 0 ? -1 : 0;
+        game->map.characters[i].directionX = game->map.characters[i].dx < 0 ? 1 : game->map.characters[i].directionX;
+        if (game->map.characters[i].moveLeft) {
+          game->map.characters[i].directionX = -1;
+        } else {
+          game->map.characters[i].thrustX *= -1;
+        }
+      }
+      if (game->map.characters[i].moveUp) {
+        game->map.characters[i].directionY = -1;
+        game->map.characters[i].thrustY = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust; 
+        if (game->map.characters[i].moveDown) {
+          game->map.characters[i].directionY = 0;
+        }
+      } else if (!game->map.characters[i].moveUp) {
+        game->map.characters[i].directionY = game->map.characters[i].dy < 0 ? 1 : 0;
+        if (game->map.characters[i].moveDown) {
+          game->map.characters[i].directionY = 1;
+        } else {
+          game->map.characters[i].thrustY *= -1;
+        }
+      }
+      if (game->map.characters[i].moveDown) {
+        game->map.characters[i].directionY = 1;
+        game->map.characters[i].thrustY = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust; 
+        if (game->map.characters[i].moveUp) {
+          game->map.characters[i].directionY = 0;
+        }
+      } else if (!game->map.characters[i].moveDown) {
+        game->map.characters[i].directionY = game->map.characters[i].dy > 0 ? -1 : 0;
+        game->map.characters[i].directionY = game->map.characters[i].dy < 0 ? 1 : game->map.characters[i].directionY;
+        if (game->map.characters[i].moveUp) {
+          game->map.characters[i].directionY = -1;
+        } else {
+          game->map.characters[i].thrustY *= -1;
+        }
+      }
+
+      if (game->map.characters[i].frictionalForceX > game->map.characters[i].thrustX) {
+        game->map.characters[i].frictionalForceX = game->map.characters[i].thrustX;
+      }
+
+      if (game->map.characters[i].frictionalForceY > game->map.characters[i].thrustY) {
+        game->map.characters[i].frictionalForceY = game->map.characters[i].thrustY;
+      }
+
+      game->map.characters[i].ax = (((game->map.characters[i].directionX * game->map.characters[i].thrustX) - (game->map.characters[i].directionX * game->map.characters[i].frictionalForceX)) / game->map.characters[i].mass);
+      game->map.characters[i].ay = (((game->map.characters[i].directionY * game->map.characters[i].thrustY) - (game->map.characters[i].directionY * game->map.characters[i].frictionalForceY)) / game->map.characters[i].mass);
+      game->map.characters[i].dx = accelerate(game->map.characters[i].dx, game->map.characters[i].ax, game->dt); 
+      game->map.characters[i].dy = accelerate(game->map.characters[i].dy, game->map.characters[i].ay, game->dt); 
+
+      printf("dx %f\n", game->map.characters[0].dx);
+      printf("dy %f\n", game->map.characters[0].dy);
+      printf("ax %f\n", game->map.characters[0].ax);
+      printf("ay %f\n", game->map.characters[0].ay);
+      printf("ff %d\n", game->map.characters[0].frictionalForceX);
+      printf("ffY %d\n", game->map.characters[0].frictionalForceY);
+
+      // Clamp
+      if (!game->map.characters[i].isMoving) {
+        if (fabs(game->map.characters[i].dx) < 2) {
+          game->map.characters[i].dx = 0;
+          game->map.characters[i].ax = 0;
+          game->map.characters[i].thrustX = 0;
+          game->map.characters[i].directionX = 0;
+        }
+        if (fabs(game->map.characters[i].dy) < 2) {
+          game->map.characters[i].dy = 0;
+          game->map.characters[i].ay = 0;
+          game->map.characters[i].thrustY = 0;
+          game->map.characters[i].directionY = 0;
+        }
       }
     }
   }
@@ -209,7 +285,7 @@ void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.characterCount; i++) {
     game->map.characters[i] = initializeMan(game->renderer, &game->map.characters[i], UP, 0, 80, 1250, 2400, IS_IDLE, RIGHT);
-    if (game->map.characters[i].isMain) { 
+    if (game->map.characters[i].isMain) {
       game->mainCharacter = &game->map.characters[i];
     }
   }
@@ -222,7 +298,7 @@ void loadGame(Game *game) {
   game->scrollY = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
-  loadMap(game, "map_02.lvl");
+  loadMap(game, "map_03.lvl");
 };
 
 // Detect if two objects in space have a collision
@@ -305,11 +381,29 @@ int getDirection(Game *game) {
   return (int)fabs(floor((game->mainCharacter->angle < 270 ? game->mainCharacter->angle + 90 : game->mainCharacter->angle - 270)/45));
 };
 
+Man* getCharacter(Game *game, char* id) {
+  for (int i = 0; i < game->map.characterCount; i++) {
+    if (!strncmp(game->map.characters[i].id, id, sizeof game->map.characters[i].id)) {
+      return &game->map.characters[i];
+    }
+  }
+
+  printf("Could not find character with id %s", id);
+  SDL_Quit();
+  exit(1);
+}
+
 void process(Game *game) {
   game->time++;
 
-  game->mainCharacter->x += game->mainCharacter->dx * game->dt; 
-  game->mainCharacter->y += game->mainCharacter->dy * game->dt;
+  if (!strncmp(game->map.name, "map_003.lvl", sizeof *game->map.name)) { 
+    /* Man* townsperson = getCharacter(game, "001"); */
+  }
+
+  for (int i = 0; i < game->map.characterCount; i++) {
+    game->map.characters[i].x += game->map.characters[i].dx * game->dt; 
+    game->map.characters[i].y += game->map.characters[i].dy * game->dt;
+  }
 
 
   game->scrollX = -game->mainCharacter->x+WINDOW_WIDTH/2;
@@ -412,6 +506,7 @@ int main(int argc, char *argv[]) {
   while (!done) {
     done = handleEvents(&game);
     process(&game);
+    handlePhysics(&game);
     doRender(&game);
 
     SDL_Delay(10);

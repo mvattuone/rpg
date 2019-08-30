@@ -19,7 +19,7 @@ typedef enum {
 } Status;
 
 typedef struct {
-  char id;
+  char id[3];
   float x, y;
   int w, h;
   float angle;
@@ -27,9 +27,19 @@ typedef struct {
   float mass;
   float forceX;
   float forceY;
+  int directionX;
+  int directionY;
   float normalForce;
   float thrustX;
   float thrustY;
+  int frictionalForceX;
+  int frictionalForceY;
+  int isMoving;
+  int isRunning;
+  int moveLeft;
+  int moveRight;
+  int moveUp;
+  int moveDown;
   float ax;
   float ay;
   float walkThrust;

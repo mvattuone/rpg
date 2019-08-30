@@ -43,23 +43,37 @@ Map initializeMap(char* fileName, int tileSize) {
               if (e == '\n' && e == ' ' && isspace(e)) {
                 continue;
               }
-              printf("%c", e); 
-              fflush(stdout);
               mapId[n] = e; 
-              fflush(stdout);
               n++;
           }
-          printf("my map id -> %s\n", mapId);
-          fflush(stdout);
-          printf("initial teleport to %s\n", tiles[count]->teleportTo);
-          fflush(stdout);
           snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
-          printf("later teleport to %s\n", tiles[count]->teleportTo);
-          /* printf("Bar Baz %s", tiles[count]->teleportTo); */
-          fflush(stdout);
-        } else if ((d = fgetc(mapData)) != '\n' && !isspace(d)) {
+        } else if ((d = fgetc(mapData)) == 'x' || d == 'o') {
           characters[characterCount] = (Man *)malloc(sizeof(Man));
-          characters[characterCount]->id = d;
+          printf("at first %c\n", d);
+          fflush(stdout);
+          if (d == 'x' || d == 'o') {
+            printf("%c\n", d);
+            fflush(stdout);
+
+            if (d == 'x') {
+              characters[characterCount]->isMain = 1;        
+            } else if (d == 'o') {
+              characters[characterCount]->isMain = 0;
+            }
+
+            char z;
+            int n = 0;
+            while((z = fgetc(mapData)) != '\n' && !isspace(z) && n < 3) {
+              printf("z ist %c\n", z);
+              fflush(stdout);
+              if (z == '\n' && z == ' ' && isspace(z)) {
+                continue;
+              }
+              characters[characterCount]->id[n] = z;
+              n++;
+            }
+          }
+           
           characters[characterCount]->x = count % map.width * tileSize;
           characters[characterCount]->y = ceil(count/map.width) * tileSize; 
           characters[characterCount]->currentTile = count % map.width + ceil(count/map.width) * map.width;
@@ -75,6 +89,8 @@ Map initializeMap(char* fileName, int tileSize) {
     }
 
     for (int i = 0; i < map.characterCount; i++) {
+      printf("ismain %d\n", characters[i]->isMain);
+      fflush(stdout);
       map.characters[i] = *characters[i];
       free(characters[i]);
     }
