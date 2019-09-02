@@ -20,6 +20,7 @@ typedef enum {
 
 typedef struct {
   char id[3];
+  float startingX, startingY;
   float x, y;
   int w, h;
   float angle;

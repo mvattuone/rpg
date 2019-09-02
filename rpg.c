@@ -83,11 +83,11 @@ int handleEvents(Game *game) {
       }
     }
 
-    printf("%d\n", game->mainCharacter->moveLeft);
-    printf("%d\n", game->mainCharacter->moveRight);
-    printf("%d\n", game->mainCharacter->moveUp);
-    printf("%d\n", game->mainCharacter->moveDown);
-    fflush(stdout);
+    /* printf("%d\n", game->mainCharacter->moveLeft); */
+    /* printf("%d\n", game->mainCharacter->moveRight); */
+    /* printf("%d\n", game->mainCharacter->moveUp); */
+    /* printf("%d\n", game->mainCharacter->moveDown); */
+    /* fflush(stdout); */
 
     // Clamp
     if (!state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_DOWN] && !state[SDL_SCANCODE_LEFT] && !state[SDL_SCANCODE_RIGHT]) {
@@ -170,25 +170,19 @@ int handlePhysics(Game *game) {
         }
       }
 
-      if (game->map.characters[i].frictionalForceX > game->map.characters[i].thrustX) {
-        game->map.characters[i].frictionalForceX = game->map.characters[i].thrustX;
-      }
-
-      if (game->map.characters[i].frictionalForceY > game->map.characters[i].thrustY) {
-        game->map.characters[i].frictionalForceY = game->map.characters[i].thrustY;
-      }
-
       game->map.characters[i].ax = (((game->map.characters[i].directionX * game->map.characters[i].thrustX) - (game->map.characters[i].directionX * game->map.characters[i].frictionalForceX)) / game->map.characters[i].mass);
       game->map.characters[i].ay = (((game->map.characters[i].directionY * game->map.characters[i].thrustY) - (game->map.characters[i].directionY * game->map.characters[i].frictionalForceY)) / game->map.characters[i].mass);
       game->map.characters[i].dx = accelerate(game->map.characters[i].dx, game->map.characters[i].ax, game->dt); 
       game->map.characters[i].dy = accelerate(game->map.characters[i].dy, game->map.characters[i].ay, game->dt); 
 
-      printf("dx %f\n", game->map.characters[0].dx);
-      printf("dy %f\n", game->map.characters[0].dy);
-      printf("ax %f\n", game->map.characters[0].ax);
-      printf("ay %f\n", game->map.characters[0].ay);
-      printf("ff %d\n", game->map.characters[0].frictionalForceX);
-      printf("ffY %d\n", game->map.characters[0].frictionalForceY);
+      /* printf("is man moving %d\n", game->map.characters[1].isMoving); */
+      /* printf("dx %f\n", game->map.characters[1].dx); */
+      /* printf("dy %f\n", game->map.characters[1].dy); */
+      /* printf("ax %f\n", game->map.characters[1].ax); */
+      /* printf("ay %f\n", game->map.characters[1].ay); */
+      /* printf("ff %d\n", game->map.characters[1].frictionalForceX); */
+      /* printf("ffY %d\n", game->map.characters[1].frictionalForceY); */
+      /* fflush(stdout); */
 
       // Clamp
       if (!game->map.characters[i].isMoving) {
@@ -197,12 +191,14 @@ int handlePhysics(Game *game) {
           game->map.characters[i].ax = 0;
           game->map.characters[i].thrustX = 0;
           game->map.characters[i].directionX = 0;
+          game->map.characters[i].frictionalForceX = 0;
         }
         if (fabs(game->map.characters[i].dy) < 2) {
           game->map.characters[i].dy = 0;
           game->map.characters[i].ay = 0;
           game->map.characters[i].thrustY = 0;
           game->map.characters[i].directionY = 0;
+          game->map.characters[i].frictionalForceY = 0;
         }
       }
     }
@@ -330,8 +326,8 @@ void detectCollisions(Game *game) {
       game->map.characters[i].currentTile = characterIndexX + characterIndexY * game->map.width;
       if (!game->map.characters[i].isMain) {
         if (game->map.tiles[tileIndex].isOccupied && tileIndex != game->map.characters[i].currentTile) {
-          printf("tileIndex %d", tileIndex);
-          fflush(stdout);
+          /* printf("tileIndex %d", tileIndex); */
+          /* fflush(stdout); */
           game->map.tiles[tileIndex].isOccupied = 0;
         }
         if (tileIndex == game->map.characters[i].currentTile) {
@@ -399,26 +395,27 @@ Man* getCharacter(Game *game, char* id) {
 }
 
 void moveLeft(Game *game, Man *man, int tileDistance) {
-  if (man->totalMovedX >= -(tileDistance * game->map.tileSize)) {
+  printf("totalmovedX in moveLeft is %f\n", man->totalMovedX);
+  if (fabs(man->totalMovedX) >= (tileDistance * game->map.tileSize)/2) {
+    man->isMoving = 0;
+    man->moveLeft = 0;
+    return;
+  } else { 
     man->isMoving = 1;
     man->moveLeft = 1;
-    man->totalMovedX += man->dx * game->dt;
-    printf("left left %d\n", abs(man->currentTile - man->startingTile));
-    if (abs(man->currentTile - man->startingTile) >= tileDistance) {
-      man->isMoving = 0;
-      man->moveLeft = 0;
-      man->totalMovedX = 0;
-    }
+    man->totalMovedX = man->x - man->startingX;
   }
+  printf("total Moved HELLOoooo, %f\n", man->totalMovedX);
+  fflush(stdout);
 }
 
 void moveRight(Game *game, Man *man, int tileDistance) {
-  printf("totalmovedX in moveRight is %f\n", man->totalMovedX);
+  /* printf("totalmovedX in moveRight is %f\n", man->totalMovedX); */
   if (man->totalMovedX <= tileDistance * game->map.tileSize) {
     man->isMoving = 1;
     man->moveRight = 1;
     man->totalMovedX += man->dx * game->dt;
-    printf(" right right %d\n", abs(man->currentTile - man->startingTile));
+    /* printf(" right right %d\n", abs(man->currentTile - man->startingTile)); */
     if (abs(man->currentTile - man->startingTile) >= tileDistance) {
       man->isMoving = 0;
       man->moveRight = 0;
@@ -432,10 +429,11 @@ void process(Game *game) {
 
   if (!strncmp(game->map.name, "map_003.lvl", sizeof *game->map.name)) { 
     Man* townsperson = getCharacter(game, "001");
-    printf("current %d\n", townsperson->currentTile);
-    printf("start %d\n", townsperson->startingTile);
+    /* printf("current %d\n", townsperson->currentTile); */
+    /* printf("start %d\n", townsperson->startingTile); */
     fflush(stdout);
-    moveLeft(game, townsperson, 2);
+    moveLeft(game, townsperson, 3);
+    moveRight(game, townsperson, 3);
   }
 
   for (int i = 0; i < game->map.characterCount; i++) {
