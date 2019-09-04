@@ -2,6 +2,8 @@
 #include "physics.h"
 #include "utils.h"
 
+typedef int (*generic_function)(void*, void*, void*);
+
 typedef enum {
   UP,
   UPRIGHT,
@@ -49,13 +51,20 @@ typedef struct {
   float runThrust;
   int isMain;
   int currentTile;
+  int startCutscene;
   int startingTile;
+  size_t actionSize;
+  size_t actionCapacity;
   char *name; // string
   int sprite;
   Direction direction;
   Status status;
   SDL_Texture *idleTexture;
   SDL_Texture *runningTexture;
+  generic_function *actions;
 } Man;
 
 Man initializeMan(SDL_Renderer *renderer, Man *man, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction); 
+
+void addAction(void * *actions, int index, generic_function action, size_t *size, size_t *capacity);
+int* removeAction(void* *actions, int index, size_t *size);

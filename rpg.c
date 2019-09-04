@@ -8,6 +8,38 @@
 #include "rpg.h"
 #include "physics.h"
 
+int moveLeft(Game *game, Man *man, int tileDistance) {
+  if (fabs(man->totalMovedX) >= (tileDistance * game->map.tileSize)/2) {
+    man->isMoving = 0;
+    man->moveLeft = 0;
+    man->totalMovedX = 0;
+    man->startingX = man->x;
+    return 0;
+  } else { 
+    man->direction = LEFT;
+    man->isMoving = 1;
+    man->moveLeft = 1;
+    man->totalMovedX = man->x - man->startingX;
+    return 1;
+  }
+}
+
+int moveRight(Game *game, Man *man, int tileDistance) {
+  if (fabs(man->totalMovedX) >= (tileDistance * game->map.tileSize)/2) {
+    man->isMoving = 0;
+    man->moveRight = 0;
+    man->totalMovedX = 0;
+    man->startingX = man->x;
+    return 0;
+  } else { 
+    man->direction = RIGHT;
+    man->isMoving = 1;
+    man->moveRight = 1;
+    man->totalMovedX = man->x - man->startingX;
+    return 1;
+  }
+}
+
 int handleEvents(Game *game) {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
@@ -83,13 +115,6 @@ int handleEvents(Game *game) {
       }
     }
 
-    /* printf("%d\n", game->mainCharacter->moveLeft); */
-    /* printf("%d\n", game->mainCharacter->moveRight); */
-    /* printf("%d\n", game->mainCharacter->moveUp); */
-    /* printf("%d\n", game->mainCharacter->moveDown); */
-    /* fflush(stdout); */
-
-    // Clamp
     if (!state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_DOWN] && !state[SDL_SCANCODE_LEFT] && !state[SDL_SCANCODE_RIGHT]) {
       game->mainCharacter->isMoving = 0;
       game->mainCharacter->isRunning = 0;
@@ -110,7 +135,7 @@ int handlePhysics(Game *game) {
       if (game->map.characters[i].isMoving) {
         game->map.characters[i].frictionalForceX = cof * game->map.characters[i].normalForce;
         game->map.characters[i].frictionalForceY = cof * game->map.characters[i].normalForce;
-      } 
+      }
       if (game->map.characters[i].moveLeft) {
         game->map.characters[i].directionX = -1;
         game->map.characters[i].thrustX = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust;
@@ -174,26 +199,39 @@ int handlePhysics(Game *game) {
       game->map.characters[i].ay = (((game->map.characters[i].directionY * game->map.characters[i].thrustY) - (game->map.characters[i].directionY * game->map.characters[i].frictionalForceY)) / game->map.characters[i].mass);
       game->map.characters[i].dx = accelerate(game->map.characters[i].dx, game->map.characters[i].ax, game->dt); 
       game->map.characters[i].dy = accelerate(game->map.characters[i].dy, game->map.characters[i].ay, game->dt); 
+      
+      float maxSpeed = 60.0f;
+      
+      if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dx >= maxSpeed) {
+        game->map.characters[i].dx = maxSpeed;
+      }
 
-      /* printf("is man moving %d\n", game->map.characters[1].isMoving); */
-      /* printf("dx %f\n", game->map.characters[1].dx); */
-      /* printf("dy %f\n", game->map.characters[1].dy); */
-      /* printf("ax %f\n", game->map.characters[1].ax); */
-      /* printf("ay %f\n", game->map.characters[1].ay); */
-      /* printf("ff %d\n", game->map.characters[1].frictionalForceX); */
-      /* printf("ffY %d\n", game->map.characters[1].frictionalForceY); */
-      /* fflush(stdout); */
+      if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dx <= -maxSpeed) {
+        game->map.characters[i].dx = -maxSpeed;
+      }
+
+      if (game->map.characters[1].moveLeft && fmod(game->time, 45) == 0) {
+        printf("totalMovedX %f\n", game->map.characters[i].totalMovedX);
+        printf("is man moving %d\n", game->map.characters[1].isMoving);
+        printf("dx %f\n", game->map.characters[1].dx);
+        printf("dy %f\n", game->map.characters[1].dy);
+        printf("ax %f\n", game->map.characters[1].ax);
+        printf("ay %f\n", game->map.characters[1].ay);
+        printf("ff %d\n", game->map.characters[1].frictionalForceX);
+        printf("ffY %d\n", game->map.characters[1].frictionalForceY);
+        fflush(stdout);
+      }
 
       // Clamp
       if (!game->map.characters[i].isMoving) {
-        if (fabs(game->map.characters[i].dx) < 2) {
+        if (fabs(game->map.characters[i].dx) < 5) {
           game->map.characters[i].dx = 0;
           game->map.characters[i].ax = 0;
           game->map.characters[i].thrustX = 0;
           game->map.characters[i].directionX = 0;
           game->map.characters[i].frictionalForceX = 0;
         }
-        if (fabs(game->map.characters[i].dy) < 2) {
+        if (fabs(game->map.characters[i].dy) < 5) {
           game->map.characters[i].dy = 0;
           game->map.characters[i].ay = 0;
           game->map.characters[i].thrustY = 0;
@@ -326,8 +364,6 @@ void detectCollisions(Game *game) {
       game->map.characters[i].currentTile = characterIndexX + characterIndexY * game->map.width;
       if (!game->map.characters[i].isMain) {
         if (game->map.tiles[tileIndex].isOccupied && tileIndex != game->map.characters[i].currentTile) {
-          /* printf("tileIndex %d", tileIndex); */
-          /* fflush(stdout); */
           game->map.tiles[tileIndex].isOccupied = 0;
         }
         if (tileIndex == game->map.characters[i].currentTile) {
@@ -394,53 +430,40 @@ Man* getCharacter(Game *game, char* id) {
   exit(1);
 }
 
-void moveLeft(Game *game, Man *man, int tileDistance) {
-  printf("totalmovedX in moveLeft is %f\n", man->totalMovedX);
-  if (fabs(man->totalMovedX) >= (tileDistance * game->map.tileSize)/2) {
-    man->isMoving = 0;
-    man->moveLeft = 0;
-    return;
-  } else { 
-    man->isMoving = 1;
-    man->moveLeft = 1;
-    man->totalMovedX = man->x - man->startingX;
-  }
-  printf("total Moved HELLOoooo, %f\n", man->totalMovedX);
-  fflush(stdout);
-}
-
-void moveRight(Game *game, Man *man, int tileDistance) {
-  /* printf("totalmovedX in moveRight is %f\n", man->totalMovedX); */
-  if (man->totalMovedX <= tileDistance * game->map.tileSize) {
-    man->isMoving = 1;
-    man->moveRight = 1;
-    man->totalMovedX += man->dx * game->dt;
-    /* printf(" right right %d\n", abs(man->currentTile - man->startingTile)); */
-    if (abs(man->currentTile - man->startingTile) >= tileDistance) {
-      man->isMoving = 0;
-      man->moveRight = 0;
-      man->totalMovedX = 0;
-    }
-  } 
-}
-
 void process(Game *game) {
   game->time++;
 
   if (!strncmp(game->map.name, "map_003.lvl", sizeof *game->map.name)) { 
     Man* townsperson = getCharacter(game, "001");
-    /* printf("current %d\n", townsperson->currentTile); */
-    /* printf("start %d\n", townsperson->startingTile); */
-    fflush(stdout);
-    moveLeft(game, townsperson, 3);
-    moveRight(game, townsperson, 3);
+
+    if (townsperson->startCutscene) {
+      addAction((void*)townsperson->actions, 0, (void*)&moveLeft, &townsperson->actionSize, &townsperson->actionCapacity);
+      addAction((void*)townsperson->actions, 1, (void*)&moveRight, &townsperson->actionSize, &townsperson->actionCapacity);
+      townsperson->startCutscene = 0;
+    }
+    
+    int running = 0;
+
+    if (townsperson->actionSize > 0) { 
+      if (townsperson->actionSize == 1) {
+        running = (int)townsperson->actions[townsperson->actionSize-1](game, townsperson, (void*)2);
+      } else {
+        running = (int)townsperson->actions[townsperson->actionSize-1](game, townsperson, (void*)2);
+      }
+    }
+
+    // Goal is to remove function from the queue when we get a 0 return value
+    // Seems like problem is in that it is taking too many values from the array
+    if (!running && townsperson->actionSize > 0) {
+      townsperson->actions = (generic_function*)removeAction((void*)townsperson->actions, townsperson->actionSize-1, &townsperson->actionSize);
+      running = 1;
+    }
   }
 
   for (int i = 0; i < game->map.characterCount; i++) {
     game->map.characters[i].x += game->map.characters[i].dx * game->dt; 
     game->map.characters[i].y += game->map.characters[i].dy * game->dt;
   }
-
 
   game->scrollX = -game->mainCharacter->x+WINDOW_WIDTH/2;
   game->scrollY = -game->mainCharacter->y+WINDOW_HEIGHT/2;
@@ -483,7 +506,9 @@ void process(Game *game) {
 
   // 60 FPS / 8 animations 
   if (fmod(game->time, 7.5) == 0) {
-    game->mainCharacter->sprite = (game->mainCharacter->sprite + 1) % 8;
+    for (int i = 0; i < game->map.characterCount; i++) {
+      game->map.characters[i].sprite = (game->map.characters[i].sprite + 1) % 8;
+    }
   }
    
   detectCollisions(game);
@@ -494,6 +519,7 @@ void shutdownGame(Game *game) {
   for (int i = 0; i < game->map.characterCount; i++) {
     SDL_DestroyTexture(game->map.characters[i].idleTexture);
     SDL_DestroyTexture(game->map.characters[i].runningTexture);
+    free(game->map.characters[i].actions);
   }
   TTF_CloseFont(game->text.font);
   SDL_DestroyWindow(game->window); 
