@@ -177,6 +177,14 @@ int handlePhysics(Game *game) {
       if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dx <= -maxSpeed) {
         game->map.characters[i].dx = -maxSpeed;
       }
+      
+      if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dy >= maxSpeed) {
+        game->map.characters[i].dy = maxSpeed;
+      }
+
+      if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dy <= -maxSpeed) {
+        game->map.characters[i].dy = -maxSpeed;
+      }
 
       if (game->map.characters[1].moveLeft && fmod(game->time, 45) == 0) {
         printf("totalMovedX %f\n", game->map.characters[i].totalMovedX);
@@ -419,12 +427,12 @@ void process(Game *game) {
         if (!townsperson->actionTimer) {
           townsperson->actionTimer = SDL_GetTicks() / 1000;
         }
-        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "You did it!", (void*)4);
+        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "You did it!", (void*)2);
       } else if (townsperson->actionSize == 3) {
         if (!townsperson->actionTimer) {
           townsperson->actionTimer = SDL_GetTicks() / 1000;
         }
-        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "I am very proud of you.", (void*)4);
+        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "I am very proud of you.", (void*)2);
       } else {
         if (!townsperson->actionTimer) {
           townsperson->actionTimer = SDL_GetTicks() / 1000;
