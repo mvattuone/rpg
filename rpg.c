@@ -8,37 +8,6 @@
 #include "rpg.h"
 #include "physics.h"
 
-int moveLeft(Game *game, Man *man, int tileDistance) {
-  if (fabs(man->totalMovedX) >= (tileDistance * game->map.tileSize)/2) {
-    man->isMoving = 0;
-    man->moveLeft = 0;
-    man->totalMovedX = 0;
-    man->startingX = man->x;
-    return 0;
-  } else { 
-    man->direction = LEFT;
-    man->isMoving = 1;
-    man->moveLeft = 1;
-    man->totalMovedX = man->x - man->startingX;
-    return 1;
-  }
-}
-
-int moveRight(Game *game, Man *man, int tileDistance) {
-  if (fabs(man->totalMovedX) >= (tileDistance * game->map.tileSize)/2) {
-    man->isMoving = 0;
-    man->moveRight = 0;
-    man->totalMovedX = 0;
-    man->startingX = man->x;
-    return 0;
-  } else { 
-    man->direction = RIGHT;
-    man->isMoving = 1;
-    man->moveRight = 1;
-    man->totalMovedX = man->x - man->startingX;
-    return 1;
-  }
-}
 
 int handleEvents(Game *game) {
   SDL_Event event;
@@ -289,6 +258,12 @@ void doRender(Game *game) {
 
   for (int i = 0; i < game->map.characterCount; i++) {
     renderMan(&game->map.characters[i], game->map.characters[i].x+game->scrollX, game->map.characters[i].y+game->scrollY, game->renderer);
+
+    char* currentDialog = game->map.characters[i].currentDialog;
+    if (currentDialog != NULL) {
+      SDL_Color color = {0, 0, 0};
+      renderText(game, currentDialog, color, 200, 200, 200, 200);
+    }
   }
 
   SDL_SetRenderDrawColor(game->renderer, 25, 100, 155, 255);
@@ -439,21 +414,36 @@ void process(Game *game) {
     if (townsperson->startCutscene) {
       addAction((void*)townsperson->actions, 0, (void*)&moveLeft, &townsperson->actionSize, &townsperson->actionCapacity);
       addAction((void*)townsperson->actions, 1, (void*)&moveRight, &townsperson->actionSize, &townsperson->actionCapacity);
+      addAction((void*)townsperson->actions, 2, (void*)&speak, &townsperson->actionSize, &townsperson->actionCapacity);
+      addAction((void*)townsperson->actions, 3, (void*)&speak, &townsperson->actionSize, &townsperson->actionCapacity);
       townsperson->startCutscene = 0;
     }
     
     int running = 0;
 
     if (townsperson->actionSize > 0) { 
-      if (townsperson->actionSize == 1) {
-        running = (int)townsperson->actions[townsperson->actionSize-1](game, townsperson, (void*)2);
+      printf("actoinSize is %ld\n", townsperson->actionSize);
+      fflush(stdout);
+      if (townsperson->actionSize == 4) {
+        if (!townsperson->actionTimer) {
+          townsperson->actionTimer = SDL_GetTicks() / 1000;
+        }
+        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "You did it!", (void*)4);
+      } else if (townsperson->actionSize == 3) {
+        if (!townsperson->actionTimer) {
+          townsperson->actionTimer = SDL_GetTicks() / 1000;
+        }
+        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "I am very proud of you.", (void*)4);
       } else {
-        running = (int)townsperson->actions[townsperson->actionSize-1](game, townsperson, (void*)2);
+        if (!townsperson->actionTimer) {
+          townsperson->actionTimer = SDL_GetTicks() / 1000;
+        }
+        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, (void*)2, (void*)&game->map.tileSize);
       }
+      if (!running) {
+      } 
     }
 
-    // Goal is to remove function from the queue when we get a 0 return value
-    // Seems like problem is in that it is taking too many values from the array
     if (!running && townsperson->actionSize > 0) {
       townsperson->actions = (generic_function*)removeAction((void*)townsperson->actions, townsperson->actionSize-1, &townsperson->actionSize);
       running = 1;

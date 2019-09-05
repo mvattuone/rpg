@@ -51,10 +51,12 @@ typedef struct {
   float runThrust;
   int isMain;
   int currentTile;
+  char* currentDialog;
   int startCutscene;
   int startingTile;
   size_t actionSize;
   size_t actionCapacity;
+  time_t actionTimer;
   char *name; // string
   int sprite;
   Direction direction;
@@ -68,3 +70,9 @@ Man initializeMan(SDL_Renderer *renderer, Man *man, int spriteValue, float angle
 
 void addAction(void * *actions, int index, generic_function action, size_t *size, size_t *capacity);
 int* removeAction(void* *actions, int index, size_t *size);
+
+int moveLeft(Man *man, int tileDistance, int* tileSize);
+int moveRight(Man *man, int tileDistance, int* tileSize);
+int moveUp(Man *man, int tileDistance, int* tileSize);
+int moveDown(Man *man, int tileDistance, int* tileSize);
+int speak(Man *man, char* text, time_t duration);
