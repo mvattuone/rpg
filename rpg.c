@@ -8,7 +8,6 @@
 #include "rpg.h"
 #include "physics.h"
 
-
 int handleEvents(Game *game) {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
@@ -223,14 +222,6 @@ void renderMan(Man *man, int x, int y, SDL_Renderer *renderer) {
     : SDL_RenderCopy(renderer, man->idleTexture, &manSrcRect, &manRect);
 }
 
-void renderText(Game *game, char* text, SDL_Color color, int x, int y, int w, int h) { 
-  SDL_Rect textRect = {x, y, w, h};
-  SDL_Surface *surface = TTF_RenderText_Solid(game->text.font, text, color);
-  game->text.texture = SDL_CreateTextureFromSurface(game->renderer, surface);
-  SDL_RenderCopy(game->renderer, game->text.texture, NULL, &textRect);
-  SDL_FreeSurface(surface);
-}
-
 void renderTile(Game *game, int x, int y, char tileId) {
   int tileRow;
   int tileColumn;
@@ -262,7 +253,7 @@ void doRender(Game *game) {
     char* currentDialog = game->map.characters[i].currentDialog;
     if (currentDialog != NULL) {
       SDL_Color color = {0, 0, 0};
-      renderText(game, currentDialog, color, 200, 200, 200, 200);
+      renderText(game->renderer, game->font, currentDialog, color, 200, 200, 200, 200);
     }
   }
 
@@ -302,7 +293,7 @@ void loadMap(Game *game, char* fileName) {
 
 void loadGame(Game *game) {
   game->dt = 1.0f/60.0f;
-  game->text.font = initializeFont("fonts/slkscr.ttf", 48);
+  game->font = initializeFont("fonts/slkscr.ttf", 48);
   game->scrollX = 0;
   game->scrollY = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
@@ -511,7 +502,7 @@ void shutdownGame(Game *game) {
     SDL_DestroyTexture(game->map.characters[i].runningTexture);
     free(game->map.characters[i].actions);
   }
-  TTF_CloseFont(game->text.font);
+  TTF_CloseFont(game->font);
   SDL_DestroyWindow(game->window); 
 
   TTF_Quit();

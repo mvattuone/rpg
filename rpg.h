@@ -4,6 +4,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
 #include "map.h"
+#include "renderers.h"
 #include "utils.h"
 
 #define WINDOW_WIDTH 640
@@ -14,15 +15,10 @@
 #define IS_RESTING 3
 
 typedef struct {
-  SDL_Texture *texture;
-  TTF_Font *font;
-} Text;
-
-typedef struct {
   SDL_Window *window;
   Man *mainCharacter;
   Map map;
-  Text text;
+  TTF_Font *font;
   float scrollX;
   float scrollY;
   SDL_Renderer *renderer;
