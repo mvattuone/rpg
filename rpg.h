@@ -9,10 +9,8 @@
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
-#define GAME_OVER 0
 #define IS_ACTIVE 1
 #define IS_PAUSED 2
-#define IS_RESTING 3
 
 typedef struct {
   SDL_Window *window;
@@ -23,6 +21,7 @@ typedef struct {
   float scrollY;
   SDL_Renderer *renderer;
   int status;
+  int dismissDialog;
   int time;
   time_t startTime;
   float dt;

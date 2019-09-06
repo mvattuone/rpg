@@ -2,7 +2,7 @@
 #include "physics.h"
 #include "utils.h"
 
-typedef int (*generic_function)(void*, void*, void*);
+typedef int (*generic_function)(void*, void*, void*, void*);
 
 typedef enum {
   UP,
@@ -75,4 +75,4 @@ int moveLeft(Man *man, int tileDistance, int* tileSize);
 int moveRight(Man *man, int tileDistance, int* tileSize);
 int moveUp(Man *man, int tileDistance, int* tileSize);
 int moveDown(Man *man, int tileDistance, int* tileSize);
-int speak(Man *man, char* text, time_t duration);
+int speak(Man *man, char* text, int *dismissDialog, time_t duration);

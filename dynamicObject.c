@@ -65,28 +65,27 @@ int moveDown(Man *man, int tileDistance, int *tileSize) {
   }
 }
 
-int speak(Man *man, char* text, time_t duration) {
+int speak(Man *man, char* text, int *dismissDialog, time_t duration) {
   time_t timer = SDL_GetTicks() / 1000;
-  if (timer - man->actionTimer > duration) {
+  time_t passedDuration = duration && timer - man->actionTimer;
+  if (*dismissDialog || passedDuration) {
     man->actionTimer = 0;
     man->currentDialog = NULL;
+    *dismissDialog = 0;
     return 0;
   } else {
-    printf("man->actionTimer %ld\n", man->actionTimer);
-    /* printf("timer %ld\n", timer); */
-    /* fflush(stdout); */
     man->currentDialog = text;
     return 1;
   }
 }
 
 void addAction(void * *actions, int index, generic_function action, size_t *size, size_t *capacity){
-     actions = realloc(actions, sizeof(actions) * 2);
+   actions = realloc(actions, sizeof(actions) * 2);
+   if (size > capacity) {
      *capacity = sizeof(actions)/sizeof(actions[0]) * 2;
-     *size = *size + 1;
-     printf("*size before is %zu\n", *size);
-     
-     actions[index] = action;
+   }
+   *size = *size + 1;
+   actions[index] = action;
 }
 
 int* removeAction(void* *actions, int index, size_t *size) 
@@ -102,7 +101,6 @@ int* removeAction(void* *actions, int index, size_t *size)
     }
 
     *size = *size - 1;
-    printf("*size after is %zu\n", *size);
 
     free(actions);
     return updatedActions;

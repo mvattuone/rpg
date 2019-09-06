@@ -15,6 +15,14 @@ int handleEvents(Game *game) {
       case SDL_QUIT:
         return 1;
         break;
+      case SDL_KEYDOWN:
+        switch (event.key.keysym.scancode) {
+          case SDL_SCANCODE_RETURN:
+            game->dismissDialog = 1;
+            break;
+          default:
+            break;
+        }
       default:
         break;
     }
@@ -304,6 +312,7 @@ void loadGame(Game *game) {
   game->font = initializeFont("fonts/slkscr.ttf", 48);
   game->scrollX = 0;
   game->scrollY = 0;
+  game->dismissDialog = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
   loadMap(game, "map_03.lvl");
@@ -345,7 +354,6 @@ void detectCollisions(Game *game) {
         }
       } 
     }
-
 
     if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
       if (game->map.tiles[tileIndex].tileState == IS_TELEPORT) {
@@ -427,17 +435,17 @@ void process(Game *game) {
         if (!townsperson->actionTimer) {
           townsperson->actionTimer = SDL_GetTicks() / 1000;
         }
-        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "You did it!", (void*)2);
+        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "You did it!", (void*)&game->dismissDialog, 0);
       } else if (townsperson->actionSize == 3) {
         if (!townsperson->actionTimer) {
           townsperson->actionTimer = SDL_GetTicks() / 1000;
         }
-        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "I am very proud of you.", (void*)2);
+        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "I am very proud of you.", (void*)&game->dismissDialog, 0);
       } else {
         if (!townsperson->actionTimer) {
           townsperson->actionTimer = SDL_GetTicks() / 1000;
         }
-        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, (void*)2, (void*)&game->map.tileSize);
+        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, (void*)2, (void*)&game->map.tileSize, NULL);
       }
       if (!running) {
       } 
