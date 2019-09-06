@@ -23,6 +23,14 @@ int handleEvents(Game *game) {
           default:
             break;
         }
+      case SDL_KEYUP:
+        switch (event.key.keysym.scancode) { 
+          case SDL_SCANCODE_SPACE:
+            game->mainCharacter->isRunning = 0;
+            break;
+          default:
+            break;
+        }
       default:
         break;
     }
@@ -177,21 +185,35 @@ int handlePhysics(Game *game) {
       game->map.characters[i].dy = accelerate(game->map.characters[i].dy, game->map.characters[i].ay, game->dt); 
       
       float maxSpeed = 60.0f;
+      float maxRunningSpeed = 120.0f;
       
-      if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dx >= maxSpeed) {
-        game->map.characters[i].dx = maxSpeed;
-      }
+      if (game->map.characters[i].isMoving) {
+        if (!game->map.characters[i].isRunning && game->map.characters[i].dx >= maxSpeed) {
+          game->map.characters[i].dx = maxSpeed; 
+        }
+        if (game->map.characters[i].isRunning && game->map.characters[i].dx >= maxRunningSpeed) {
+          game->map.characters[i].dx = maxRunningSpeed;
+        }
+        if (!game->map.characters[i].isRunning && game->map.characters[i].dx <= -maxSpeed) {
+          game->map.characters[i].dx = -maxSpeed; 
+        }
+        if (game->map.characters[i].isRunning && game->map.characters[i].dx <= -maxRunningSpeed) {
+          game->map.characters[i].dx = -maxRunningSpeed;
+        }
 
-      if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dx <= -maxSpeed) {
-        game->map.characters[i].dx = -maxSpeed;
-      }
-      
-      if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dy >= maxSpeed) {
-        game->map.characters[i].dy = maxSpeed;
-      }
+        if (!game->map.characters[i].isRunning && game->map.characters[i].dy >= maxSpeed) {
+          game->map.characters[i].dy = maxSpeed; 
+        }
+        if (game->map.characters[i].isRunning && game->map.characters[i].dy >= maxRunningSpeed) {
+          game->map.characters[i].dy = maxRunningSpeed;
+        }
+        if (!game->map.characters[i].isRunning && game->map.characters[i].dy <= -maxSpeed) {
+          game->map.characters[i].dy = -maxSpeed; 
+        }
+        if (game->map.characters[i].isRunning && game->map.characters[i].dy <= -maxRunningSpeed) {
+          game->map.characters[i].dy = -maxRunningSpeed;
+        }
 
-      if (game->map.characters[i].isMoving && !game->map.characters[i].isRunning && game->map.characters[i].dy <= -maxSpeed) {
-        game->map.characters[i].dy = -maxSpeed;
       }
 
       if (game->map.characters[1].moveLeft && fmod(game->time, 45) == 0) {
@@ -300,7 +322,7 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
 void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.characterCount; i++) {
-    game->map.characters[i] = initializeMan(game->renderer, &game->map.characters[i], UP, 0, 80, 950, 2400, IS_IDLE, RIGHT);
+    game->map.characters[i] = initializeMan(game->renderer, &game->map.characters[i], UP, 0, 80, 950, 1300, IS_IDLE, RIGHT);
     if (game->map.characters[i].isMain) {
       game->mainCharacter = &game->map.characters[i];
     }
