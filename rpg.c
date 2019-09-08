@@ -367,45 +367,37 @@ void detectCollisions(Game *game) {
       int characterIndexX = (game->map.characters[i].x + game->map.characters[i].w/2)/game->map.tileSize;
       int characterIndexY = (game->map.characters[i].y + game->map.characters[i].h/2)/game->map.tileSize;
       game->map.characters[i].currentTile = characterIndexX + characterIndexY * game->map.width;
-      if (!game->map.characters[i].isMain) {
-        if (game->map.tiles[tileIndex].isOccupied && tileIndex != game->map.characters[i].currentTile) {
-          game->map.tiles[tileIndex].isOccupied = 0;
-        }
-        if (tileIndex == game->map.characters[i].currentTile) {
-          game->map.tiles[tileIndex].isOccupied = 1;
-        }
-      } 
-    }
 
-    if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
-      if (game->map.tiles[tileIndex].tileState == IS_TELEPORT) {
-        if (tileIndex == game->mainCharacter->currentTile) {
-          loadMap(game, game->map.tiles[tileIndex].teleportTo);
-        }
-      }
-      if (game->map.tiles[tileIndex].tileState == IS_SOLID || game->map.tiles[tileIndex].isOccupied == 1) {
-
-        if (*manX + *manW / 2 > floorX && *manX + *manW/ 2 < floorX+floorW) {
-          if (*manY < floorH+floorY && *manY > floorY && *manDy < 0) {
-            *manY = floorY+floorH;
-            *manDy = 0;
-          } 
-        }
-        
-        if (*manX + *manW > floorX && *manX<floorX+floorW) {
-          if (*manY + *manH > floorY && *manY < floorY && *manDy > 0) {
-            *manY = floorY-*manH;
-            *manDy = 0;
+      if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
+        if (game->map.tiles[tileIndex].tileState == IS_TELEPORT) {
+          if (tileIndex == game->mainCharacter->currentTile) {
+            loadMap(game, game->map.tiles[tileIndex].teleportTo);
           }
         }
+        if (game->map.tiles[tileIndex].tileState == IS_SOLID || (game->map.characters[i].currentTile == tileIndex && !game->map.characters[i].isMain)) {
 
-        if (*manY + *manH/2 > floorY && *manY<floorY+floorH) {
-          if (*manX < floorX+floorW && *manX+*manW > floorX+floorW && *manDx < 0) {
-            *manX = floorX + floorW;
-            *manDx = 0;
-          } else if (*manX+*manW > floorX && *manX < floorX && *manDx > 0) {
-            *manX = floorX - *manW;
-            *manDx = 0;
+          if (*manX + *manW / 2 > floorX && *manX + *manW/ 2 < floorX+floorW) {
+            if (*manY < floorH+floorY && *manY > floorY && *manDy < 0) {
+              *manY = floorY+floorH;
+              *manDy = 0;
+            } 
+          }
+          
+          if (*manX + *manW > floorX && *manX<floorX+floorW) {
+            if (*manY + *manH > floorY && *manY < floorY && *manDy > 0) {
+              *manY = floorY-*manH;
+              *manDy = 0;
+            }
+          }
+
+          if (*manY + *manH/2 > floorY && *manY<floorY+floorH) {
+            if (*manX < floorX+floorW && *manX+*manW > floorX+floorW && *manDx < 0) {
+              *manX = floorX + floorW;
+              *manDx = 0;
+            } else if (*manX+*manW > floorX && *manX < floorX && *manDx > 0) {
+              *manX = floorX - *manW;
+              *manDx = 0;
+            }
           }
         }
       }
@@ -451,8 +443,6 @@ void process(Game *game) {
     int running = 0;
 
     if (townsperson->actionSize > 0) { 
-      printf("actoinSize is %ld\n", townsperson->actionSize);
-      fflush(stdout);
       if (townsperson->actionSize == 4) {
         if (!townsperson->actionTimer) {
           townsperson->actionTimer = SDL_GetTicks() / 1000;
