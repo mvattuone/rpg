@@ -112,141 +112,128 @@ int handleEvents(Game *game) {
   return 0;
 }
 
-int handlePhysics(Game *game) {
-  if (game->status == IS_ACTIVE) {
-    float cof = 0.41; // This will be attached to the tile the player is on eventually
-    for (int i = 0; i < game->map.characterCount; i++) {
-      if (game->map.characters[i].isMoving) {
-        game->map.characters[i].frictionalForceX = cof * game->map.characters[i].normalForce;
-        game->map.characters[i].frictionalForceY = cof * game->map.characters[i].normalForce;
-      }
-      if (game->map.characters[i].moveLeft) {
-        game->map.characters[i].directionX = -1;
-        game->map.characters[i].thrustX = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust;
-        if (game->map.characters[i].moveRight) {
-          game->map.characters[i].directionX = 0;
-        }
-      } else if (!game->map.characters[i].moveLeft) {
-        game->map.characters[i].directionX = game->map.characters[i].dx < 0 ? 1 : 0;
-        if (game->map.characters[i].moveRight) {
-          game->map.characters[i].directionX = 1;
-        } else {
-          game->map.characters[i].thrustX *= -1;
-        }
-      }
-      if (game->map.characters[i].moveRight) {
-        game->map.characters[i].directionX = 1;
-        game->map.characters[i].thrustX = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust;
-        if (game->map.characters[i].moveLeft) {
-          game->map.characters[i].directionX = 0;
-        }
-      } else if (!game->map.characters[i].moveRight) {
-        game->map.characters[i].directionX = game->map.characters[i].dx > 0 ? -1 : 0;
-        game->map.characters[i].directionX = game->map.characters[i].dx < 0 ? 1 : game->map.characters[i].directionX;
-        if (game->map.characters[i].moveLeft) {
-          game->map.characters[i].directionX = -1;
-        } else {
-          game->map.characters[i].thrustX *= -1;
-        }
-      }
-      if (game->map.characters[i].moveUp) {
-        game->map.characters[i].directionY = -1;
-        game->map.characters[i].thrustY = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust; 
-        if (game->map.characters[i].moveDown) {
-          game->map.characters[i].directionY = 0;
-        }
-      } else if (!game->map.characters[i].moveUp) {
-        game->map.characters[i].directionY = game->map.characters[i].dy < 0 ? 1 : 0;
-        if (game->map.characters[i].moveDown) {
-          game->map.characters[i].directionY = 1;
-        } else {
-          game->map.characters[i].thrustY *= -1;
-        }
-      }
-      if (game->map.characters[i].moveDown) {
-        game->map.characters[i].directionY = 1;
-        game->map.characters[i].thrustY = game->map.characters[i].isRunning ? game->map.characters[i].runThrust : game->map.characters[i].walkThrust; 
-        if (game->map.characters[i].moveUp) {
-          game->map.characters[i].directionY = 0;
-        }
-      } else if (!game->map.characters[i].moveDown) {
-        game->map.characters[i].directionY = game->map.characters[i].dy > 0 ? -1 : 0;
-        game->map.characters[i].directionY = game->map.characters[i].dy < 0 ? 1 : game->map.characters[i].directionY;
-        if (game->map.characters[i].moveUp) {
-          game->map.characters[i].directionY = -1;
-        } else {
-          game->map.characters[i].thrustY *= -1;
-        }
-      }
-
-      game->map.characters[i].ax = (((game->map.characters[i].directionX * game->map.characters[i].thrustX) - (game->map.characters[i].directionX * game->map.characters[i].frictionalForceX)) / game->map.characters[i].mass);
-      game->map.characters[i].ay = (((game->map.characters[i].directionY * game->map.characters[i].thrustY) - (game->map.characters[i].directionY * game->map.characters[i].frictionalForceY)) / game->map.characters[i].mass);
-      game->map.characters[i].dx = accelerate(game->map.characters[i].dx, game->map.characters[i].ax, game->dt); 
-      game->map.characters[i].dy = accelerate(game->map.characters[i].dy, game->map.characters[i].ay, game->dt); 
-      
-      float maxSpeed = 60.0f;
-      float maxRunningSpeed = 120.0f;
-      
-      if (game->map.characters[i].isMoving) {
-        if (!game->map.characters[i].isRunning && game->map.characters[i].dx >= maxSpeed) {
-          game->map.characters[i].dx = maxSpeed; 
-        }
-        if (game->map.characters[i].isRunning && game->map.characters[i].dx >= maxRunningSpeed) {
-          game->map.characters[i].dx = maxRunningSpeed;
-        }
-        if (!game->map.characters[i].isRunning && game->map.characters[i].dx <= -maxSpeed) {
-          game->map.characters[i].dx = -maxSpeed; 
-        }
-        if (game->map.characters[i].isRunning && game->map.characters[i].dx <= -maxRunningSpeed) {
-          game->map.characters[i].dx = -maxRunningSpeed;
-        }
-
-        if (!game->map.characters[i].isRunning && game->map.characters[i].dy >= maxSpeed) {
-          game->map.characters[i].dy = maxSpeed; 
-        }
-        if (game->map.characters[i].isRunning && game->map.characters[i].dy >= maxRunningSpeed) {
-          game->map.characters[i].dy = maxRunningSpeed;
-        }
-        if (!game->map.characters[i].isRunning && game->map.characters[i].dy <= -maxSpeed) {
-          game->map.characters[i].dy = -maxSpeed; 
-        }
-        if (game->map.characters[i].isRunning && game->map.characters[i].dy <= -maxRunningSpeed) {
-          game->map.characters[i].dy = -maxRunningSpeed;
-        }
-
-      }
-
-      if (game->map.characters[1].moveLeft && fmod(game->time, 45) == 0) {
-        printf("totalMovedX %f\n", game->map.characters[i].totalMovedX);
-        printf("is man moving %d\n", game->map.characters[1].isMoving);
-        printf("dx %f\n", game->map.characters[1].dx);
-        printf("dy %f\n", game->map.characters[1].dy);
-        printf("ax %f\n", game->map.characters[1].ax);
-        printf("ay %f\n", game->map.characters[1].ay);
-        printf("ff %d\n", game->map.characters[1].frictionalForceX);
-        printf("ffY %d\n", game->map.characters[1].frictionalForceY);
-        fflush(stdout);
-      }
-
-      // Clamp
-      if (!game->map.characters[i].isMoving) {
-        if (fabs(game->map.characters[i].dx) < 5) {
-          game->map.characters[i].dx = 0;
-          game->map.characters[i].ax = 0;
-          game->map.characters[i].thrustX = 0;
-          game->map.characters[i].directionX = 0;
-          game->map.characters[i].frictionalForceX = 0;
-        }
-        if (fabs(game->map.characters[i].dy) < 5) {
-          game->map.characters[i].dy = 0;
-          game->map.characters[i].ay = 0;
-          game->map.characters[i].thrustY = 0;
-          game->map.characters[i].directionY = 0;
-          game->map.characters[i].frictionalForceY = 0;
-        }
-      }
+int handlePhysics(Man *character, float *dt) {
+  float cof = 0.41; // This will be attached to the tile the player is on eventually
+  if (character->isMoving) {
+    character->frictionalForceX = cof * character->normalForce;
+    character->frictionalForceY = cof * character->normalForce;
+  }
+  if (character->moveLeft) {
+    character->directionX = -1;
+    character->thrustX = character->isRunning ? character->runThrust : character->walkThrust;
+    if (character->moveRight) {
+      character->directionX = 0;
+    }
+  } else if (!character->moveLeft) {
+    character->directionX = character->dx < 0 ? 1 : 0;
+    if (character->moveRight) {
+      character->directionX = 1;
+    } else {
+      character->thrustX *= -1;
     }
   }
+  if (character->moveRight) {
+    character->directionX = 1;
+    character->thrustX = character->isRunning ? character->runThrust : character->walkThrust;
+    if (character->moveLeft) {
+      character->directionX = 0;
+    }
+  } else if (!character->moveRight) {
+    character->directionX = character->dx > 0 ? -1 : 0;
+    character->directionX = character->dx < 0 ? 1 : character->directionX;
+    if (character->moveLeft) {
+      character->directionX = -1;
+    } else {
+      character->thrustX *= -1;
+    }
+  }
+  if (character->moveUp) {
+    character->directionY = -1;
+    character->thrustY = character->isRunning ? character->runThrust : character->walkThrust; 
+    if (character->moveDown) {
+      character->directionY = 0;
+    }
+  } else if (!character->moveUp) {
+    character->directionY = character->dy < 0 ? 1 : 0;
+    if (character->moveDown) {
+      character->directionY = 1;
+    } else {
+      character->thrustY *= -1;
+    }
+  }
+  if (character->moveDown) {
+    character->directionY = 1;
+    character->thrustY = character->isRunning ? character->runThrust : character->walkThrust; 
+    if (character->moveUp) {
+      character->directionY = 0;
+    }
+  } else if (!character->moveDown) {
+    character->directionY = character->dy > 0 ? -1 : 0;
+    character->directionY = character->dy < 0 ? 1 : character->directionY;
+    if (character->moveUp) {
+      character->directionY = -1;
+    } else {
+      character->thrustY *= -1;
+    }
+  }
+
+  character->ax = (((character->directionX * character->thrustX) - (character->directionX * character->frictionalForceX)) / character->mass);
+  character->ay = (((character->directionY * character->thrustY) - (character->directionY * character->frictionalForceY)) / character->mass);
+  character->dx = accelerate(character->dx, character->ax, *dt); 
+  character->dy = accelerate(character->dy, character->ay, *dt); 
+  
+  float maxSpeed = 60.0f;
+  float maxRunningSpeed = 120.0f;
+  
+  if (character->isMoving) {
+    if (!character->isRunning && character->dx >= maxSpeed) {
+      character->dx = maxSpeed; 
+    }
+    if (character->isRunning && character->dx >= maxRunningSpeed) {
+      character->dx = maxRunningSpeed;
+    }
+    if (!character->isRunning && character->dx <= -maxSpeed) {
+      character->dx = -maxSpeed; 
+    }
+    if (character->isRunning && character->dx <= -maxRunningSpeed) {
+      character->dx = -maxRunningSpeed;
+    }
+
+    if (!character->isRunning && character->dy >= maxSpeed) {
+      character->dy = maxSpeed; 
+    }
+    if (character->isRunning && character->dy >= maxRunningSpeed) {
+      character->dy = maxRunningSpeed;
+    }
+    if (!character->isRunning && character->dy <= -maxSpeed) {
+      character->dy = -maxSpeed; 
+    }
+    if (character->isRunning && character->dy <= -maxRunningSpeed) {
+      character->dy = -maxRunningSpeed;
+    }
+
+  }
+
+  // Clamp
+  if (!character->isMoving) {
+    if (fabs(character->dx) < 5) {
+      character->dx = 0;
+      character->ax = 0;
+      character->thrustX = 0;
+      character->directionX = 0;
+      character->frictionalForceX = 0;
+    }
+    if (fabs(character->dy) < 5) {
+      character->dy = 0;
+      character->ay = 0;
+      character->thrustY = 0;
+      character->directionY = 0;
+      character->frictionalForceY = 0;
+    }
+  }
+
+  character->x += character->dx * *dt; 
+  character->y += character->dy * *dt; 
  
   return 0;
 }
@@ -457,9 +444,10 @@ void process(Game *game) {
     }
   }
 
-  for (int i = 0; i < game->map.characterCount; i++) {
-    game->map.characters[i].x += game->map.characters[i].dx * game->dt; 
-    game->map.characters[i].y += game->map.characters[i].dy * game->dt;
+  if (game->status == IS_ACTIVE) {
+    for (int i = 0; i < game->map.characterCount; i++) {
+      handlePhysics(&game->map.characters[i], &game->dt);
+    }
   }
 
   game->scrollX = -game->mainCharacter->x+WINDOW_WIDTH/2;
@@ -564,7 +552,6 @@ int main(int argc, char *argv[]) {
   int done = 0;
   while (!done) {
     done = handleEvents(&game);
-    handlePhysics(&game);
     process(&game);
     doRender(&game);
 
