@@ -25,5 +25,6 @@ typedef struct {
   int characterCount;
 } Map;
 
+Man* getCharacterFromMap(Map *map, char* id);
 Map initializeMap(char* fileName, int tileSize); 
 

@@ -414,23 +414,11 @@ int getDirection(Game *game) {
   return (int)fabs(floor((game->mainCharacter->angle < 270 ? game->mainCharacter->angle + 90 : game->mainCharacter->angle - 270)/45));
 };
 
-Man* getCharacter(Game *game, char* id) {
-  for (int i = 0; i < game->map.characterCount; i++) {
-    if (!strncmp(game->map.characters[i].id, id, sizeof game->map.characters[i].id)) {
-      return &game->map.characters[i];
-    }
-  }
-
-  printf("Could not find character with id %s", id);
-  SDL_Quit();
-  exit(1);
-}
-
 void process(Game *game) {
   game->time++;
 
   if (!strncmp(game->map.name, "map_003.lvl", sizeof *game->map.name)) { 
-    Man* townsperson = getCharacter(game, "001");
+    Man* townsperson = getCharacterFromMap(&game->map, "001");
 
     if (townsperson->startCutscene) {
       addAction((void*)townsperson->actions, 0, (void*)&moveLeft, &townsperson->actionSize, &townsperson->actionCapacity);

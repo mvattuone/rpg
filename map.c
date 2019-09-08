@@ -5,6 +5,18 @@
 #include <string.h>
 #include "map.h"
 
+Man* getCharacterFromMap(Map *map, char* id) {
+  for (int i = 0; i < map->characterCount; i++) {
+    if (!strncmp(map->characters[i].id, id, sizeof map->characters[i].id)) {
+      return &map->characters[i];
+    }
+  }
+
+  printf("Could not find character with id %s", id);
+  SDL_Quit();
+  exit(1);
+}
+
 Map initializeMap(char* fileName, int tileSize) {
   Map map;
   map.name = fileName;
