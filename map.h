@@ -16,7 +16,7 @@ typedef struct {
 } Tile;
 
 typedef struct {
-  char* name;
+  char name[12];
   int width; // in tile units
   int height; // in tile units
   int tileSize;

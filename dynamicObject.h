@@ -21,6 +21,13 @@ typedef enum {
 } Status;
 
 typedef struct {
+  generic_function action;
+  void* arg1;
+  void* arg2;
+  void* arg3;
+} Action;
+
+typedef struct {
   char id[3];
   float startingX, startingY;
   float x, y;
@@ -63,13 +70,15 @@ typedef struct {
   Status status;
   SDL_Texture *idleTexture;
   SDL_Texture *runningTexture;
-  generic_function *actions;
+  Action *actions;
 } Man;
 
 Man initializeMan(SDL_Renderer *renderer, Man *man, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction); 
 
-void addAction(void * *actions, int index, generic_function action, size_t *size, size_t *capacity);
-int* removeAction(void* *actions, int index, size_t *size);
+
+void addAction(int index, Man *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3);
+int executeAction(Action *action, Man *dynamic_object); 
+Action* removeAction(void* *actions, int index, size_t *size);
 
 int moveLeft(Man *man, int tileDistance, int* tileSize);
 int moveRight(Man *man, int tileDistance, int* tileSize);

@@ -356,10 +356,8 @@ void detectCollisions(Game *game) {
       game->map.characters[i].currentTile = characterIndexX + characterIndexY * game->map.width;
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
-        if (game->map.tiles[tileIndex].tileState == IS_TELEPORT) {
-          if (tileIndex == game->mainCharacter->currentTile) {
+        if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
             loadMap(game, game->map.tiles[tileIndex].teleportTo);
-          }
         }
         if (game->map.tiles[tileIndex].tileState == IS_SOLID || (game->map.characters[i].currentTile == tileIndex && !game->map.characters[i].isMain)) {
 
@@ -404,42 +402,25 @@ int getDirection(Game *game) {
 void process(Game *game) {
   game->time++;
 
-  if (!strncmp(game->map.name, "map_003.lvl", sizeof *game->map.name)) { 
+  if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
     Man* townsperson = getCharacterFromMap(&game->map, "001");
 
     if (townsperson->startCutscene) {
-      addAction((void*)townsperson->actions, 0, (void*)&moveLeft, &townsperson->actionSize, &townsperson->actionCapacity);
-      addAction((void*)townsperson->actions, 1, (void*)&moveRight, &townsperson->actionSize, &townsperson->actionCapacity);
-      addAction((void*)townsperson->actions, 2, (void*)&speak, &townsperson->actionSize, &townsperson->actionCapacity);
-      addAction((void*)townsperson->actions, 3, (void*)&speak, &townsperson->actionSize, &townsperson->actionCapacity);
+      addAction(0, townsperson, (void*)&moveLeft, (void*)2, (void*)&game->map.tileSize, NULL);
+      addAction(1, townsperson, (void*)&moveRight, (void*)2, (void*)&game->map.tileSize, NULL);
+      addAction(2, townsperson, (void*)&speak, "I am very proud of you.", (void*)&game->dismissDialog, 0);
+      addAction(3, townsperson, (void*)&speak, "You did it!", (void*)&game->dismissDialog, 0);
       townsperson->startCutscene = 0;
     }
     
     int running = 0;
 
     if (townsperson->actionSize > 0) { 
-      if (townsperson->actionSize == 4) {
-        if (!townsperson->actionTimer) {
-          townsperson->actionTimer = SDL_GetTicks() / 1000;
-        }
-        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "You did it!", (void*)&game->dismissDialog, 0);
-      } else if (townsperson->actionSize == 3) {
-        if (!townsperson->actionTimer) {
-          townsperson->actionTimer = SDL_GetTicks() / 1000;
-        }
-        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, "I am very proud of you.", (void*)&game->dismissDialog, 0);
-      } else {
-        if (!townsperson->actionTimer) {
-          townsperson->actionTimer = SDL_GetTicks() / 1000;
-        }
-        running = (int)townsperson->actions[townsperson->actionSize-1](townsperson, (void*)2, (void*)&game->map.tileSize, NULL);
-      }
-      if (!running) {
-      } 
+      running = executeAction(&townsperson->actions[townsperson->actionSize-1], townsperson);
     }
 
     if (!running && townsperson->actionSize > 0) {
-      townsperson->actions = (generic_function*)removeAction((void*)townsperson->actions, townsperson->actionSize-1, &townsperson->actionSize);
+      townsperson->actions = removeAction((void*)townsperson->actions, townsperson->actionSize-1, &townsperson->actionSize);
       running = 1;
     }
   }

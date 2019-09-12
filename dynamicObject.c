@@ -79,25 +79,36 @@ int speak(Man *man, char* text, int *dismissDialog, time_t duration) {
   }
 }
 
-void addAction(void * *actions, int index, generic_function action, size_t *size, size_t *capacity){
-   actions = realloc(actions, sizeof(actions) * 2);
-   if (size > capacity) {
-     *capacity = sizeof(actions)/sizeof(actions[0]) * 2;
-   }
-   *size = *size + 1;
-   actions[index] = action;
+int executeAction(Action *action, Man *dynamic_object) {
+  if (!dynamic_object->actionTimer) {
+    dynamic_object->actionTimer = SDL_GetTicks() / 1000;
+  }
+  int running = action->action(dynamic_object, action->arg1, action->arg2, action->arg3);
+  return running;
 }
 
-int* removeAction(void* *actions, int index, size_t *size) 
+void addAction(int index, Man *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3){
+   dynamic_object->actions = realloc(dynamic_object->actions, sizeof(dynamic_object->actions) * 2);
+   if (dynamic_object->actionSize >= dynamic_object->actionCapacity) {
+     dynamic_object->actionCapacity = dynamic_object->actionSize * 2;
+   }
+   dynamic_object->actionSize = dynamic_object->actionSize + 1;
+   dynamic_object->actions[index].action = action;
+   dynamic_object->actions[index].arg1= arg1;
+   dynamic_object->actions[index].arg2= arg2;
+   dynamic_object->actions[index].arg3= arg3;
+}
+
+Action* removeAction(void* *actions, int index, size_t *size) 
 {
-    int* updatedActions = malloc((*size - 1) * sizeof(generic_function)); // allocate an array with a size 1 less than the current one
+    Action *updatedActions = malloc((*size - 1) * sizeof(Action)); // allocate an array with a size 1 less than the current one
 
     if (index != 0) {
-        memcpy(updatedActions, actions, index * sizeof(generic_function)); // copy everything BEFORE the index
+        memcpy(updatedActions, actions, index * sizeof(Action)); // copy everything BEFORE the index
     }
 
     if (index != (*size - 1)) {
-        memcpy(updatedActions + index, actions + index + 1, (*size - index - 1) * sizeof(generic_function)); // copy everything AFTER the index
+        memcpy(updatedActions + index, actions + index + 1, (*size - index - 1) * sizeof(Action)); // copy everything AFTER the index
     }
 
     *size = *size - 1;

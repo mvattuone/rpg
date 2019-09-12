@@ -19,7 +19,7 @@ Man* getCharacterFromMap(Map *map, char* id) {
 
 Map initializeMap(char* fileName, int tileSize) {
   Map map;
-  map.name = fileName;
+  strncpy(map.name, fileName, 12);
   map.tileSize = tileSize;
 
   FILE *mapData = fopen(fileName, "r");
@@ -61,11 +61,7 @@ Map initializeMap(char* fileName, int tileSize) {
           snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
         } else if ((d = fgetc(mapData)) == 'x' || d == 'o') {
           characters[characterCount] = (Man *)malloc(sizeof(Man));
-          printf("at first %c\n", d);
-          fflush(stdout);
           if (d == 'x' || d == 'o') {
-            printf("%c\n", d);
-            fflush(stdout);
 
             if (d == 'x') {
               characters[characterCount]->isMain = 1;        
@@ -76,8 +72,6 @@ Map initializeMap(char* fileName, int tileSize) {
             char z;
             int n = 0;
             while((z = fgetc(mapData)) != '\n' && !isspace(z) && n < 3) {
-              printf("z ist %c\n", z);
-              fflush(stdout);
               if (z == '\n' && z == ' ' && isspace(z)) {
                 continue;
               }
@@ -104,8 +98,6 @@ Map initializeMap(char* fileName, int tileSize) {
     }
 
     for (int i = 0; i < map.characterCount; i++) {
-      printf("ismain %d\n", characters[i]->isMain);
-      fflush(stdout);
       map.characters[i] = *characters[i];
       free(characters[i]);
     }
