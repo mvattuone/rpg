@@ -28,7 +28,7 @@ typedef struct {
 } Action;
 
 typedef struct {
-  char id[3];
+  char id[2];
   float startingX, startingY;
   float x, y;
   int w, h;
@@ -58,6 +58,7 @@ typedef struct {
   float runThrust;
   int isMain;
   int currentTile;
+  int triggerDialog;
   char* currentDialog;
   int startCutscene;
   int startingTile;

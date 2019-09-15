@@ -75,6 +75,7 @@ int speak(Man *man, char* text, int *dismissDialog, time_t duration) {
     return 0;
   } else {
     man->currentDialog = text;
+    *dismissDialog = 0;
     return 1;
   }
 }
@@ -152,6 +153,7 @@ Man initializeMan(SDL_Renderer *renderer, Man *man, int spriteValue, float angle
   man->ay= 0;
   man->dx = 0;
   man->dy = 0;
+  man->triggerDialog = 0;
   man->status = status;
   man->sprite = spriteValue;
   man->direction = direction;

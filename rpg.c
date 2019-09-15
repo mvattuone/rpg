@@ -20,6 +20,11 @@ int handleEvents(Game *game) {
           case SDL_SCANCODE_RETURN:
             game->dismissDialog = 1;
             break;
+          case SDL_SCANCODE_A:
+            if (!game->mainCharacter->triggerDialog) {
+              game->mainCharacter->triggerDialog = 1;
+            }
+            break;
           default:
             break;
         }
@@ -278,7 +283,7 @@ void doRender(Game *game) {
     char* currentDialog = game->map.characters[i].currentDialog;
     if (currentDialog != NULL) {
       SDL_Color color = {0, 0, 0};
-      renderText(game->renderer, game->font, currentDialog, color, 200, 200, 200, 200);
+      renderText(game->renderer, game->font, currentDialog, color, 20, 400, WINDOW_WIDTH - 20, 20);
     }
   }
 
@@ -318,7 +323,7 @@ void loadMap(Game *game, char* fileName) {
 
 void loadGame(Game *game) {
   game->dt = 1.0f/60.0f;
-  game->font = initializeFont("fonts/slkscr.ttf", 48);
+  game->font = initializeFont("fonts/slkscr.ttf", 18);
   game->scrollX = 0;
   game->scrollY = 0;
   game->dismissDialog = 0;
@@ -350,10 +355,19 @@ void detectCollisions(Game *game) {
     int floorW = game->map.tiles[tileIndex].w;
     int floorH = game->map.tiles[tileIndex].h; 
 
+    int reallyNotOccupied = 0;
     for (int i = 0; i < game->map.characterCount; i++) {
       int characterIndexX = (game->map.characters[i].x + game->map.characters[i].w/2)/game->map.tileSize;
       int characterIndexY = (game->map.characters[i].y + game->map.characters[i].h/2)/game->map.tileSize;
       game->map.characters[i].currentTile = characterIndexX + characterIndexY * game->map.width;
+      game->map.tiles[game->map.characters[i].currentTile].characterId = game->map.characters[i].id;
+
+      if (!reallyNotOccupied && game->map.tiles[tileIndex].characterId && game->map.characters[i].currentTile != tileIndex) {
+        reallyNotOccupied = 1; 
+      } else {
+        reallyNotOccupied = 0; 
+      }
+
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
         if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
@@ -387,6 +401,10 @@ void detectCollisions(Game *game) {
         }
       }
     }
+
+    if (reallyNotOccupied) { 
+      game->map.tiles[tileIndex].characterId = 0;
+    }
   }
 };
 
@@ -401,27 +419,57 @@ int getDirection(Game *game) {
 
 void process(Game *game) {
   game->time++;
-
   if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
-    Man* townsperson = getCharacterFromMap(&game->map, "001");
 
-    if (townsperson->startCutscene) {
-      addAction(0, townsperson, (void*)&moveLeft, (void*)2, (void*)&game->map.tileSize, NULL);
-      addAction(1, townsperson, (void*)&moveRight, (void*)2, (void*)&game->map.tileSize, NULL);
-      addAction(2, townsperson, (void*)&speak, "I am very proud of you.", (void*)&game->dismissDialog, 0);
-      addAction(3, townsperson, (void*)&speak, "You did it!", (void*)&game->dismissDialog, 0);
-      townsperson->startCutscene = 0;
+    /* if (townsperson->startCutscene) { */
+    /*   townsperson = getCharacterFromMap(&game->map, "001"); */
+    /*   addAction(0, townsperson, (void*)&moveLeft, (void*)2, (void*)&game->map.tileSize, NULL); */
+    /*   addAction(1, townsperson, (void*)&moveRight, (void*)2, (void*)&game->map.tileSize, NULL); */
+    /*   addAction(2, townsperson, (void*)&speak, "I am very proud of you.", (void*)&game->dismissDialog, 0); */
+    /*   addAction(3, townsperson, (void*)&speak, "You did it!", (void*)&game->dismissDialog, 0); */
+    /*   townsperson->startCutscene = 0; */
+    /* } */
+
+    // If man is facing the correct direction and "startDialog" is set, register the action
+    if (game->mainCharacter->triggerDialog) {
+      if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].characterId) {
+        Man* townsperson = getCharacterFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].characterId);
+        addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
+        addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
+        game->mainCharacter->triggerDialog = 0; 
+      }
+
+      if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].characterId) {
+        Man *townsperson = getCharacterFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - 1].characterId);
+        addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
+        addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
+        game->mainCharacter->triggerDialog = 0; 
+      } else if (game->mainCharacter->direction == DOWN && game->map.tiles[game->mainCharacter->currentTile + game->map.width].characterId) {
+        Man *townsperson = getCharacterFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].characterId);
+        addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
+        addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
+        game->mainCharacter->triggerDialog = 0; 
+      } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].characterId) {
+        Man *townsperson = getCharacterFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].characterId);
+        addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
+        addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
+        game->mainCharacter->triggerDialog = 0; 
+      } else {
+        game->mainCharacter->triggerDialog = 0; 
+      }
     }
-    
+      
     int running = 0;
 
-    if (townsperson->actionSize > 0) { 
-      running = executeAction(&townsperson->actions[townsperson->actionSize-1], townsperson);
-    }
 
-    if (!running && townsperson->actionSize > 0) {
-      townsperson->actions = removeAction((void*)townsperson->actions, townsperson->actionSize-1, &townsperson->actionSize);
-      running = 1;
+    for (int i = 0; i < game->map.characterCount; i++) {
+      if (game->map.characters[i].actionSize > 0) {
+        running = executeAction(&game->map.characters[i].actions[game->map.characters[i].actionSize-1], &game->map.characters[i]);
+      }
+      if (!running && game->map.characters[i].actionSize > 0) {
+        game->map.characters[i].actions = removeAction((void*)game->map.characters[i].actions, game->map.characters[i].actionSize-1, &game->map.characters[i].actionSize);
+        running = 1;
+      }
     }
   }
 

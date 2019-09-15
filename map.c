@@ -7,7 +7,7 @@
 
 Man* getCharacterFromMap(Map *map, char* id) {
   for (int i = 0; i < map->characterCount; i++) {
-    if (!strncmp(map->characters[i].id, id, sizeof map->characters[i].id)) {
+    if (!strcmp(map->characters[i].id, id)) {
       return &map->characters[i];
     }
   }
@@ -38,6 +38,7 @@ Map initializeMap(char* fileName, int tileSize) {
       tiles[i]->h = tileSize;
       tiles[i]->x = (i % map.width) * tileSize;
       tiles[i]->y = floor(i/map.width) * tileSize;
+      tiles[i]->characterId = 0;
     }
 
     int count = 0;
