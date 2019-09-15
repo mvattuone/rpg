@@ -14,7 +14,7 @@
 
 typedef struct {
   SDL_Window *window;
-  Man *mainCharacter;
+  DynamicObject *mainCharacter;
   Map map;
   TTF_Font *font;
   float scrollX;

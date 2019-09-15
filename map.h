@@ -1,6 +1,6 @@
 #include "dynamicObject.h"
 #define MAX_TILE_SIZE 5000
-#define MAX_CHARACTERS 255
+#define MAX_DYNAMIC_OBJECTS 255
 
 typedef enum {
   IS_WALKABLE,
@@ -11,7 +11,7 @@ typedef enum {
 typedef struct {
   char tileId;
   TileState tileState;
-  char* characterId;
+  char* dynamic_object_id;
   int x,y,w,h;
   char teleportTo[20];
 } Tile;
@@ -22,10 +22,10 @@ typedef struct {
   int height; // in tile units
   int tileSize;
   Tile tiles[MAX_TILE_SIZE];
-  Man characters[MAX_CHARACTERS];
-  int characterCount;
+  DynamicObject dynamic_objects[MAX_DYNAMIC_OBJECTS];
+  int dynamic_objects_count;
 } Map;
 
-Man* getCharacterFromMap(Map *map, char* id);
+DynamicObject * getDynamicObjectFromMap(Map *map, char* id);
 Map initializeMap(char* fileName, int tileSize); 
 

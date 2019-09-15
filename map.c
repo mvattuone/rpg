@@ -5,14 +5,14 @@
 #include <string.h>
 #include "map.h"
 
-Man* getCharacterFromMap(Map *map, char* id) {
-  for (int i = 0; i < map->characterCount; i++) {
-    if (!strcmp(map->characters[i].id, id)) {
-      return &map->characters[i];
+DynamicObject * getDynamicObjectFromMap(Map *map, char* id) {
+  for (int i = 0; i < map->dynamic_objects_count; i++) {
+    if (!strcmp(map->dynamic_objects[i].id, id)) {
+      return &map->dynamic_objects[i];
     }
   }
 
-  printf("Could not find character with id %s", id);
+  printf("Could not find dynamic object with id %s", id);
   SDL_Quit();
   exit(1);
 }
@@ -28,9 +28,9 @@ Map initializeMap(char* fileName, int tileSize) {
     printf("Map could not be loaded.");
     exit(1);
   } else {
-    fscanf(mapData, "%d %d %d\n", &map.width, &map.height, &map.characterCount);
+    fscanf(mapData, "%d %d %d\n", &map.width, &map.height, &map.dynamic_objects_count);
     Tile **tiles = malloc(map.width * map.height * sizeof(Tile));
-    Man **characters = malloc(map.characterCount * sizeof(Man));
+    DynamicObject **dynamic_objects = malloc(map.dynamic_objects_count * sizeof(DynamicObject ));
     char c;
     for(int i=0; i < map.width * map.height; i++) {
       tiles[i] = (Tile *)malloc(sizeof(Tile));
@@ -38,11 +38,11 @@ Map initializeMap(char* fileName, int tileSize) {
       tiles[i]->h = tileSize;
       tiles[i]->x = (i % map.width) * tileSize;
       tiles[i]->y = floor(i/map.width) * tileSize;
-      tiles[i]->characterId = 0;
+      tiles[i]->dynamic_object_id = 0;
     }
 
     int count = 0;
-    int characterCount = 0;
+    int dynamic_objects_count = 0;
     char d;
     while ((c = fgetc(mapData)) && count < map.width * map.height) {
       if (c != '\n' && c != ' ' && !isspace(c)) {
@@ -61,13 +61,13 @@ Map initializeMap(char* fileName, int tileSize) {
           }
           snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
         } else if ((d = fgetc(mapData)) == 'x' || d == 'o') {
-          characters[characterCount] = (Man *)malloc(sizeof(Man));
+          dynamic_objects[dynamic_objects_count] = (DynamicObject *)malloc(sizeof(DynamicObject ));
           if (d == 'x' || d == 'o') {
 
             if (d == 'x') {
-              characters[characterCount]->isMain = 1;        
+              dynamic_objects[dynamic_objects_count]->isMain = 1;        
             } else if (d == 'o') {
-              characters[characterCount]->isMain = 0;
+              dynamic_objects[dynamic_objects_count]->isMain = 0;
             }
 
             char z;
@@ -76,18 +76,18 @@ Map initializeMap(char* fileName, int tileSize) {
               if (z == '\n' && z == ' ' && isspace(z)) {
                 continue;
               }
-              characters[characterCount]->id[n] = z;
+              dynamic_objects[dynamic_objects_count]->id[n] = z;
               n++;
             }
           }
            
-          characters[characterCount]->x = count % map.width * tileSize;
-          characters[characterCount]->y = ceil(count/map.width) * tileSize; 
-          characters[characterCount]->startingX = characters[characterCount]->x;
-          characters[characterCount]->startingY = characters[characterCount]->y;
-          characters[characterCount]->startingTile = count % map.width + ceil(count/map.width) * map.width;
-          characters[characterCount]->currentTile = characters[characterCount]->startingTile;
-          characterCount++;
+          dynamic_objects[dynamic_objects_count]->x = count % map.width * tileSize;
+          dynamic_objects[dynamic_objects_count]->y = ceil(count/map.width) * tileSize; 
+          dynamic_objects[dynamic_objects_count]->startingX = dynamic_objects[dynamic_objects_count]->x;
+          dynamic_objects[dynamic_objects_count]->startingY = dynamic_objects[dynamic_objects_count]->y;
+          dynamic_objects[dynamic_objects_count]->startingTile = count % map.width + ceil(count/map.width) * map.width;
+          dynamic_objects[dynamic_objects_count]->currentTile = dynamic_objects[dynamic_objects_count]->startingTile;
+          dynamic_objects_count++;
         }
         count++;
       }
@@ -98,13 +98,13 @@ Map initializeMap(char* fileName, int tileSize) {
       free(tiles[i]);
     }
 
-    for (int i = 0; i < map.characterCount; i++) {
-      map.characters[i] = *characters[i];
-      free(characters[i]);
+    for (int i = 0; i < map.dynamic_objects_count; i++) {
+      map.dynamic_objects[i] = *dynamic_objects[i];
+      free(dynamic_objects[i]);
     }
 
     free(tiles);
-    free(characters);
+    free(dynamic_objects);
   }
 
   fclose(mapData);

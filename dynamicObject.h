@@ -72,17 +72,17 @@ typedef struct {
   SDL_Texture *idleTexture;
   SDL_Texture *runningTexture;
   Action *actions;
-} Man;
+} DynamicObject;
 
-Man initializeMan(SDL_Renderer *renderer, Man *man, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction); 
+DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction); 
 
 
-void addAction(int index, Man *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3);
-int executeAction(Action *action, Man *dynamic_object); 
+void addAction(int index, DynamicObject *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3);
+int executeAction(Action *action, DynamicObject *dynamic_object); 
 Action* removeAction(void* *actions, int index, size_t *size);
 
-int moveLeft(Man *man, int tileDistance, int* tileSize);
-int moveRight(Man *man, int tileDistance, int* tileSize);
-int moveUp(Man *man, int tileDistance, int* tileSize);
-int moveDown(Man *man, int tileDistance, int* tileSize);
-int speak(Man *man, char* text, int *dismissDialog, time_t duration);
+int moveLeft(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int moveRight(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int moveUp(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int moveDown(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t duration);

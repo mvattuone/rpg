@@ -117,139 +117,139 @@ int handleEvents(Game *game) {
   return 0;
 }
 
-int handlePhysics(Man *character, float *dt) {
+int handlePhysics(DynamicObject *dynamic_object, float *dt) {
   float cof = 0.41; // This will be attached to the tile the player is on eventually
-  if (character->isMoving) {
-    character->frictionalForceX = cof * character->normalForce;
-    character->frictionalForceY = cof * character->normalForce;
+  if (dynamic_object->isMoving) {
+    dynamic_object->frictionalForceX = cof * dynamic_object->normalForce;
+    dynamic_object->frictionalForceY = cof * dynamic_object->normalForce;
   }
-  if (character->moveLeft) {
-    character->directionX = -1;
-    character->thrustX = character->isRunning ? character->runThrust : character->walkThrust;
-    if (character->moveRight) {
-      character->directionX = 0;
+  if (dynamic_object->moveLeft) {
+    dynamic_object->directionX = -1;
+    dynamic_object->thrustX = dynamic_object->isRunning ? dynamic_object->runThrust : dynamic_object->walkThrust;
+    if (dynamic_object->moveRight) {
+      dynamic_object->directionX = 0;
     }
-  } else if (!character->moveLeft) {
-    character->directionX = character->dx < 0 ? 1 : 0;
-    if (character->moveRight) {
-      character->directionX = 1;
+  } else if (!dynamic_object->moveLeft) {
+    dynamic_object->directionX = dynamic_object->dx < 0 ? 1 : 0;
+    if (dynamic_object->moveRight) {
+      dynamic_object->directionX = 1;
     } else {
-      character->thrustX *= -1;
-    }
-  }
-  if (character->moveRight) {
-    character->directionX = 1;
-    character->thrustX = character->isRunning ? character->runThrust : character->walkThrust;
-    if (character->moveLeft) {
-      character->directionX = 0;
-    }
-  } else if (!character->moveRight) {
-    character->directionX = character->dx > 0 ? -1 : 0;
-    character->directionX = character->dx < 0 ? 1 : character->directionX;
-    if (character->moveLeft) {
-      character->directionX = -1;
-    } else {
-      character->thrustX *= -1;
+      dynamic_object->thrustX *= -1;
     }
   }
-  if (character->moveUp) {
-    character->directionY = -1;
-    character->thrustY = character->isRunning ? character->runThrust : character->walkThrust; 
-    if (character->moveDown) {
-      character->directionY = 0;
+  if (dynamic_object->moveRight) {
+    dynamic_object->directionX = 1;
+    dynamic_object->thrustX = dynamic_object->isRunning ? dynamic_object->runThrust : dynamic_object->walkThrust;
+    if (dynamic_object->moveLeft) {
+      dynamic_object->directionX = 0;
     }
-  } else if (!character->moveUp) {
-    character->directionY = character->dy < 0 ? 1 : 0;
-    if (character->moveDown) {
-      character->directionY = 1;
+  } else if (!dynamic_object->moveRight) {
+    dynamic_object->directionX = dynamic_object->dx > 0 ? -1 : 0;
+    dynamic_object->directionX = dynamic_object->dx < 0 ? 1 : dynamic_object->directionX;
+    if (dynamic_object->moveLeft) {
+      dynamic_object->directionX = -1;
     } else {
-      character->thrustY *= -1;
+      dynamic_object->thrustX *= -1;
     }
   }
-  if (character->moveDown) {
-    character->directionY = 1;
-    character->thrustY = character->isRunning ? character->runThrust : character->walkThrust; 
-    if (character->moveUp) {
-      character->directionY = 0;
+  if (dynamic_object->moveUp) {
+    dynamic_object->directionY = -1;
+    dynamic_object->thrustY = dynamic_object->isRunning ? dynamic_object->runThrust : dynamic_object->walkThrust; 
+    if (dynamic_object->moveDown) {
+      dynamic_object->directionY = 0;
     }
-  } else if (!character->moveDown) {
-    character->directionY = character->dy > 0 ? -1 : 0;
-    character->directionY = character->dy < 0 ? 1 : character->directionY;
-    if (character->moveUp) {
-      character->directionY = -1;
+  } else if (!dynamic_object->moveUp) {
+    dynamic_object->directionY = dynamic_object->dy < 0 ? 1 : 0;
+    if (dynamic_object->moveDown) {
+      dynamic_object->directionY = 1;
     } else {
-      character->thrustY *= -1;
+      dynamic_object->thrustY *= -1;
+    }
+  }
+  if (dynamic_object->moveDown) {
+    dynamic_object->directionY = 1;
+    dynamic_object->thrustY = dynamic_object->isRunning ? dynamic_object->runThrust : dynamic_object->walkThrust; 
+    if (dynamic_object->moveUp) {
+      dynamic_object->directionY = 0;
+    }
+  } else if (!dynamic_object->moveDown) {
+    dynamic_object->directionY = dynamic_object->dy > 0 ? -1 : 0;
+    dynamic_object->directionY = dynamic_object->dy < 0 ? 1 : dynamic_object->directionY;
+    if (dynamic_object->moveUp) {
+      dynamic_object->directionY = -1;
+    } else {
+      dynamic_object->thrustY *= -1;
     }
   }
 
-  character->ax = (((character->directionX * character->thrustX) - (character->directionX * character->frictionalForceX)) / character->mass);
-  character->ay = (((character->directionY * character->thrustY) - (character->directionY * character->frictionalForceY)) / character->mass);
-  character->dx = accelerate(character->dx, character->ax, *dt); 
-  character->dy = accelerate(character->dy, character->ay, *dt); 
+  dynamic_object->ax = (((dynamic_object->directionX * dynamic_object->thrustX) - (dynamic_object->directionX * dynamic_object->frictionalForceX)) / dynamic_object->mass);
+  dynamic_object->ay = (((dynamic_object->directionY * dynamic_object->thrustY) - (dynamic_object->directionY * dynamic_object->frictionalForceY)) / dynamic_object->mass);
+  dynamic_object->dx = accelerate(dynamic_object->dx, dynamic_object->ax, *dt); 
+  dynamic_object->dy = accelerate(dynamic_object->dy, dynamic_object->ay, *dt); 
   
   float maxSpeed = 60.0f;
   float maxRunningSpeed = 120.0f;
   
-  if (character->isMoving) {
-    if (!character->isRunning && character->dx >= maxSpeed) {
-      character->dx = maxSpeed; 
+  if (dynamic_object->isMoving) {
+    if (!dynamic_object->isRunning && dynamic_object->dx >= maxSpeed) {
+      dynamic_object->dx = maxSpeed; 
     }
-    if (character->isRunning && character->dx >= maxRunningSpeed) {
-      character->dx = maxRunningSpeed;
+    if (dynamic_object->isRunning && dynamic_object->dx >= maxRunningSpeed) {
+      dynamic_object->dx = maxRunningSpeed;
     }
-    if (!character->isRunning && character->dx <= -maxSpeed) {
-      character->dx = -maxSpeed; 
+    if (!dynamic_object->isRunning && dynamic_object->dx <= -maxSpeed) {
+      dynamic_object->dx = -maxSpeed; 
     }
-    if (character->isRunning && character->dx <= -maxRunningSpeed) {
-      character->dx = -maxRunningSpeed;
+    if (dynamic_object->isRunning && dynamic_object->dx <= -maxRunningSpeed) {
+      dynamic_object->dx = -maxRunningSpeed;
     }
 
-    if (!character->isRunning && character->dy >= maxSpeed) {
-      character->dy = maxSpeed; 
+    if (!dynamic_object->isRunning && dynamic_object->dy >= maxSpeed) {
+      dynamic_object->dy = maxSpeed; 
     }
-    if (character->isRunning && character->dy >= maxRunningSpeed) {
-      character->dy = maxRunningSpeed;
+    if (dynamic_object->isRunning && dynamic_object->dy >= maxRunningSpeed) {
+      dynamic_object->dy = maxRunningSpeed;
     }
-    if (!character->isRunning && character->dy <= -maxSpeed) {
-      character->dy = -maxSpeed; 
+    if (!dynamic_object->isRunning && dynamic_object->dy <= -maxSpeed) {
+      dynamic_object->dy = -maxSpeed; 
     }
-    if (character->isRunning && character->dy <= -maxRunningSpeed) {
-      character->dy = -maxRunningSpeed;
+    if (dynamic_object->isRunning && dynamic_object->dy <= -maxRunningSpeed) {
+      dynamic_object->dy = -maxRunningSpeed;
     }
 
   }
 
   // Clamp
-  if (!character->isMoving) {
-    if (fabs(character->dx) < 5) {
-      character->dx = 0;
-      character->ax = 0;
-      character->thrustX = 0;
-      character->directionX = 0;
-      character->frictionalForceX = 0;
+  if (!dynamic_object->isMoving) {
+    if (fabs(dynamic_object->dx) < 5) {
+      dynamic_object->dx = 0;
+      dynamic_object->ax = 0;
+      dynamic_object->thrustX = 0;
+      dynamic_object->directionX = 0;
+      dynamic_object->frictionalForceX = 0;
     }
-    if (fabs(character->dy) < 5) {
-      character->dy = 0;
-      character->ay = 0;
-      character->thrustY = 0;
-      character->directionY = 0;
-      character->frictionalForceY = 0;
+    if (fabs(dynamic_object->dy) < 5) {
+      dynamic_object->dy = 0;
+      dynamic_object->ay = 0;
+      dynamic_object->thrustY = 0;
+      dynamic_object->directionY = 0;
+      dynamic_object->frictionalForceY = 0;
     }
   }
 
-  character->x += character->dx * *dt; 
-  character->y += character->dy * *dt; 
+  dynamic_object->x += dynamic_object->dx * *dt; 
+  dynamic_object->y += dynamic_object->dy * *dt; 
  
   return 0;
 }
 
 
-void renderMan(Man *man, int x, int y, SDL_Renderer *renderer) {
-  SDL_Rect manSrcRect = { man->sprite * man->w, man->h * man->direction, man->w, man->h};
-  SDL_Rect manRect = {x, y, man->w, man->h};
-  man->status == IS_RUNNING
-    ? SDL_RenderCopy(renderer, man->runningTexture, &manSrcRect, &manRect)
-    : SDL_RenderCopy(renderer, man->idleTexture, &manSrcRect, &manRect);
+void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
+  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
+  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
+  dynamic_object->status == IS_RUNNING
+    ? SDL_RenderCopy(renderer, dynamic_object->runningTexture, &srcRect, &destRect)
+    : SDL_RenderCopy(renderer, dynamic_object->idleTexture, &srcRect, &destRect);
 }
 
 void renderTile(Game *game, int x, int y, char tileId) {
@@ -277,10 +277,10 @@ void doRender(Game *game) {
       }
     }
 
-  for (int i = 0; i < game->map.characterCount; i++) {
-    renderMan(&game->map.characters[i], game->map.characters[i].x+game->scrollX, game->map.characters[i].y+game->scrollY, game->renderer);
+  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    renderMan(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
 
-    char* currentDialog = game->map.characters[i].currentDialog;
+    char* currentDialog = game->map.dynamic_objects[i].currentDialog;
     if (currentDialog != NULL) {
       SDL_Color color = {0, 0, 0};
       renderText(game->renderer, game->font, currentDialog, color, 20, 400, WINDOW_WIDTH - 20, 20);
@@ -313,10 +313,10 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
 
 void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
-  for (int i = 0; i < game->map.characterCount; i++) {
-    game->map.characters[i] = initializeMan(game->renderer, &game->map.characters[i], UP, 0, 80, 950, 1300, IS_IDLE, RIGHT);
-    if (game->map.characters[i].isMain) {
-      game->mainCharacter = &game->map.characters[i];
+  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 950, 1300, IS_IDLE, RIGHT);
+    if (game->map.dynamic_objects[i].isMain) {
+      game->mainCharacter = &game->map.dynamic_objects[i];
     }
   }
 }
@@ -343,26 +343,26 @@ void detectCollisions(Game *game) {
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
     int tileIndex = x + y * game->map.width;
     if (tileIndex < 0) continue;
-    float* manX = &game->mainCharacter->x;
-    float* manY = &game->mainCharacter->y;
-    float* manDx = &game->mainCharacter->dx;
-    float* manDy = &game->mainCharacter->dy;
-    int* manW = &game->mainCharacter->w;
-    int* manH = &game->mainCharacter->h;
+    float* mainX = &game->mainCharacter->x;
+    float* mainY = &game->mainCharacter->y;
+    float* mainDx = &game->mainCharacter->dx;
+    float* mainDy = &game->mainCharacter->dy;
+    int* mainW = &game->mainCharacter->w;
+    int* mainH = &game->mainCharacter->h;
     
-    float floorX = game->map.tiles[tileIndex].x;
-    float floorY = game->map.tiles[tileIndex].y;
-    int floorW = game->map.tiles[tileIndex].w;
-    int floorH = game->map.tiles[tileIndex].h; 
+    float tileX = game->map.tiles[tileIndex].x;
+    float tileY = game->map.tiles[tileIndex].y;
+    int tileW = game->map.tiles[tileIndex].w;
+    int tileH = game->map.tiles[tileIndex].h; 
 
     int reallyNotOccupied = 0;
-    for (int i = 0; i < game->map.characterCount; i++) {
-      int characterIndexX = (game->map.characters[i].x + game->map.characters[i].w/2)/game->map.tileSize;
-      int characterIndexY = (game->map.characters[i].y + game->map.characters[i].h/2)/game->map.tileSize;
-      game->map.characters[i].currentTile = characterIndexX + characterIndexY * game->map.width;
-      game->map.tiles[game->map.characters[i].currentTile].characterId = game->map.characters[i].id;
+    for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+      int doIndexX = (game->map.dynamic_objects[i].x + game->map.dynamic_objects[i].w/2)/game->map.tileSize;
+      int doIndexY = (game->map.dynamic_objects[i].y + game->map.dynamic_objects[i].h/2)/game->map.tileSize;
+      game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
+      game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
 
-      if (!reallyNotOccupied && game->map.tiles[tileIndex].characterId && game->map.characters[i].currentTile != tileIndex) {
+      if (!reallyNotOccupied && game->map.tiles[tileIndex].dynamic_object_id && game->map.dynamic_objects[i].currentTile != tileIndex) {
         reallyNotOccupied = 1; 
       } else {
         reallyNotOccupied = 0; 
@@ -373,29 +373,29 @@ void detectCollisions(Game *game) {
         if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
             loadMap(game, game->map.tiles[tileIndex].teleportTo);
         }
-        if (game->map.tiles[tileIndex].tileState == IS_SOLID || (game->map.characters[i].currentTile == tileIndex && !game->map.characters[i].isMain)) {
+        if (game->map.tiles[tileIndex].tileState == IS_SOLID || (game->map.dynamic_objects[i].currentTile == tileIndex && !game->map.dynamic_objects[i].isMain)) {
 
-          if (*manX + *manW / 2 > floorX && *manX + *manW/ 2 < floorX+floorW) {
-            if (*manY < floorH+floorY && *manY > floorY && *manDy < 0) {
-              *manY = floorY+floorH;
-              *manDy = 0;
+          if (*mainX + *mainW / 2 > tileX && *mainX + *mainW/ 2 < tileX+tileW) {
+            if (*mainY < tileH+tileY && *mainY > tileY && *mainDy < 0) {
+              *mainY = tileY+tileH;
+              *mainDy = 0;
             } 
           }
           
-          if (*manX + *manW > floorX && *manX<floorX+floorW) {
-            if (*manY + *manH > floorY && *manY < floorY && *manDy > 0) {
-              *manY = floorY-*manH;
-              *manDy = 0;
+          if (*mainX + *mainW > tileX && *mainX<tileX+tileW) {
+            if (*mainY + *mainH > tileY && *mainY < tileY && *mainDy > 0) {
+              *mainY = tileY-*mainH;
+              *mainDy = 0;
             }
           }
 
-          if (*manY + *manH/2 > floorY && *manY<floorY+floorH) {
-            if (*manX < floorX+floorW && *manX+*manW > floorX+floorW && *manDx < 0) {
-              *manX = floorX + floorW;
-              *manDx = 0;
-            } else if (*manX+*manW > floorX && *manX < floorX && *manDx > 0) {
-              *manX = floorX - *manW;
-              *manDx = 0;
+          if (*mainY + *mainH/2 > tileY && *mainY<tileY+tileH) {
+            if (*mainX < tileX+tileW && *mainX+*mainW > tileX+tileW && *mainDx < 0) {
+              *mainX = tileX + tileW;
+              *mainDx = 0;
+            } else if (*mainX+*mainW > tileX && *mainX < tileX && *mainDx > 0) {
+              *mainX = tileX - *mainW;
+              *mainDx = 0;
             }
           }
         }
@@ -403,7 +403,7 @@ void detectCollisions(Game *game) {
     }
 
     if (reallyNotOccupied) { 
-      game->map.tiles[tileIndex].characterId = 0;
+      game->map.tiles[tileIndex].dynamic_object_id = 0;
     }
   }
 };
@@ -422,7 +422,7 @@ void process(Game *game) {
   if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
 
     /* if (townsperson->startCutscene) { */
-    /*   townsperson = getCharacterFromMap(&game->map, "001"); */
+    /*   townsperson = getDynamicObjectFromMap(&game->map, "001"); */
     /*   addAction(0, townsperson, (void*)&moveLeft, (void*)2, (void*)&game->map.tileSize, NULL); */
     /*   addAction(1, townsperson, (void*)&moveRight, (void*)2, (void*)&game->map.tileSize, NULL); */
     /*   addAction(2, townsperson, (void*)&speak, "I am very proud of you.", (void*)&game->dismissDialog, 0); */
@@ -432,25 +432,25 @@ void process(Game *game) {
 
     // If man is facing the correct direction and "startDialog" is set, register the action
     if (game->mainCharacter->triggerDialog) {
-      if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].characterId) {
-        Man* townsperson = getCharacterFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].characterId);
+      if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
+        DynamicObject *townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
         addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
         addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
         game->mainCharacter->triggerDialog = 0; 
       }
 
-      if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].characterId) {
-        Man *townsperson = getCharacterFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - 1].characterId);
+      if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
+        DynamicObject *townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
         addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
         addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
         game->mainCharacter->triggerDialog = 0; 
-      } else if (game->mainCharacter->direction == DOWN && game->map.tiles[game->mainCharacter->currentTile + game->map.width].characterId) {
-        Man *townsperson = getCharacterFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].characterId);
+      } else if (game->mainCharacter->direction == DOWN && game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id) {
+        DynamicObject *townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id);
         addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
         addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
         game->mainCharacter->triggerDialog = 0; 
-      } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].characterId) {
-        Man *townsperson = getCharacterFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].characterId);
+      } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
+        DynamicObject *townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
         addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
         addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
         game->mainCharacter->triggerDialog = 0; 
@@ -462,20 +462,20 @@ void process(Game *game) {
     int running = 0;
 
 
-    for (int i = 0; i < game->map.characterCount; i++) {
-      if (game->map.characters[i].actionSize > 0) {
-        running = executeAction(&game->map.characters[i].actions[game->map.characters[i].actionSize-1], &game->map.characters[i]);
+    for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+      if (game->map.dynamic_objects[i].actionSize > 0) {
+        running = executeAction(&game->map.dynamic_objects[i].actions[game->map.dynamic_objects[i].actionSize-1], &game->map.dynamic_objects[i]);
       }
-      if (!running && game->map.characters[i].actionSize > 0) {
-        game->map.characters[i].actions = removeAction((void*)game->map.characters[i].actions, game->map.characters[i].actionSize-1, &game->map.characters[i].actionSize);
+      if (!running && game->map.dynamic_objects[i].actionSize > 0) {
+        game->map.dynamic_objects[i].actions = removeAction((void*)game->map.dynamic_objects[i].actions, game->map.dynamic_objects[i].actionSize-1, &game->map.dynamic_objects[i].actionSize);
         running = 1;
       }
     }
   }
 
   if (game->status == IS_ACTIVE) {
-    for (int i = 0; i < game->map.characterCount; i++) {
-      handlePhysics(&game->map.characters[i], &game->dt);
+    for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+      handlePhysics(&game->map.dynamic_objects[i], &game->dt);
     }
   }
 
@@ -520,8 +520,8 @@ void process(Game *game) {
 
   // 60 FPS / 8 animations 
   if (fmod(game->time, 7.5) == 0) {
-    for (int i = 0; i < game->map.characterCount; i++) {
-      game->map.characters[i].sprite = (game->map.characters[i].sprite + 1) % 8;
+    for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+      game->map.dynamic_objects[i].sprite = (game->map.dynamic_objects[i].sprite + 1) % 8;
     }
   }
    
@@ -530,10 +530,10 @@ void process(Game *game) {
 
 void shutdownGame(Game *game) {
   SDL_DestroyTexture(game->terrainTexture);
-  for (int i = 0; i < game->map.characterCount; i++) {
-    SDL_DestroyTexture(game->map.characters[i].idleTexture);
-    SDL_DestroyTexture(game->map.characters[i].runningTexture);
-    free(game->map.characters[i].actions);
+  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    SDL_DestroyTexture(game->map.dynamic_objects[i].idleTexture);
+    SDL_DestroyTexture(game->map.dynamic_objects[i].runningTexture);
+    free(game->map.dynamic_objects[i].actions);
   }
   TTF_CloseFont(game->font);
   SDL_DestroyWindow(game->window); 
@@ -555,7 +555,7 @@ int main(int argc, char *argv[]) {
   Game game;
   // Create an application window with the following settings:
   game.window = SDL_CreateWindow( 
-      "Man Jump",
+      "RPG",
       SDL_WINDOWPOS_UNDEFINED,           
       SDL_WINDOWPOS_UNDEFINED,           
       WINDOW_WIDTH,                               
