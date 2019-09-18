@@ -122,12 +122,12 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
   SDL_Surface *manIdleSurface = createSurface("images/man-idle.png");
   SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
   dynamic_object->actions = malloc(1 * sizeof(generic_function));
+  dynamic_object->prevActionSize = 0;
   dynamic_object->actionSize = 0;
   dynamic_object->actionCapacity = 1;
   dynamic_object->actionTimer = 0;
   dynamic_object->idleTexture= SDL_CreateTextureFromSurface(renderer, manIdleSurface);
   dynamic_object->runningTexture= SDL_CreateTextureFromSurface(renderer, manRunningSurface);
-  dynamic_object->startCutscene = 1;
   dynamic_object->angle = angle;
   dynamic_object->w = manIdleSurface->w / 8;
   dynamic_object->h = manIdleSurface->h / 8;

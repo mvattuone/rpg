@@ -17,12 +17,11 @@ int handleEvents(Game *game) {
         break;
       case SDL_KEYDOWN:
         switch (event.key.keysym.scancode) {
-          case SDL_SCANCODE_RETURN:
-            game->dismissDialog = 1;
-            break;
           case SDL_SCANCODE_A:
-            if (!game->mainCharacter->triggerDialog) {
-              game->mainCharacter->triggerDialog = 1;
+            if (game->status != IS_CUTSCENE &&  game->status != IS_DIALOGUE) {
+              triggerDialog(game);
+            } else {
+              game->dismissDialog = 1;
             }
             break;
           default:
@@ -41,6 +40,8 @@ int handleEvents(Game *game) {
     }
   }
  
+  printf("hello %d\n", game->status);
+  fflush(stdout);
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -417,63 +418,59 @@ int getDirection(Game *game) {
   return (int)fabs(floor((game->mainCharacter->angle < 270 ? game->mainCharacter->angle + 90 : game->mainCharacter->angle - 270)/45));
 };
 
+void triggerDialog(Game *game) { 
+  DynamicObject *townsperson = NULL;
+  if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
+  } else if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
+  } else if (game->mainCharacter->direction == DOWN && game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id);
+  } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
+  }
+
+  if (townsperson != NULL) {
+    game->status = IS_DIALOGUE;
+    addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
+    addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
+  }
+}
+
 void process(Game *game) {
   game->time++;
   if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
 
-    /* if (townsperson->startCutscene) { */
-    /*   townsperson = getDynamicObjectFromMap(&game->map, "001"); */
-    /*   addAction(0, townsperson, (void*)&moveLeft, (void*)2, (void*)&game->map.tileSize, NULL); */
-    /*   addAction(1, townsperson, (void*)&moveRight, (void*)2, (void*)&game->map.tileSize, NULL); */
-    /*   addAction(2, townsperson, (void*)&speak, "I am very proud of you.", (void*)&game->dismissDialog, 0); */
-    /*   addAction(3, townsperson, (void*)&speak, "You did it!", (void*)&game->dismissDialog, 0); */
-    /*   townsperson->startCutscene = 0; */
-    /* } */
-
-    // If man is facing the correct direction and "startDialog" is set, register the action
-    if (game->mainCharacter->triggerDialog) {
-      if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
-        DynamicObject *townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
-        addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
-        addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
-        game->mainCharacter->triggerDialog = 0; 
-      }
-
-      if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
-        DynamicObject *townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
-        addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
-        addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
-        game->mainCharacter->triggerDialog = 0; 
-      } else if (game->mainCharacter->direction == DOWN && game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id) {
-        DynamicObject *townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id);
-        addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
-        addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
-        game->mainCharacter->triggerDialog = 0; 
-      } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
-        DynamicObject *townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
-        addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
-        addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
-        game->mainCharacter->triggerDialog = 0; 
-      } else {
-        game->mainCharacter->triggerDialog = 0; 
-      }
+    if (game->mainCharacter->currentTile == 20 && game->status != IS_CUTSCENE) {
+      game->status = IS_CUTSCENE;
+      addAction(0, game->mainCharacter, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
+      addAction(1, game->mainCharacter, (void*)&speak, "You probably shouldn't try to step here again.", (void*)&game->dismissDialog, 0);
+      addAction(2, game->mainCharacter, (void*)&speak, "Yikes, you just stepped in some rotten milk!", (void*)&game->dismissDialog, 0);
     }
+  }
       
-    int running = 0;
+  int running = 0;
 
+  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    if (game->map.dynamic_objects[i].actionSize > 0) {
+      game->map.dynamic_objects[i].prevActionSize = game->map.dynamic_objects[i].actionSize;
+      running = executeAction(&game->map.dynamic_objects[i].actions[game->map.dynamic_objects[i].actionSize-1], &game->map.dynamic_objects[i]);
+    }
+    if (!running && game->map.dynamic_objects[i].actionSize > 0) {
+      game->map.dynamic_objects[i].actions = removeAction((void*)game->map.dynamic_objects[i].actions, game->map.dynamic_objects[i].actionSize-1, &game->map.dynamic_objects[i].actionSize);
+      running = 1;
+    } 
 
-    for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-      if (game->map.dynamic_objects[i].actionSize > 0) {
-        running = executeAction(&game->map.dynamic_objects[i].actions[game->map.dynamic_objects[i].actionSize-1], &game->map.dynamic_objects[i]);
-      }
-      if (!running && game->map.dynamic_objects[i].actionSize > 0) {
-        game->map.dynamic_objects[i].actions = removeAction((void*)game->map.dynamic_objects[i].actions, game->map.dynamic_objects[i].actionSize-1, &game->map.dynamic_objects[i].actionSize);
-        running = 1;
+    if (!running && game->map.dynamic_objects[i].prevActionSize > game->map.dynamic_objects[i].actionSize && game->map.dynamic_objects[i].actionSize == 0) {
+      if (game->status == IS_DIALOGUE || game->status == IS_CUTSCENE) { 
+        game->status = IS_ACTIVE;
+        game->map.dynamic_objects[i].prevActionSize = 0;
       }
     }
   }
+  
 
-  if (game->status == IS_ACTIVE) {
+  if (game->status == IS_ACTIVE || game->status == IS_DIALOGUE) {
     for (int i = 0; i < game->map.dynamic_objects_count; i++) {
       handlePhysics(&game->map.dynamic_objects[i], &game->dt);
     }
@@ -514,8 +511,10 @@ void process(Game *game) {
   }
 
   // handle animation
-  game->mainCharacter->angle = getAngle(game);
-  game->mainCharacter->direction = getDirection(game);
+  if (game->mainCharacter->dx != 0 || game->mainCharacter->dy != 0) { 
+    game->mainCharacter->angle = getAngle(game);
+    game->mainCharacter->direction = getDirection(game);
+  }
   game->mainCharacter->status = game->mainCharacter->dx != 0 || game->mainCharacter->dy != 0 ? IS_RUNNING : IS_IDLE;
 
   // 60 FPS / 8 animations 

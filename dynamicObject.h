@@ -60,8 +60,8 @@ typedef struct {
   int currentTile;
   int triggerDialog;
   char* currentDialog;
-  int startCutscene;
   int startingTile;
+  size_t prevActionSize;
   size_t actionSize;
   size_t actionCapacity;
   time_t actionTimer;

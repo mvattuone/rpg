@@ -11,6 +11,8 @@
 #define WINDOW_HEIGHT 480
 #define IS_ACTIVE 1
 #define IS_PAUSED 2
+#define IS_DIALOGUE 3
+#define IS_CUTSCENE 3
 
 typedef struct {
   SDL_Window *window;
@@ -34,3 +36,4 @@ void doRender(Game *game);
 void loadGame(Game *game);
 void collisionDetect(Game *game);
 void process(Game *game);
+void triggerDialog(Game *game);
