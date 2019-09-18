@@ -1,4 +1,3 @@
-This is a really shitty sidescroller that I made to learn about some basics around game design, as 
-well as have an excuse to learn some more about C.
+Learning how to make an RPG
 
-Move with the left and right buttons, and press space to jump. You can't win. :)
+More deets eventually
