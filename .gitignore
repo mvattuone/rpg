@@ -3,3 +3,4 @@ tags
 rpg.o*
 *.dSYM
 rpg
+*.log
