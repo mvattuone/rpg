@@ -40,8 +40,6 @@ int handleEvents(Game *game) {
     }
   }
  
-  printf("hello %d\n", game->status);
-  fflush(stdout);
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -440,7 +438,6 @@ void triggerDialog(Game *game) {
 void process(Game *game) {
   game->time++;
   if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
-
     if (game->mainCharacter->currentTile == 20 && game->status != IS_CUTSCENE) {
       game->status = IS_CUTSCENE;
       addAction(0, game->mainCharacter, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
@@ -452,6 +449,24 @@ void process(Game *game) {
   int running = 0;
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    if (game->map.dynamic_objects[i].default_behavior == WALKING && game->map.dynamic_objects[i].actionSize == 0 && !game->map.dynamic_objects[i].isMain && game->status == IS_ACTIVE) {
+      if (fmod(game->time, 240) == 0) {
+        printf("hello\n");
+        fflush(stdout);
+        int randomNumber = rand() % 4;
+
+        if (randomNumber == 0) {
+          addAction(0, &game->map.dynamic_objects[i], (void*)&moveUp, (void*)1, (void*)&game->map.tileSize, NULL);
+        } else if (randomNumber == 1) {
+          addAction(0, &game->map.dynamic_objects[i], (void*)&moveRight, (void*)1, (void*)&game->map.tileSize, NULL);
+        } else if (randomNumber == 2) {
+          addAction(0, &game->map.dynamic_objects[i], (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
+        } else if (randomNumber == 3) {
+          addAction(0, &game->map.dynamic_objects[i], (void*)&moveLeft, (void*)1, (void*)&game->map.tileSize, NULL);
+        }
+      }
+    }
+
     if (game->map.dynamic_objects[i].actionSize > 0) {
       game->map.dynamic_objects[i].prevActionSize = game->map.dynamic_objects[i].actionSize;
       running = executeAction(&game->map.dynamic_objects[i].actions[game->map.dynamic_objects[i].actionSize-1], &game->map.dynamic_objects[i]);
@@ -468,7 +483,6 @@ void process(Game *game) {
       }
     }
   }
-  
 
   if (game->status == IS_ACTIVE || game->status == IS_DIALOGUE) {
     for (int i = 0; i < game->map.dynamic_objects_count; i++) {

@@ -44,7 +44,7 @@ Map initializeMap(char* fileName, int tileSize) {
     int count = 0;
     int dynamic_objects_count = 0;
     char d;
-    while ((c = fgetc(mapData)) && count < map.width * map.height) {
+    while (count < map.width * map.height && (c = fgetc(mapData))) {
       if (c != '\n' && c != ' ' && !isspace(c)) {
         tiles[count]->tileId = c; 
         tiles[count]->tileState = fgetc(mapData) - '0'; 
@@ -92,6 +92,27 @@ Map initializeMap(char* fileName, int tileSize) {
         count++;
       }
     } 
+
+    char doId[3];
+    while((c = fgetc(mapData)) && !isspace(c)) {
+      if (c == '#') {
+        for (int i = 0; i < 3; i++) {
+          doId[i] = fgetc(mapData); 
+        }
+        for (int i = 0; i < map.dynamic_objects_count; i++) {
+          printf("doId %s\n", doId);
+          printf("dynamic object id %s\n", dynamic_objects[i]->id);
+          fflush(stdout);
+          if (!strncmp(doId, dynamic_objects[i]->id, 3)) {
+            fscanf(mapData, "%d\n", &dynamic_objects[i]->default_behavior);
+            printf("hello there %d\n", dynamic_objects[i]->default_behavior);
+            fflush(stdout);
+          }
+        }
+      } else {
+        break;
+      }
+    }
 
     for (int i = 0; i < map.width * map.height; i++) {
       map.tiles[i] = *tiles[i];

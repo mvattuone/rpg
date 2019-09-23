@@ -20,6 +20,11 @@ typedef enum {
   IS_RUNNING
 } Status;
 
+typedef enum {
+  IDLE,
+  WALKING
+} Behavior;
+
 typedef struct {
   generic_function action;
   void* arg1;
@@ -67,6 +72,7 @@ typedef struct {
   time_t actionTimer;
   char *name; // string
   int sprite;
+  Behavior default_behavior;
   Direction direction;
   Status status;
   SDL_Texture *idleTexture;
