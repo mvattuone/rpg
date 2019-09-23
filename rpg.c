@@ -328,7 +328,7 @@ void loadGame(Game *game) {
   game->dismissDialog = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
-  loadMap(game, "map_03.lvl");
+  loadMap(game, "map_01.lvl");
 };
 
 // Detect if two objects in space have a collision
@@ -444,8 +444,6 @@ void process(Game *game) {
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (game->map.dynamic_objects[i].default_behavior == WALKING && game->map.dynamic_objects[i].actionSize == 0 && !game->map.dynamic_objects[i].isMain && game->status == IS_ACTIVE) {
       if (fmod(game->time, 240) == 0) {
-        printf("hello\n");
-        fflush(stdout);
         int randomNumber = rand() % 4;
 
         if (randomNumber == 0) {
