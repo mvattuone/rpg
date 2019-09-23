@@ -337,72 +337,65 @@ int hasCollision(float x1, float y1, float x2, float y2, float w1, float h1, flo
   return (!((x1 > (x2+w2)) || (x2 > (x1+w1)) || (y1 > (y2+h2)) || (y2 > (y1+h1))));
 }
 
-void detectCollisions(Game *game) {
+void detectCollisions(Game *game, DynamicObject *dynamic_object) {
   for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
     int tileIndex = x + y * game->map.width;
     if (tileIndex < 0) continue;
-    float* mainX = &game->mainCharacter->x;
-    float* mainY = &game->mainCharacter->y;
-    float* mainDx = &game->mainCharacter->dx;
-    float* mainDy = &game->mainCharacter->dy;
-    int* mainW = &game->mainCharacter->w;
-    int* mainH = &game->mainCharacter->h;
+    float mainX = dynamic_object->x;
+    float mainY = dynamic_object->y;
+    float mainDx = dynamic_object->dx;
+    float mainDy = dynamic_object->dy;
+    int mainW = dynamic_object->w;
+    int mainH = dynamic_object->h;
     
     float tileX = game->map.tiles[tileIndex].x;
     float tileY = game->map.tiles[tileIndex].y;
     int tileW = game->map.tiles[tileIndex].w;
     int tileH = game->map.tiles[tileIndex].h; 
 
-    int reallyNotOccupied = 0;
     for (int i = 0; i < game->map.dynamic_objects_count; i++) {
       int doIndexX = (game->map.dynamic_objects[i].x + game->map.dynamic_objects[i].w/2)/game->map.tileSize;
       int doIndexY = (game->map.dynamic_objects[i].y + game->map.dynamic_objects[i].h/2)/game->map.tileSize;
+      int previousTile = game->map.dynamic_objects[i].currentTile;
       game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
-      game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
 
-      if (!reallyNotOccupied && game->map.tiles[tileIndex].dynamic_object_id && game->map.dynamic_objects[i].currentTile != tileIndex) {
-        reallyNotOccupied = 1; 
-      } else {
-        reallyNotOccupied = 0; 
-      }
-
+      if (previousTile != game->map.dynamic_objects[i].currentTile) {
+        game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
+        game->map.tiles[previousTile].dynamic_object_id = 0;
+      } 
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
         if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
             loadMap(game, game->map.tiles[tileIndex].teleportTo);
         }
-        if (game->map.tiles[tileIndex].tileState == IS_SOLID || (game->map.dynamic_objects[i].currentTile == tileIndex && !game->map.dynamic_objects[i].isMain)) {
+        if (game->map.tiles[tileIndex].tileState == IS_SOLID || ((game->map.dynamic_objects[i].currentTile == tileIndex && !game->map.dynamic_objects[i].isMain && dynamic_object[i].currentTile == game->map.dynamic_objects[i].currentTile) || (game->map.tiles[tileIndex].dynamic_object_id != 0 && game->map.tiles[tileIndex].dynamic_object_id != dynamic_object->id))) {
 
-          if (*mainX + *mainW / 2 > tileX && *mainX + *mainW/ 2 < tileX+tileW) {
-            if (*mainY < tileH+tileY && *mainY > tileY && *mainDy < 0) {
-              *mainY = tileY+tileH;
-              *mainDy = 0;
+          if (mainX + mainW / 2 > tileX && mainX + mainW/ 2 < tileX+tileW) {
+            if (mainY < tileH+tileY && mainY > tileY && mainDy < 0) {
+              dynamic_object->y = tileY+tileH;
+              dynamic_object->dy = 0;
             } 
           }
           
-          if (*mainX + *mainW > tileX && *mainX<tileX+tileW) {
-            if (*mainY + *mainH > tileY && *mainY < tileY && *mainDy > 0) {
-              *mainY = tileY-*mainH;
-              *mainDy = 0;
+          if (mainX + mainW > tileX && mainX<tileX+tileW) {
+            if (mainY + mainH > tileY && mainY < tileY && mainDy > 0) {
+              dynamic_object->y = tileY-mainH;
+              dynamic_object->dy = 0;
             }
           }
 
-          if (*mainY + *mainH/2 > tileY && *mainY<tileY+tileH) {
-            if (*mainX < tileX+tileW && *mainX+*mainW > tileX+tileW && *mainDx < 0) {
-              *mainX = tileX + tileW;
-              *mainDx = 0;
-            } else if (*mainX+*mainW > tileX && *mainX < tileX && *mainDx > 0) {
-              *mainX = tileX - *mainW;
-              *mainDx = 0;
+          if (mainY + mainH/2 > tileY && mainY<tileY+tileH) {
+            if (mainX < tileX+tileW && mainX+mainW > tileX+tileW && mainDx < 0) {
+              dynamic_object->x = tileX + tileW;
+              dynamic_object->dx = 0;
+            } else if (mainX+mainW > tileX && mainX < tileX && mainDx > 0) {
+              dynamic_object->x = tileX - mainW;
+              dynamic_object->dx = 0;
             }
           }
         }
       }
-    }
-
-    if (reallyNotOccupied) { 
-      game->map.tiles[tileIndex].dynamic_object_id = 0;
     }
   }
 };
@@ -524,21 +517,20 @@ void process(Game *game) {
     game->scrollY = -game->map.height * game->map.tileSize+WINDOW_HEIGHT;
   }
 
-  // handle animation
-  if (game->mainCharacter->dx != 0 || game->mainCharacter->dy != 0) { 
-    game->mainCharacter->angle = getAngle(game);
-    game->mainCharacter->direction = getDirection(game);
-  }
-  game->mainCharacter->status = game->mainCharacter->dx != 0 || game->mainCharacter->dy != 0 ? IS_RUNNING : IS_IDLE;
 
   // 60 FPS / 8 animations 
-  if (fmod(game->time, 7.5) == 0) {
     for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+      if (fmod(game->time, 7.5) == 0) {
       game->map.dynamic_objects[i].sprite = (game->map.dynamic_objects[i].sprite + 1) % 8;
+      // handle animation
+      if (game->map.dynamic_objects[i].dx != 0 || game->map.dynamic_objects[i].dy != 0) { 
+        game->map.dynamic_objects[i].angle = getAngle(game);
+        game->map.dynamic_objects[i].direction = getDirection(game);
+      }
+      game->map.dynamic_objects[i].status = game->map.dynamic_objects[i].dx != 0 || game->map.dynamic_objects[i].dy != 0 ? IS_RUNNING : IS_IDLE;
+      }
+      detectCollisions(game, &game->map.dynamic_objects[i]);
     }
-  }
-   
-  detectCollisions(game);
 };
 
 void shutdownGame(Game *game) {
