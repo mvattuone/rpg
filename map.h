@@ -1,4 +1,4 @@
-#include "dynamicObject.h"
+#include "dynamic_object.h"
 #define MAX_TILE_SIZE 5000
 #define MAX_DYNAMIC_OBJECTS 255
 
