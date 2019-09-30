@@ -88,28 +88,26 @@ int executeAction(Action *action, DynamicObject *dynamic_object) {
   return running;
 }
 
-void addAction(int index, DynamicObject *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3){
+void addAction(DynamicObject *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3){
    dynamic_object->actions = realloc(dynamic_object->actions, sizeof(dynamic_object->actions) * 2);
    if (dynamic_object->actionSize >= dynamic_object->actionCapacity) {
      dynamic_object->actionCapacity = dynamic_object->actionSize * 2;
    }
    dynamic_object->actionSize = dynamic_object->actionSize + 1;
-   dynamic_object->actions[index].action = action;
-   dynamic_object->actions[index].arg1= arg1;
-   dynamic_object->actions[index].arg2= arg2;
-   dynamic_object->actions[index].arg3= arg3;
+   dynamic_object->actions[dynamic_object->actionSize - 1].action = action;
+   dynamic_object->actions[dynamic_object->actionSize - 1].arg1= arg1;
+   dynamic_object->actions[dynamic_object->actionSize - 1].arg2= arg2;
+   dynamic_object->actions[dynamic_object->actionSize - 1].arg3= arg3;
 }
 
-Action* removeAction(void* *actions, int index, size_t *size) 
+Action* removeAction(void* *actions, size_t *size) 
 {
     Action *updatedActions = malloc((*size - 1) * sizeof(Action)); // allocate an array with a size 1 less than the current one
 
-    if (index != 0) {
-        memcpy(updatedActions, actions, index * sizeof(Action)); // copy everything BEFORE the index
-    }
-
-    if (index != (*size - 1)) {
-        memcpy(updatedActions + index, actions + index + 1, (*size - index - 1) * sizeof(Action)); // copy everything AFTER the index
+    if (*size - 1 != 0) {
+        memcpy(updatedActions, actions, (*size - 1) * sizeof(Action)); // copy everything BEFORE the index
+    } else {
+        memcpy(updatedActions + (*size - 1), actions + (*size - 1) + 1, (*size - (*size - 1) - 1) * sizeof(Action)); // copy everything AFTER the index
     }
 
     *size = *size - 1;

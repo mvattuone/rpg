@@ -423,8 +423,8 @@ void triggerDialog(Game *game) {
 
   if (townsperson != NULL) {
     game->status = IS_DIALOGUE;
-    addAction(0, townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
-    addAction(1, townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
+    addAction(townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
+    addAction(townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
   }
 }
 
@@ -433,9 +433,9 @@ void process(Game *game) {
   if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 20 && game->status != IS_CUTSCENE) {
       game->status = IS_CUTSCENE;
-      addAction(0, game->mainCharacter, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
-      addAction(1, game->mainCharacter, (void*)&speak, "You probably shouldn't try to step here again.", (void*)&game->dismissDialog, 0);
-      addAction(2, game->mainCharacter, (void*)&speak, "Yikes, you just stepped in some rotten milk!", (void*)&game->dismissDialog, 0);
+      addAction(game->mainCharacter, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
+      addAction(game->mainCharacter, (void*)&speak, "You probably shouldn't try to step here again.", (void*)&game->dismissDialog, 0);
+      addAction(game->mainCharacter, (void*)&speak, "Yikes, you just stepped in some rotten milk!", (void*)&game->dismissDialog, 0);
     }
   }
       
@@ -447,13 +447,13 @@ void process(Game *game) {
         int randomNumber = rand() % 4;
 
         if (randomNumber == 0) {
-          addAction(0, &game->map.dynamic_objects[i], (void*)&moveUp, (void*)1, (void*)&game->map.tileSize, NULL);
+          addAction(&game->map.dynamic_objects[i], (void*)&moveUp, (void*)1, (void*)&game->map.tileSize, NULL);
         } else if (randomNumber == 1) {
-          addAction(0, &game->map.dynamic_objects[i], (void*)&moveRight, (void*)1, (void*)&game->map.tileSize, NULL);
+          addAction(&game->map.dynamic_objects[i], (void*)&moveRight, (void*)1, (void*)&game->map.tileSize, NULL);
         } else if (randomNumber == 2) {
-          addAction(0, &game->map.dynamic_objects[i], (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
+          addAction(&game->map.dynamic_objects[i], (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
         } else if (randomNumber == 3) {
-          addAction(0, &game->map.dynamic_objects[i], (void*)&moveLeft, (void*)1, (void*)&game->map.tileSize, NULL);
+          addAction(&game->map.dynamic_objects[i], (void*)&moveLeft, (void*)1, (void*)&game->map.tileSize, NULL);
         }
       }
     }
@@ -463,7 +463,7 @@ void process(Game *game) {
       running = executeAction(&game->map.dynamic_objects[i].actions[game->map.dynamic_objects[i].actionSize-1], &game->map.dynamic_objects[i]);
     }
     if (!running && game->map.dynamic_objects[i].actionSize > 0) {
-      game->map.dynamic_objects[i].actions = removeAction((void*)game->map.dynamic_objects[i].actions, game->map.dynamic_objects[i].actionSize-1, &game->map.dynamic_objects[i].actionSize);
+      game->map.dynamic_objects[i].actions = removeAction((void*)game->map.dynamic_objects[i].actions, &game->map.dynamic_objects[i].actionSize);
       running = 1;
     } 
 

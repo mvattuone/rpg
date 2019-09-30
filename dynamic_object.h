@@ -83,9 +83,9 @@ typedef struct {
 DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction); 
 
 
-void addAction(int index, DynamicObject *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3);
+void addAction(DynamicObject *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3);
 int executeAction(Action *action, DynamicObject *dynamic_object); 
-Action* removeAction(void* *actions, int index, size_t *size);
+Action* removeAction(void* *actions, size_t *size);
 
 int moveLeft(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
 int moveRight(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
