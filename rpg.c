@@ -433,6 +433,7 @@ void triggerDialog(Game *game) {
   if (townsperson != NULL) {
     printf("game%s\n", townsperson->id);
     printf("ddlog%s", townsperson->dialogues[0].lines[0]);
+    printf("another%s", townsperson->dialogues[0].lines[1]);
     game->status = IS_DIALOGUE;
     printf("foo\n");
     fflush(stdout);

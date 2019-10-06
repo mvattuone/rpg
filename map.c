@@ -143,6 +143,7 @@ Map initializeMap(char* fileName, int tileSize) {
 
             while ((e = fgetc(mapData)) && e == '-') {
               int j = 0;
+              printf("hello we back %c", e);
               while ((e = fgetc(mapData)) && e != ';') {
                 line[j] = e; 
                 j++;
@@ -158,8 +159,6 @@ Map initializeMap(char* fileName, int tileSize) {
               dialogues[i][dialogueIndex].line_count++; 
               // gross...
               e = fgetc(mapData);
-              e = fgetc(mapData);
-              if (e == '$') break;
             }
             dialogue_index_total++;
             if (e == '$') break;
