@@ -80,11 +80,12 @@ int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t 
   }
 }
 
-int executeAction(Action *action, DynamicObject *dynamic_object) {
+int executeAction(DynamicObject *dynamic_object) {
+  Action action = dynamic_object->actions[dynamic_object->actionSize-1];
   if (!dynamic_object->actionTimer) {
     dynamic_object->actionTimer = SDL_GetTicks() / 1000;
   }
-  int running = action->action(dynamic_object, action->arg1, action->arg2, action->arg3);
+  int running = action.action(dynamic_object, action.arg1, action.arg2, action.arg3);
   return running;
 }
 
@@ -102,6 +103,7 @@ void addAction(DynamicObject *dynamic_object, generic_function action, void* arg
 
 Action* removeAction(void* *actions, size_t *size) 
 {
+    printf("removing action");
     Action *updatedActions = malloc((*size - 1) * sizeof(Action)); // allocate an array with a size 1 less than the current one
 
     if (*size - 1 != 0) {
@@ -156,8 +158,11 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
   dynamic_object->sprite = spriteValue;
   dynamic_object->direction = direction;
   dynamic_object->currentDialog = NULL;
+  dynamic_object->state = DEFAULT;
   SDL_FreeSurface(manRunningSurface);
   SDL_FreeSurface(manIdleSurface);
+  printf("%s\n", dynamic_object->id);
+  fflush(stdout);
 
   return *dynamic_object;
 }

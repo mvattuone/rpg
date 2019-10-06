@@ -2,7 +2,16 @@
 #include "physics.h"
 #include "utils.h"
 
+#define MAX_DIALOGUE_SIZE 250
+#define MAX_DIALOGUE_LINES 10
+#define MAX_DIALOGUES 20
+
 typedef int (*generic_function)(void*, void*, void*, void*);
+
+// This in theory will contain every possible "state" of the game
+typedef enum {
+  DEFAULT
+} State;
 
 typedef enum {
   UP,
@@ -32,8 +41,17 @@ typedef struct {
   void* arg3;
 } Action;
 
+typedef char Line[MAX_DIALOGUE_SIZE];
+
+typedef struct { 
+  char id[3];
+  int line_count;
+  Line lines[MAX_DIALOGUE_LINES];
+} Dialogue;
+
 typedef struct {
-  char id[2];
+  char id[3];
+  Dialogue dialogues[MAX_DIALOGUES];
   float startingX, startingY;
   float x, y;
   int w, h;
@@ -55,6 +73,7 @@ typedef struct {
   int moveRight;
   int moveUp;
   int moveDown;
+  State state;
   float totalMovedX;
   float totalMovedY;
   float ax;
@@ -84,7 +103,7 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
 
 
 void addAction(DynamicObject *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3);
-int executeAction(Action *action, DynamicObject *dynamic_object); 
+int executeAction(DynamicObject *dynamic_object); 
 Action* removeAction(void* *actions, size_t *size);
 
 int moveLeft(DynamicObject *dynamic_object, int tileDistance, int* tileSize);

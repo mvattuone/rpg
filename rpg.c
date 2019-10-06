@@ -18,7 +18,11 @@ int handleEvents(Game *game) {
       case SDL_KEYDOWN:
         switch (event.key.keysym.scancode) {
           case SDL_SCANCODE_A:
-            if (game->status != IS_CUTSCENE &&  game->status != IS_DIALOGUE) {
+            printf("Foo");
+            fflush(stdout);
+            if (game->status != IS_CUTSCENE && game->status != IS_DIALOGUE) {
+              printf("Bar");
+              fflush(stdout);
               triggerDialog(game);
             } else {
               game->dismissDialog = 1;
@@ -361,15 +365,17 @@ void detectCollisions(Game *game, DynamicObject *dynamic_object) {
       game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
 
       if (previousTile != game->map.dynamic_objects[i].currentTile) {
-        game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
-        game->map.tiles[previousTile].dynamic_object_id = 0;
+        for (int ab=0; ab<3;ab++) {
+          game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id[ab] = game->map.dynamic_objects[i].id[ab];
+          game->map.tiles[previousTile].dynamic_object_id[ab] = '0';
+        }
       } 
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
         if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
             loadMap(game, game->map.tiles[tileIndex].teleportTo);
         }
-        if (game->map.tiles[tileIndex].tileState == IS_SOLID || ((game->map.dynamic_objects[i].currentTile == tileIndex && !game->map.dynamic_objects[i].isMain && dynamic_object[i].currentTile == game->map.dynamic_objects[i].currentTile) || (game->map.tiles[tileIndex].dynamic_object_id != 0 && game->map.tiles[tileIndex].dynamic_object_id != dynamic_object->id))) {
+        if (game->map.tiles[tileIndex].tileState == IS_SOLID || ((game->map.dynamic_objects[i].currentTile == tileIndex && !game->map.dynamic_objects[i].isMain && dynamic_object[i].currentTile == game->map.dynamic_objects[i].currentTile) || (strcmp(game->map.tiles[tileIndex].dynamic_object_id, "000") && game->map.tiles[tileIndex].dynamic_object_id != dynamic_object->id))) {
 
           if (mainX + mainW / 2 > tileX && mainX + mainW/ 2 < tileX+tileW) {
             if (mainY < tileH+tileY && mainY > tileY && mainDy < 0) {
@@ -411,24 +417,35 @@ int getDirection(Game *game) {
 
 void triggerDialog(Game *game) { 
   DynamicObject *townsperson = NULL;
-  if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
+  printf("fuck%s\n", game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
+  if (game->mainCharacter->direction == UP && *game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
-  } else if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
+  } else if (game->mainCharacter->direction == LEFT && *game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
-  } else if (game->mainCharacter->direction == DOWN && game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id) {
+  } else if (game->mainCharacter->direction == DOWN && *game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id);
-  } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
+  } else if (game->mainCharacter->direction == RIGHT && *game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
   }
 
+  printf("TEST\n");
+  fflush(stdout);
   if (townsperson != NULL) {
+    printf("game%s\n", townsperson->id);
+    printf("ddlog%s", townsperson->dialogues[0].lines[0]);
     game->status = IS_DIALOGUE;
-    addAction(townsperson, (void*)&speak, "...I sort of wish you hadn't, I was enjoying the quiet..", (void*)&game->dismissDialog, 0);
-    addAction(townsperson, (void*)&speak, "Oh wow, you finally figured out how to talk to me. Very nice!", (void*)&game->dismissDialog, 0);
+    printf("foo\n");
+    fflush(stdout);
+    for (int i = 0; i < townsperson->dialogues[townsperson->state].line_count; i++) {
+      printf("hello\n");
+      fflush(stdout);
+      addAction(townsperson, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
+    }
   }
 }
 
 void process(Game *game) {
+  printf("%d", game->status);
   game->time++;
   if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 20 && game->status != IS_CUTSCENE) {
@@ -460,14 +477,14 @@ void process(Game *game) {
 
     if (game->map.dynamic_objects[i].actionSize > 0) {
       game->map.dynamic_objects[i].prevActionSize = game->map.dynamic_objects[i].actionSize;
-      running = executeAction(&game->map.dynamic_objects[i].actions[game->map.dynamic_objects[i].actionSize-1], &game->map.dynamic_objects[i]);
+      running = executeAction(&game->map.dynamic_objects[i]);
     }
     if (!running && game->map.dynamic_objects[i].actionSize > 0) {
       game->map.dynamic_objects[i].actions = removeAction((void*)game->map.dynamic_objects[i].actions, &game->map.dynamic_objects[i].actionSize);
       running = 1;
     } 
 
-    if (!running && game->map.dynamic_objects[i].prevActionSize > game->map.dynamic_objects[i].actionSize && game->map.dynamic_objects[i].actionSize == 0) {
+    if (!running && game->map.dynamic_objects[i].prevActionSize == (game->map.dynamic_objects[i].actionSize + 1) && game->map.dynamic_objects[i].actionSize == 0) {
       if (game->status == IS_DIALOGUE || game->status == IS_CUTSCENE) { 
         game->status = IS_ACTIVE;
         game->map.dynamic_objects[i].prevActionSize = 0;
@@ -475,7 +492,7 @@ void process(Game *game) {
     }
   }
 
-  if (game->status == IS_ACTIVE || game->status == IS_DIALOGUE) {
+  if ((game->status == IS_ACTIVE || game->status == IS_DIALOGUE) && !game->dismissDialog) {
     for (int i = 0; i < game->map.dynamic_objects_count; i++) {
       handlePhysics(&game->map.dynamic_objects[i], &game->dt);
     }

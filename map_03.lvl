@@ -7,7 +7,12 @@
 @1 .0 .0 .0o001 .0 .0 .0 @1
 @1 .0 .0 .0 .0 .0 .0 @1
 @1 @1 @1 @1 @1 @1 @1 @1
-#001
-1
-#002
-0
+#001 1
+  *0
+    -I am a town guard.;
+    -I am doing town guard things...; 
+  $
+#002 0
+  *0 
+    -Hello there. Lovely weather this time of year.;
+  $
