@@ -67,9 +67,9 @@ int moveDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
 
 int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t duration) {
   time_t timer = SDL_GetTicks() / 1000;
-  time_t passedDuration = duration && timer - dynamic_object->actionTimer;
+  time_t passedDuration = duration && timer - dynamic_object->dialogue_queue.timer;
   if (*dismissDialog || passedDuration) {
-    dynamic_object->actionTimer = 0;
+    dynamic_object->dialogue_queue.timer= 0;
     dynamic_object->currentDialog = NULL;
     *dismissDialog = 0;
     return 0;
@@ -80,52 +80,61 @@ int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t 
   }
 }
 
-int executeAction(DynamicObject *dynamic_object) {
-  Action action = dynamic_object->actions[dynamic_object->actionSize-1];
-  if (!dynamic_object->actionTimer) {
-    dynamic_object->actionTimer = SDL_GetTicks() / 1000;
-  }
-  int running = action.action(dynamic_object, action.arg1, action.arg2, action.arg3);
+int process_queue(DynamicObject *dynamic_object, QueueItem *queue_item) {
+  int running = queue_item->action(dynamic_object, queue_item->arg1, queue_item->arg2, queue_item->arg3);
   return running;
 }
 
-void addAction(DynamicObject *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3){
-   dynamic_object->actions = realloc(dynamic_object->actions, sizeof(dynamic_object->actions) * 2);
-   if (dynamic_object->actionSize >= dynamic_object->actionCapacity) {
-     dynamic_object->actionCapacity = dynamic_object->actionSize * 2;
+void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void* arg3){
+   printf("lawd\n");
+   fflush(stdout);
+   queue->items = realloc(queue->items, sizeof(queue->items) * 10);
+   printf("what is the issue now...\n");
+   fflush(stdout);
+   if (queue->size >= queue->capacity) {
+     queue->capacity = queue->size * 2;
    }
-   dynamic_object->actionSize = dynamic_object->actionSize + 1;
-   dynamic_object->actions[dynamic_object->actionSize - 1].action = action;
-   dynamic_object->actions[dynamic_object->actionSize - 1].arg1= arg1;
-   dynamic_object->actions[dynamic_object->actionSize - 1].arg2= arg2;
-   dynamic_object->actions[dynamic_object->actionSize - 1].arg3= arg3;
+   queue->size++;
+   queue->items[queue->size - 1].action = action;
+   queue->items[queue->size - 1].arg1= arg1;
+   queue->items[queue->size - 1].arg2= arg2;
+   queue->items[queue->size - 1].arg3= arg3;
+   printf("hiiiiii\n");
+   fflush(stdout);
 }
 
-Action* removeAction(void* *actions, size_t *size) 
+Queue dequeue(Queue *queue) 
 {
-    printf("removing action");
-    Action *updatedActions = malloc((*size - 1) * sizeof(Action)); // allocate an array with a size 1 less than the current one
+    Queue new_queue;
+    new_queue.items = malloc((queue->size - 1) * sizeof(*new_queue.items)); // allocate an array with a size 1 less than the current one
 
-    if (*size - 1 != 0) {
-        memcpy(updatedActions, actions, (*size - 1) * sizeof(Action)); // copy everything BEFORE the index
+    if (queue->size - 1 != 0) {
+        memcpy(new_queue.items, queue->items, (queue->size - 1) * sizeof(*new_queue.items)); // copy everything BEFORE the index
     } else {
-        memcpy(updatedActions + (*size - 1), actions + (*size - 1) + 1, (*size - (*size - 1) - 1) * sizeof(Action)); // copy everything AFTER the index
+        memcpy(new_queue.items + (queue->size - 1), new_queue.items + (queue->size - 1) + 1, (queue->size - (queue->size - 1) - 1) * sizeof(new_queue.items)); // copy everything AFTER the index
     }
 
-    *size = *size - 1;
+    new_queue.size = queue->size - 1;
+    new_queue.capacity = queue->capacity; 
+    new_queue.prev_size = queue->size;
 
-    free(actions);
-    return updatedActions;
+    free(queue->items);
+    return new_queue;
 }
 
 DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction) {
   SDL_Surface *manIdleSurface = createSurface("images/man-idle.png");
   SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
-  dynamic_object->actions = malloc(1 * sizeof(generic_function));
-  dynamic_object->prevActionSize = 0;
-  dynamic_object->actionSize = 0;
-  dynamic_object->actionCapacity = 1;
-  dynamic_object->actionTimer = 0;
+  dynamic_object->action_queue.items = malloc(sizeof(QueueItem));
+  dynamic_object->action_queue.prev_size = 0;
+  dynamic_object->action_queue.size = 0;
+  dynamic_object->action_queue.capacity = 1;
+  dynamic_object->action_queue.timer = 0;
+  dynamic_object->dialogue_queue.items = malloc(sizeof(QueueItem));
+  dynamic_object->dialogue_queue.prev_size = 0;
+  dynamic_object->dialogue_queue.size = 0;
+  dynamic_object->dialogue_queue.capacity = 1;
+  dynamic_object->dialogue_queue.timer = 0;
   dynamic_object->idleTexture= SDL_CreateTextureFromSurface(renderer, manIdleSurface);
   dynamic_object->runningTexture= SDL_CreateTextureFromSurface(renderer, manRunningSurface);
   dynamic_object->angle = angle;
@@ -161,8 +170,6 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
   dynamic_object->state = DEFAULT;
   SDL_FreeSurface(manRunningSurface);
   SDL_FreeSurface(manIdleSurface);
-  printf("%s\n", dynamic_object->id);
-  fflush(stdout);
 
   return *dynamic_object;
 }

@@ -18,11 +18,7 @@ int handleEvents(Game *game) {
       case SDL_KEYDOWN:
         switch (event.key.keysym.scancode) {
           case SDL_SCANCODE_A:
-            printf("Foo");
-            fflush(stdout);
             if (game->status != IS_CUTSCENE && game->status != IS_DIALOGUE) {
-              printf("Bar");
-              fflush(stdout);
               triggerDialog(game);
             } else {
               game->dismissDialog = 1;
@@ -365,17 +361,15 @@ void detectCollisions(Game *game, DynamicObject *dynamic_object) {
       game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
 
       if (previousTile != game->map.dynamic_objects[i].currentTile) {
-        for (int ab=0; ab<3;ab++) {
-          game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id[ab] = game->map.dynamic_objects[i].id[ab];
-          game->map.tiles[previousTile].dynamic_object_id[ab] = '0';
-        }
+        game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
+        game->map.tiles[previousTile].dynamic_object_id = 0;
       } 
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
         if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
             loadMap(game, game->map.tiles[tileIndex].teleportTo);
         }
-        if (game->map.tiles[tileIndex].tileState == IS_SOLID || ((game->map.dynamic_objects[i].currentTile == tileIndex && !game->map.dynamic_objects[i].isMain && dynamic_object[i].currentTile == game->map.dynamic_objects[i].currentTile) || (strcmp(game->map.tiles[tileIndex].dynamic_object_id, "000") && game->map.tiles[tileIndex].dynamic_object_id != dynamic_object->id))) {
+        if (game->map.tiles[tileIndex].tileState == IS_SOLID || ((game->map.dynamic_objects[i].currentTile == tileIndex && !game->map.dynamic_objects[i].isMain && dynamic_object[i].currentTile == game->map.dynamic_objects[i].currentTile) || (game->map.tiles[tileIndex].dynamic_object_id && game->map.tiles[tileIndex].dynamic_object_id != dynamic_object->id))) {
 
           if (mainX + mainW / 2 > tileX && mainX + mainW/ 2 < tileX+tileW) {
             if (mainY < tileH+tileY && mainY > tileY && mainDy < 0) {
@@ -417,30 +411,24 @@ int getDirection(Game *game) {
 
 void triggerDialog(Game *game) { 
   DynamicObject *townsperson = NULL;
-  printf("fuck%s\n", game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
-  if (game->mainCharacter->direction == UP && *game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
+  if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
-  } else if (game->mainCharacter->direction == LEFT && *game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
+  } else if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
-  } else if (game->mainCharacter->direction == DOWN && *game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id) {
+  } else if (game->mainCharacter->direction == DOWN && game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id);
-  } else if (game->mainCharacter->direction == RIGHT && *game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
+  } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
   }
 
   printf("TEST\n");
   fflush(stdout);
-  if (townsperson != NULL) {
-    printf("game%s\n", townsperson->id);
+  if (townsperson->id) {
+    printf("game%d\n", townsperson->id);
     printf("ddlog%s", townsperson->dialogues[0].lines[0]);
-    printf("another%s", townsperson->dialogues[0].lines[1]);
     game->status = IS_DIALOGUE;
-    printf("foo\n");
-    fflush(stdout);
     for (int i = 0; i < townsperson->dialogues[townsperson->state].line_count; i++) {
-      printf("hello\n");
-      fflush(stdout);
-      addAction(townsperson, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
+      enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
     }
   }
 }
@@ -451,52 +439,66 @@ void process(Game *game) {
   if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 20 && game->status != IS_CUTSCENE) {
       game->status = IS_CUTSCENE;
-      addAction(game->mainCharacter, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
-      addAction(game->mainCharacter, (void*)&speak, "You probably shouldn't try to step here again.", (void*)&game->dismissDialog, 0);
-      addAction(game->mainCharacter, (void*)&speak, "Yikes, you just stepped in some rotten milk!", (void*)&game->dismissDialog, 0);
+      enqueue(&game->mainCharacter->action_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
+      enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "You probably shouldn't try to step here again.", (void*)&game->dismissDialog, 0);
+      enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "Yikes, you just stepped in some rotten milk!", (void*)&game->dismissDialog, 0);
     }
   }
       
-  int running = 0;
+  int action_running = 0;
+  int dialogue_running = 0;
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    if (game->map.dynamic_objects[i].default_behavior == WALKING && game->map.dynamic_objects[i].actionSize == 0 && !game->map.dynamic_objects[i].isMain && game->status == IS_ACTIVE) {
+    if (game->map.dynamic_objects[i].default_behavior == WALKING && game->map.dynamic_objects[i].action_queue.size == 0 && !game->map.dynamic_objects[i].isMain && game->status == IS_ACTIVE) {
       if (fmod(game->time, 240) == 0) {
         int randomNumber = rand() % 4;
 
         if (randomNumber == 0) {
-          addAction(&game->map.dynamic_objects[i], (void*)&moveUp, (void*)1, (void*)&game->map.tileSize, NULL);
+          enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveUp, (void*)1, (void*)&game->map.tileSize, NULL);
         } else if (randomNumber == 1) {
-          addAction(&game->map.dynamic_objects[i], (void*)&moveRight, (void*)1, (void*)&game->map.tileSize, NULL);
+          enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveRight, (void*)1, (void*)&game->map.tileSize, NULL);
         } else if (randomNumber == 2) {
-          addAction(&game->map.dynamic_objects[i], (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
+          enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
         } else if (randomNumber == 3) {
-          addAction(&game->map.dynamic_objects[i], (void*)&moveLeft, (void*)1, (void*)&game->map.tileSize, NULL);
+          enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveLeft, (void*)1, (void*)&game->map.tileSize, NULL);
         }
       }
     }
 
-    if (game->map.dynamic_objects[i].actionSize > 0) {
-      game->map.dynamic_objects[i].prevActionSize = game->map.dynamic_objects[i].actionSize;
-      running = executeAction(&game->map.dynamic_objects[i]);
+    if (game->map.dynamic_objects[i].dialogue_queue.size > 0) {
+      game->map.dynamic_objects[i].dialogue_queue.prev_size = game->map.dynamic_objects[i].dialogue_queue.size;
+      // This should just pop the last one and execute the function
+      // Shouldn't have to grab it like this...
+      // Oy vey this needs some work...
+      dialogue_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].dialogue_queue.items[game->map.dynamic_objects[i].dialogue_queue.size-1]);
+;
     }
-    if (!running && game->map.dynamic_objects[i].actionSize > 0) {
-      game->map.dynamic_objects[i].actions = removeAction((void*)game->map.dynamic_objects[i].actions, &game->map.dynamic_objects[i].actionSize);
-      running = 1;
-    } 
 
-    if (!running && game->map.dynamic_objects[i].prevActionSize == (game->map.dynamic_objects[i].actionSize + 1) && game->map.dynamic_objects[i].actionSize == 0) {
+    if (game->map.dynamic_objects[i].action_queue.size > 0) {
+      game->map.dynamic_objects[i].action_queue.prev_size = game->map.dynamic_objects[i].action_queue.size;
+      action_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].action_queue.items[game->map.dynamic_objects[i].action_queue.size-1]);
+    }
+
+    if (!dialogue_running && game->map.dynamic_objects[i].dialogue_queue.size > 0) {
+      game->map.dynamic_objects[i].dialogue_queue = dequeue(&game->map.dynamic_objects[i].dialogue_queue);
+      dialogue_running = 1;
+    }
+
+    if (!action_running && game->map.dynamic_objects[i].action_queue.size > 0) {
+      game->map.dynamic_objects[i].action_queue = dequeue(&game->map.dynamic_objects[i].action_queue);
+      action_running = 1;
+    }
+
+    if (!dialogue_running && game->map.dynamic_objects[i].dialogue_queue.prev_size == (game->map.dynamic_objects[i].dialogue_queue.size + 1) && game->map.dynamic_objects[i].dialogue_queue.size == 0) {
       if (game->status == IS_DIALOGUE || game->status == IS_CUTSCENE) { 
         game->status = IS_ACTIVE;
-        game->map.dynamic_objects[i].prevActionSize = 0;
+        game->map.dynamic_objects[i].dialogue_queue.prev_size = 0;
       }
     }
   }
 
-  if ((game->status == IS_ACTIVE || game->status == IS_DIALOGUE) && !game->dismissDialog) {
-    for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-      handlePhysics(&game->map.dynamic_objects[i], &game->dt);
-    }
+  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    handlePhysics(&game->map.dynamic_objects[i], &game->dt);
   }
 
   game->scrollX = -game->mainCharacter->x+WINDOW_WIDTH/2;
@@ -554,7 +556,8 @@ void shutdownGame(Game *game) {
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     SDL_DestroyTexture(game->map.dynamic_objects[i].idleTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].runningTexture);
-    free(game->map.dynamic_objects[i].actions);
+    free(game->map.dynamic_objects[i].action_queue.items);
+    free(game->map.dynamic_objects[i].dialogue_queue.items);
   }
   TTF_CloseFont(game->font);
   SDL_DestroyWindow(game->window); 

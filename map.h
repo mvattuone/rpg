@@ -11,7 +11,7 @@ typedef enum {
 typedef struct {
   char tileId;
   TileState tileState;
-  char dynamic_object_id[3];
+  int dynamic_object_id;
   int x,y,w,h;
   char teleportTo[20];
 } Tile;
@@ -26,6 +26,6 @@ typedef struct {
   int dynamic_objects_count;
 } Map;
 
-DynamicObject * getDynamicObjectFromMap(Map *map, char* id);
+DynamicObject * getDynamicObjectFromMap(Map *map, int id);
 Map initializeMap(char* fileName, int tileSize); 
 

@@ -39,18 +39,26 @@ typedef struct {
   void* arg1;
   void* arg2;
   void* arg3;
-} Action;
+} QueueItem;
+
+typedef struct {
+  QueueItem *items;
+  size_t size;
+  size_t capacity;
+  size_t timer;
+  size_t prev_size; 
+} Queue;
 
 typedef char Line[MAX_DIALOGUE_SIZE];
 
 typedef struct { 
-  char id[3];
+  int id;
   int line_count;
   Line lines[MAX_DIALOGUE_LINES];
 } Dialogue;
 
 typedef struct {
-  char id[3];
+  int id;
   Dialogue dialogues[MAX_DIALOGUES];
   float startingX, startingY;
   float x, y;
@@ -85,10 +93,8 @@ typedef struct {
   int triggerDialog;
   char* currentDialog;
   int startingTile;
-  size_t prevActionSize;
-  size_t actionSize;
-  size_t actionCapacity;
-  time_t actionTimer;
+  Queue action_queue;
+  Queue dialogue_queue;
   char *name; // string
   int sprite;
   Behavior default_behavior;
@@ -96,15 +102,15 @@ typedef struct {
   Status status;
   SDL_Texture *idleTexture;
   SDL_Texture *runningTexture;
-  Action *actions;
 } DynamicObject;
 
 DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction); 
 
 
-void addAction(DynamicObject *dynamic_object, generic_function action, void* arg1, void* arg2, void* arg3);
-int executeAction(DynamicObject *dynamic_object); 
-Action* removeAction(void* *actions, size_t *size);
+// Probably this should be split into two functions...
+void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void* arg3);
+int process_queue(DynamicObject *dynamic_object, QueueItem *queue_item); 
+Queue dequeue(Queue *actions);
 
 int moveLeft(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
 int moveRight(DynamicObject *dynamic_object, int tileDistance, int* tileSize);

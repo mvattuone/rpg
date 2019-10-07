@@ -7,14 +7,14 @@
 
 #define MAX_DIALOGUE 3
 
-DynamicObject * getDynamicObjectFromMap(Map *map, char* id) {
+DynamicObject * getDynamicObjectFromMap(Map *map, int id) {
   for (int i = 0; i < map->dynamic_objects_count; i++) {
-    if (!strcmp(map->dynamic_objects[i].id, id)) {
+    if (map->dynamic_objects[i].id == id) {
       return &map->dynamic_objects[i];
     }
   }
 
-  printf("Could not find dynamic object with id %s", id);
+  printf("Could not find dynamic object with id %d", id);
   SDL_Quit();
   exit(1);
 }
@@ -40,9 +40,7 @@ Map initializeMap(char* fileName, int tileSize) {
       tiles[i]->h = tileSize;
       tiles[i]->x = (i % map.width) * tileSize;
       tiles[i]->y = floor(i/map.width) * tileSize;
-      for (int j = 0; j < 3; j++) {
-        tiles[i]->dynamic_object_id[j] = '0';
-      }
+      tiles[i]->dynamic_object_id = 0;
     }
 
     int count = 0;
@@ -75,17 +73,17 @@ Map initializeMap(char* fileName, int tileSize) {
             }
 
             char z;
+            char doId[3];
             int n = 0;
             while((z = fgetc(mapData)) != '\n' && !isspace(z) && n < 3) {
               if (z == ' ') {
                 continue;
               }
-              dynamic_objects[dynamic_objects_count]->id[n] = z;
+              doId[n] = z;
               n++;
             }
-            for (int ao=0; ao < 4; ao++) {
-              tiles[count]->dynamic_object_id[ao] = dynamic_objects[dynamic_objects_count]->id[ao];
-            }
+            dynamic_objects[dynamic_objects_count]->id = atoi(doId);
+            tiles[count]->dynamic_object_id = dynamic_objects[dynamic_objects_count]->id;
           }
 
           dynamic_objects[dynamic_objects_count]->x = count % map.width * tileSize;
@@ -116,7 +114,7 @@ Map initializeMap(char* fileName, int tileSize) {
           doId[p] = fgetc(mapData); 
         }
 
-        if (!strncmp(doId, dynamic_objects[i]->id, 3) && !dynamic_objects[i]->isMain) {
+        if (atoi(doId) == dynamic_objects[i]->id && !dynamic_objects[i]->isMain) {
           while ((e = fgetc(mapData)) && e != ';') {
             if (!isspace(e) && e != '\n') {
               dynamic_objects[i]->default_behavior = e - '0';
@@ -175,7 +173,7 @@ Map initializeMap(char* fileName, int tileSize) {
     for (int i = 0; i < map.dynamic_objects_count; i++) {
       map.dynamic_objects[i] = *dynamic_objects[i];
       for (int m = 0; m < map.dynamic_objects_count - 1; m++) {
-        if (!strcmp(map.dynamic_objects[i].id, dialogues[m]->id)) {
+        if (map.dynamic_objects[i].id == dialogues[m]->id) {
             map.dynamic_objects[i] = *dynamic_objects[i];
         }
       }
@@ -183,7 +181,6 @@ Map initializeMap(char* fileName, int tileSize) {
       if (!map.dynamic_objects[i].isMain) {
         for (int j = 0; j < sizeof(*dialogues[i])/sizeof(dialogues[i][0]); j++) {
           map.dynamic_objects[i].dialogues[j] = dialogues[i][j];
-          fflush(stdout);
         }
       }
 
@@ -191,9 +188,7 @@ Map initializeMap(char* fileName, int tileSize) {
     }
 
     free(tiles);
-    fflush(stdout);
     free(dynamic_objects);
-    fflush(stdout);
   }
 
   fclose(mapData);
