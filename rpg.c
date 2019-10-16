@@ -419,22 +419,26 @@ void triggerDialog(Game *game) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id);
   } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
+  } else {
+    return;
   }
 
-  printf("TEST\n");
-  fflush(stdout);
   if (townsperson->id) {
-    printf("game%d\n", townsperson->id);
-    printf("ddlog%s", townsperson->dialogues[0].lines[0]);
     game->status = IS_DIALOGUE;
+    printf("what is the line count %d\n", townsperson->dialogues[townsperson->state].line_count);
+    printf("what is the second line %s\n", townsperson->dialogues[townsperson->state].lines[1]);
     for (int i = 0; i < townsperson->dialogues[townsperson->state].line_count; i++) {
       enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
+    }
+  }
+  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    if (townsperson->id == game->map.dynamic_objects[i].id) {
+      game->map.dynamic_objects[i].state = SPOKEN;
     }
   }
 }
 
 void process(Game *game) {
-  printf("%d", game->status);
   game->time++;
   if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 20 && game->status != IS_CUTSCENE) {

@@ -10,7 +10,8 @@ typedef int (*generic_function)(void*, void*, void*, void*);
 
 // This in theory will contain every possible "state" of the game
 typedef enum {
-  DEFAULT
+  DEFAULT,
+  SPOKEN
 } State;
 
 typedef enum {
@@ -60,6 +61,7 @@ typedef struct {
 typedef struct {
   int id;
   Dialogue dialogues[MAX_DIALOGUES];
+  int dialogue_index_total;
   float startingX, startingY;
   float x, y;
   int w, h;

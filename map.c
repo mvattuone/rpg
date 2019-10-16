@@ -7,11 +7,11 @@
 
 #define MAX_DIALOGUE 3
 
-DynamicObject * getDynamicObjectFromMap(Map *map, int id) {
+DynamicObject* getDynamicObjectFromMap(Map *map, int id) {
   for (int i = 0; i < map->dynamic_objects_count; i++) {
     if (map->dynamic_objects[i].id == id) {
       return &map->dynamic_objects[i];
-    }
+    } 
   }
 
   printf("Could not find dynamic object with id %d", id);
@@ -99,68 +99,66 @@ Map initializeMap(char* fileName, int tileSize) {
     } 
 
     char doId[3];
-    Dialogue *dialogues[dynamic_objects_count];
-    for (int i = 0; i < dynamic_objects_count; i++) {
-      dialogues[i] = malloc(sizeof(Dialogue));
-      for (int j = 0; j < MAX_DIALOGUE_LINES; j++) {
-        dialogues[i]->lines[j][MAX_DIALOGUE_SIZE-1] = '\0'; 
-      }
-    }
-    for (int i = 0; i < dynamic_objects_count; i++) {
-      char e;
-      while ((e = fgetc(mapData)) && e == '#') {
-        // get id
+
+    char e = '!';
+    while ((e == '#' || (e = fgetc(mapData))) && e != EOF) {
+      // get id
+      if (e == '#') {
         for (int p = 0; p < 3; p++) {
           doId[p] = fgetc(mapData); 
+          e = doId[p];
         }
 
-        if (atoi(doId) == dynamic_objects[i]->id && !dynamic_objects[i]->isMain) {
-          while ((e = fgetc(mapData)) && e != ';') {
-            if (!isspace(e) && e != '\n') {
-              dynamic_objects[i]->default_behavior = e - '0';
-            }
-          }
-
-          if (e == ';') {
-            e = fgetc(mapData);
-          }
-
-          int dialogueIndex = 0;
-          int dialogue_index_total = 0;
-          while ((e = fgetc(mapData)) && e == '*') {
-
-            for (int d = 0; d < 1; d++) {
-              dialogueIndex = fgetc(mapData) - '0'; 
-            }
-
-            if (e == '*') { 
-              e = fgetc(mapData); 
-            };
-            dialogues[i][dialogue_index_total].line_count = 0;
-            char line[MAX_DIALOGUE_SIZE];
-
-            while ((e = fgetc(mapData)) && e == '-') {
-              int j = 0;
-              printf("hello we back %c", e);
-              while ((e = fgetc(mapData)) && e != ';') {
-                line[j] = e; 
-                j++;
+        for (int i = 0; i < dynamic_objects_count; i++) {
+          if (atoi(doId) == dynamic_objects[i]->id && !dynamic_objects[i]->isMain) {
+            while ((e = fgetc(mapData)) && e != ';') {
+              if (!isspace(e) && e != '\n') {
+                dynamic_objects[i]->default_behavior = e - '0';
               }
-              line[j+1]='\0';
-              for (int l = 0; l < MAX_DIALOGUE_LINES; l++) {
-                if (l == dialogues[i][dialogueIndex].line_count) {
-                  for (int b = 0; b < MAX_DIALOGUE_SIZE; b++) {
-                    dialogues[i][dialogueIndex].lines[l][b] = line[b];
+            }
+
+            if (e == ';') {
+              while (e != '*') {
+                e = fgetc(mapData);
+              }
+            }
+
+            int dialogueIndex = 0;
+            int dialogue_index_total = 0;
+            while (e == '*') {
+              for (int d = 0; d < 1; d++) {
+                dialogueIndex = fgetc(mapData) - '0'; 
+              }
+
+              if (e == '*') { 
+                e = fgetc(mapData); 
+              };
+
+              dynamic_objects[i]->dialogues[dialogue_index_total].line_count = 0;
+              char line[MAX_DIALOGUE_SIZE];
+
+              while ((e = fgetc(mapData)) && e == '-') {
+                int j = 0;
+                while ((e = fgetc(mapData)) && e != ';') {
+                  line[j] = e; 
+                  j++;
+                }
+                line[j+1]='\0';
+                for (int l = 0; l < MAX_DIALOGUE_LINES; l++) {
+                  if (l == dynamic_objects[i]->dialogues[dialogueIndex].line_count) {
+                    for (int b = 0; b < MAX_DIALOGUE_SIZE; b++) {
+                      dynamic_objects[i]->dialogues[dialogueIndex].lines[l][b] = line[b];
+                    }
                   }
                 }
+                dynamic_objects[i]->dialogues[dialogueIndex].line_count++; 
+                // gross...
+                e = fgetc(mapData);
               }
-              dialogues[i][dialogueIndex].line_count++; 
-              // gross...
-              e = fgetc(mapData);
-            }
-            dialogue_index_total++;
-            if (e == '$') break;
-          } 
+              dialogue_index_total++;
+            } 
+            dynamic_objects[i]->dialogue_index_total = dialogue_index_total;
+          }
         }
       }
     }
@@ -172,16 +170,8 @@ Map initializeMap(char* fileName, int tileSize) {
 
     for (int i = 0; i < map.dynamic_objects_count; i++) {
       map.dynamic_objects[i] = *dynamic_objects[i];
-      for (int m = 0; m < map.dynamic_objects_count - 1; m++) {
-        if (map.dynamic_objects[i].id == dialogues[m]->id) {
-            map.dynamic_objects[i] = *dynamic_objects[i];
-        }
-      }
-
-      if (!map.dynamic_objects[i].isMain) {
-        for (int j = 0; j < sizeof(*dialogues[i])/sizeof(dialogues[i][0]); j++) {
-          map.dynamic_objects[i].dialogues[j] = dialogues[i][j];
-        }
+      for (int m = 0; m < map.dynamic_objects_count; m++) {
+        map.dynamic_objects[i] = *dynamic_objects[i];
       }
 
       free(dynamic_objects[i]);

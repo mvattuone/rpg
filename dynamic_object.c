@@ -86,11 +86,7 @@ int process_queue(DynamicObject *dynamic_object, QueueItem *queue_item) {
 }
 
 void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void* arg3){
-   printf("lawd\n");
-   fflush(stdout);
    queue->items = realloc(queue->items, sizeof(queue->items) * 10);
-   printf("what is the issue now...\n");
-   fflush(stdout);
    if (queue->size >= queue->capacity) {
      queue->capacity = queue->size * 2;
    }
@@ -99,8 +95,6 @@ void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void
    queue->items[queue->size - 1].arg1= arg1;
    queue->items[queue->size - 1].arg2= arg2;
    queue->items[queue->size - 1].arg3= arg3;
-   printf("hiiiiii\n");
-   fflush(stdout);
 }
 
 Queue dequeue(Queue *queue) 
