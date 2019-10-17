@@ -425,15 +425,17 @@ void triggerDialog(Game *game) {
 
   if (townsperson->id) {
     game->status = IS_DIALOGUE;
-    printf("what is the line count %d\n", townsperson->dialogues[townsperson->state].line_count);
-    printf("what is the second line %s\n", townsperson->dialogues[townsperson->state].lines[1]);
     for (int i = 0; i < townsperson->dialogues[townsperson->state].line_count; i++) {
       enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
     }
   }
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (townsperson->id == game->map.dynamic_objects[i].id) {
-      game->map.dynamic_objects[i].state = SPOKEN;
+      if (game->map.dynamic_objects[i].state == SPOKEN) {
+        game->map.dynamic_objects[i].state = SPOKEN_TWICE;
+      } else {
+        game->map.dynamic_objects[i].state = SPOKEN;
+      }
     }
   }
 }

@@ -99,14 +99,18 @@ void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void
 
 Queue dequeue(Queue *queue) 
 {
-    Queue new_queue;
-    new_queue.items = malloc((queue->size - 1) * sizeof(*new_queue.items)); // allocate an array with a size 1 less than the current one
-
-    if (queue->size - 1 != 0) {
-        memcpy(new_queue.items, queue->items, (queue->size - 1) * sizeof(*new_queue.items)); // copy everything BEFORE the index
-    } else {
-        memcpy(new_queue.items + (queue->size - 1), new_queue.items + (queue->size - 1) + 1, (queue->size - (queue->size - 1) - 1) * sizeof(new_queue.items)); // copy everything AFTER the index
+    if (queue->size < 1) {
+      printf("Attempted to remove action when there were none present.");
+      SDL_Quit();
+      exit(1);
     }
+
+    Queue new_queue;
+    new_queue.items = malloc((queue->size - 1) * sizeof(*new_queue.items)); 
+
+    if (queue->size != 1) {
+        memcpy(new_queue.items, queue->items, (queue->size - 1) * sizeof(*new_queue.items)); 
+    } 
 
     new_queue.size = queue->size - 1;
     new_queue.capacity = queue->capacity; 

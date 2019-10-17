@@ -11,7 +11,8 @@ typedef int (*generic_function)(void*, void*, void*, void*);
 // This in theory will contain every possible "state" of the game
 typedef enum {
   DEFAULT,
-  SPOKEN
+  SPOKEN,
+  SPOKEN_TWICE
 } State;
 
 typedef enum {
