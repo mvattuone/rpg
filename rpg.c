@@ -429,11 +429,12 @@ void triggerDialog(Game *game) {
       enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
     }
   }
+
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (townsperson->id == game->map.dynamic_objects[i].id) {
-      if (game->map.dynamic_objects[i].state == SPOKEN) {
+      if (game->map.dynamic_objects[i].state == SPOKEN && townsperson->dialogues[SPOKEN_TWICE].line_count) {
         game->map.dynamic_objects[i].state = SPOKEN_TWICE;
-      } else {
+      } else if (townsperson->dialogues[SPOKEN].line_count && townsperson->state != SPOKEN_TWICE){
         game->map.dynamic_objects[i].state = SPOKEN;
       }
     }
