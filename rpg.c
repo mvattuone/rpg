@@ -429,12 +429,11 @@ void triggerDialog(Game *game) {
       enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
     }
   }
-
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (townsperson->id == game->map.dynamic_objects[i].id) {
       if (game->map.dynamic_objects[i].state == SPOKEN && townsperson->dialogues[SPOKEN_TWICE].line_count) {
         game->map.dynamic_objects[i].state = SPOKEN_TWICE;
-      } else if (townsperson->dialogues[SPOKEN].line_count && townsperson->state != SPOKEN_TWICE){
+      } else if (townsperson->dialogues[SPOKEN_TWICE].line_count){
         game->map.dynamic_objects[i].state = SPOKEN;
       }
     }
@@ -443,12 +442,38 @@ void triggerDialog(Game *game) {
 
 void process(Game *game) {
   game->time++;
-  if (!strncmp(game->map.name, "map_03.lvl", 12)) { 
-    if (game->mainCharacter->currentTile == 20 && game->status != IS_CUTSCENE) {
+  if (!strncmp(game->map.name, "map_01.lvl", 12)) { 
+    printf("current tile is %d \n", game->mainCharacter->currentTile);
+    fflush(stdout);
+    if (game->mainCharacter->currentTile == 150 && game->status != IS_CUTSCENE) {
+      // How do I make a switch that applies globally. 
+      // I want to have dialogue or behavior only happen when an event is triggered
+      // It should take precedence over normal dialogue behavior
+      // It _can_ persist, or not
+      // Maybe this is a "Quest" state?
+      // Do quest states have subgroups that need to be arranged accordingly
+      // Maybe quest state comes from the main character!
+      // So we still load via another level of nesting, but we 
+      // set it on the mainCharacter (or just the game?)
+      // dialogues[QUEST_STATE][DIALOGUE_STATE].lines
+      // but also "dialogues" state is like... local state. stuff that only persists
+      // while you are on the map but resets once you load a new map.
+      // But this could be true for cutscenes. Like a cutscene sets
+      // local state, but it could set quest state. I think as long
+      // as we set quest state on the game or the main character
+      // and local state on NPCs, we'll be pretty flexible.
+      // At any rate, this needs to be generalized and possible
+      // to add to the map, rather than hardcoded.
+      // It probably would make sense to pause all actions aside
+      // from default behavior, too. Maybe just flush dialogue_queues.
       game->status = IS_CUTSCENE;
+      DynamicObject *townsperson = NULL;
+      townsperson = getDynamicObjectFromMap(&game->map, 2);
       enqueue(&game->mainCharacter->action_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
       enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "You probably shouldn't try to step here again.", (void*)&game->dismissDialog, 0);
       enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "Yikes, you just stepped in some rotten milk!", (void*)&game->dismissDialog, 0);
+      enqueue(&townsperson->dialogue_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, (void*)10000);
+      townsperson->default_behavior = WALKING;
     }
   }
       
@@ -466,7 +491,7 @@ void process(Game *game) {
           enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveRight, (void*)1, (void*)&game->map.tileSize, NULL);
         } else if (randomNumber == 2) {
           enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
-        } else if (randomNumber == 3) {
+        } else if (randomNumber == 4) {
           enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveLeft, (void*)1, (void*)&game->map.tileSize, NULL);
         }
       }
