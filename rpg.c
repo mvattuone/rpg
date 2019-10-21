@@ -281,8 +281,9 @@ void doRender(Game *game) {
 
     char* currentDialog = game->map.dynamic_objects[i].currentDialog;
     if (currentDialog != NULL) {
-      SDL_Color color = {0, 0, 0};
-      renderText(game->renderer, game->font, currentDialog, color, 20, 400, WINDOW_WIDTH - 20, 20);
+      renderDialogBox(game->renderer);
+      SDL_Color color = {255, 255, 255};
+      renderText(game->renderer, game->font, currentDialog, color, 25, WINDOW_HEIGHT - 180, WINDOW_WIDTH - 45, 20);
     }
   }
 
@@ -322,7 +323,7 @@ void loadMap(Game *game, char* fileName) {
 
 void loadGame(Game *game) {
   game->dt = 1.0f/60.0f;
-  game->font = initializeFont("fonts/slkscr.ttf", 18);
+  game->font = initializeFont("fonts/slkscr.ttf", 24);
   game->scrollX = 0;
   game->scrollY = 0;
   game->dismissDialog = 0;
