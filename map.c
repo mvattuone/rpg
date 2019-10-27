@@ -7,6 +7,21 @@
 
 #define MAX_DIALOGUE 3
 
+// We'll probably want to have the various tiles
+// and their properties stored somewhere. Like a JSON file.
+float getCofForTile(char id) {
+  float cof;
+  if (id == '.') { 
+    cof = 0.41;
+  } else if (id == '*') {
+    cof = 0.00001;
+  } else {
+    cof = 100.0;
+  }
+
+  return cof;
+}
+
 DynamicObject* getDynamicObjectFromMap(Map *map, int id) {
   for (int i = 0; i < map->dynamic_objects_count; i++) {
     if (map->dynamic_objects[i].id == id) {
@@ -34,22 +49,20 @@ Map initializeMap(char* fileName, int tileSize) {
     Tile **tiles = malloc(map.width * map.height * sizeof(Tile));
     DynamicObject **dynamic_objects = malloc(map.dynamic_objects_count * sizeof(DynamicObject));
     char c;
-    for(int i=0; i < map.width * map.height; i++) {
-      tiles[i] = (Tile *)malloc(sizeof(Tile));
-      tiles[i]->w = tileSize;
-      tiles[i]->h = tileSize;
-      tiles[i]->x = (i % map.width) * tileSize;
-      tiles[i]->y = floor(i/map.width) * tileSize;
-      tiles[i]->dynamic_object_id = 0;
-    }
-
     int count = 0;
     int dynamic_objects_count = 0;
     char d;
     while (count < map.width * map.height && (c = fgetc(mapData))) {
       if (c != '\n' && c != ' ' && !isspace(c)) {
+        tiles[count] = (Tile *)malloc(sizeof(Tile));
         tiles[count]->tileId = c; 
+        tiles[count]->w = tileSize;
+        tiles[count]->h = tileSize;
+        tiles[count]->x = (count % map.width) * tileSize;
+        tiles[count]->y = floor(count/map.width) * tileSize;
+        tiles[count]->dynamic_object_id = 0;
         tiles[count]->tileState = fgetc(mapData) - '0'; 
+        tiles[count]->cof = getCofForTile(c);
         if (tiles[count]->tileState == IS_TELEPORT) {
           char mapId[2] = {0, 0};
           int n = 0;

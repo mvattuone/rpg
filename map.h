@@ -11,6 +11,7 @@ typedef enum {
 typedef struct {
   char tileId;
   TileState tileState;
+  float cof;
   int dynamic_object_id;
   int x,y,w,h;
   char teleportTo[20];

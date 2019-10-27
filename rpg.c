@@ -118,11 +118,12 @@ int handleEvents(Game *game) {
   return 0;
 }
 
-int handlePhysics(DynamicObject *dynamic_object, float *dt) {
-  float cof = 0.41; // This will be attached to the tile the player is on eventually
+int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt) {
   if (dynamic_object->isMoving) {
-    dynamic_object->frictionalForceX = cof * dynamic_object->normalForce;
-    dynamic_object->frictionalForceY = cof * dynamic_object->normalForce;
+    printf("what is the cof right now %f \n", currentTile->cof);
+    fflush(stdout);
+    dynamic_object->frictionalForceX = currentTile->cof * dynamic_object->normalForce;
+    dynamic_object->frictionalForceY = currentTile->cof * dynamic_object->normalForce;
   }
   if (dynamic_object->moveLeft) {
     dynamic_object->directionX = -1;
@@ -188,8 +189,8 @@ int handlePhysics(DynamicObject *dynamic_object, float *dt) {
   dynamic_object->dx = accelerate(dynamic_object->dx, dynamic_object->ax, *dt); 
   dynamic_object->dy = accelerate(dynamic_object->dy, dynamic_object->ay, *dt); 
   
-  float maxSpeed = 60.0f;
-  float maxRunningSpeed = 120.0f;
+  float maxSpeed = 30.0f;
+  float maxRunningSpeed = 90.0f;
   
   if (dynamic_object->isMoving) {
     if (!dynamic_object->isRunning && dynamic_object->dx >= maxSpeed) {
@@ -259,6 +260,9 @@ void renderTile(Game *game, int x, int y, char tileId) {
   if (tileId == '@') {
     tileRow = 4;
     tileColumn = 4;
+  } else if (tileId == '*') {
+    tileRow = 1;
+    tileColumn = 13;
   } else {
     tileRow = 12;
     tileColumn = 7;
@@ -331,7 +335,7 @@ void loadGame(Game *game) {
   game->dismissDialog = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
-  loadMap(game, "map_03.lvl");
+  loadMap(game, "map_01.lvl");
 };
 
 // Detect if two objects in space have a collision
@@ -529,7 +533,7 @@ void process(Game *game) {
   }
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    handlePhysics(&game->map.dynamic_objects[i], &game->dt);
+    handlePhysics(&game->map.dynamic_objects[i], &game->map.tiles[game->map.dynamic_objects[i].currentTile], &game->dt);
   }
 
   game->scrollX = -game->mainCharacter->x+WINDOW_WIDTH/2;

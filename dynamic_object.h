@@ -77,8 +77,8 @@ typedef struct {
   float normalForce;
   float thrustX;
   float thrustY;
-  int frictionalForceX;
-  int frictionalForceY;
+  float frictionalForceX;
+  float frictionalForceY;
   int isMoving;
   int isRunning;
   int moveLeft;
