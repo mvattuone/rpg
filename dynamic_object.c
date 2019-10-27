@@ -80,10 +80,11 @@ int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t 
   }
 }
 
-int process_queue(DynamicObject *dynamic_object, QueueItem *queue_item, int *is_enqueuing) {
+int process_queue(DynamicObject *dynamic_object, Queue *queue) {
   int running;
-  if (!*is_enqueuing) {
-    running = queue_item->action(dynamic_object, queue_item->arg1, queue_item->arg2, queue_item->arg3);
+  if (!queue->is_enqueuing) {
+    QueueItem queue_item = queue->items[0];
+    running = queue_item.action(dynamic_object, queue_item.arg1, queue_item.arg2, queue_item.arg3);
   } else {
     running = 0;
   }
@@ -116,7 +117,7 @@ Queue dequeue(Queue *queue)
     new_queue.items = malloc((queue->size - 1) * sizeof(*new_queue.items)); 
 
     if (queue->size != 1) {
-        memcpy(new_queue.items, queue->items, (queue->size - 1) * sizeof(*new_queue.items)); 
+        memcpy(new_queue.items, &queue->items[1], (queue->size - 1) * sizeof(*new_queue.items)); 
     } 
 
     new_queue.size = queue->size - 1;

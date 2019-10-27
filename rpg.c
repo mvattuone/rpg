@@ -501,16 +501,13 @@ void process(Game *game) {
 
     if (game->map.dynamic_objects[i].dialogue_queue.size > 0) {
       game->map.dynamic_objects[i].dialogue_queue.prev_size = game->map.dynamic_objects[i].dialogue_queue.size;
-      // This should just pop the last one and execute the function
-      // Shouldn't have to grab it like this...
-      // Oy vey this needs some work...
-      dialogue_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].dialogue_queue.items[game->map.dynamic_objects[i].dialogue_queue.size-1], &game->map.dynamic_objects[i].dialogue_queue.is_enqueuing);
+      dialogue_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].dialogue_queue);
 ;
     }
 
     if (game->map.dynamic_objects[i].action_queue.size > 0) {
       game->map.dynamic_objects[i].action_queue.prev_size = game->map.dynamic_objects[i].action_queue.size;
-      action_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].action_queue.items[game->map.dynamic_objects[i].action_queue.size-1], &game->map.dynamic_objects[i].action_queue.is_enqueuing);
+      action_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].action_queue);
     }
 
     if (!dialogue_running && !game->map.dynamic_objects[i].dialogue_queue.is_enqueuing && game->map.dynamic_objects[i].dialogue_queue.size > 0) {
