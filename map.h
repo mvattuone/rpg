@@ -1,6 +1,6 @@
 #include "dynamic_object.h"
 #define MAX_TILE_SIZE 5000
-#define MAX_DYNAMIC_OBJECTS 255
+#define MAX_DYNAMIC_OBJECTS 100
 
 typedef enum {
   IS_WALKABLE,

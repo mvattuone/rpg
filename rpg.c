@@ -20,7 +20,9 @@ int handleEvents(Game *game) {
           case SDL_SCANCODE_A:
             if (game->status != IS_CUTSCENE && game->status != IS_DIALOGUE) {
               triggerDialog(game);
+              game->dismissDialog = 0;
             } else {
+              printf("Dismissing dialog \n");
               game->dismissDialog = 1;
             }
             break;
@@ -329,7 +331,7 @@ void loadGame(Game *game) {
   game->dismissDialog = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
-  loadMap(game, "map_01.lvl");
+  loadMap(game, "map_03.lvl");
 };
 
 // Detect if two objects in space have a collision
@@ -421,20 +423,21 @@ void triggerDialog(Game *game) {
   } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
   } else {
+    game->status = IS_ACTIVE;
     return;
   }
 
   if (townsperson->id) {
-    game->status = IS_DIALOGUE;
     for (int i = 0; i < townsperson->dialogues[townsperson->state].line_count; i++) {
       enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
     }
   }
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (townsperson->id == game->map.dynamic_objects[i].id) {
+      game->status = IS_DIALOGUE;
       if (game->map.dynamic_objects[i].state == SPOKEN && townsperson->dialogues[SPOKEN_TWICE].line_count) {
         game->map.dynamic_objects[i].state = SPOKEN_TWICE;
-      } else if (townsperson->dialogues[SPOKEN_TWICE].line_count){
+      } else if (townsperson->state == DEFAULT && townsperson->dialogues[SPOKEN].line_count){
         game->map.dynamic_objects[i].state = SPOKEN;
       }
     }
@@ -444,8 +447,6 @@ void triggerDialog(Game *game) {
 void process(Game *game) {
   game->time++;
   if (!strncmp(game->map.name, "map_01.lvl", 12)) { 
-    printf("current tile is %d \n", game->mainCharacter->currentTile);
-    fflush(stdout);
     if (game->mainCharacter->currentTile == 150 && game->status != IS_CUTSCENE) {
       // How do I make a switch that applies globally. 
       // I want to have dialogue or behavior only happen when an event is triggered
@@ -503,21 +504,21 @@ void process(Game *game) {
       // This should just pop the last one and execute the function
       // Shouldn't have to grab it like this...
       // Oy vey this needs some work...
-      dialogue_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].dialogue_queue.items[game->map.dynamic_objects[i].dialogue_queue.size-1]);
+      dialogue_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].dialogue_queue.items[game->map.dynamic_objects[i].dialogue_queue.size-1], &game->map.dynamic_objects[i].dialogue_queue.is_enqueuing);
 ;
     }
 
     if (game->map.dynamic_objects[i].action_queue.size > 0) {
       game->map.dynamic_objects[i].action_queue.prev_size = game->map.dynamic_objects[i].action_queue.size;
-      action_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].action_queue.items[game->map.dynamic_objects[i].action_queue.size-1]);
+      action_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].action_queue.items[game->map.dynamic_objects[i].action_queue.size-1], &game->map.dynamic_objects[i].action_queue.is_enqueuing);
     }
 
-    if (!dialogue_running && game->map.dynamic_objects[i].dialogue_queue.size > 0) {
+    if (!dialogue_running && !game->map.dynamic_objects[i].dialogue_queue.is_enqueuing && game->map.dynamic_objects[i].dialogue_queue.size > 0) {
       game->map.dynamic_objects[i].dialogue_queue = dequeue(&game->map.dynamic_objects[i].dialogue_queue);
       dialogue_running = 1;
     }
 
-    if (!action_running && game->map.dynamic_objects[i].action_queue.size > 0) {
+    if (!action_running && game->map.dynamic_objects[i].action_queue.size > 0 && !game->map.dynamic_objects[i].action_queue.is_enqueuing) {
       game->map.dynamic_objects[i].action_queue = dequeue(&game->map.dynamic_objects[i].action_queue);
       action_running = 1;
     }

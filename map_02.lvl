@@ -7,8 +7,11 @@
 @1 .0 .0 .0o001 .0 .0 .0 @1
 @1 @1 @1 @1 @1 @1 @1 @1
 @1 @1 @1 @1 @1 @1 @1 @1
-#001 1
-  *0
-    -You are speaking to me? How nice.;
-    -How are you doing?; 
-  $
+
+#001
+1;
+*0
+-You are speaking to me? How nice.;
+-How are you doing?;
+*1
+-Hi again.;

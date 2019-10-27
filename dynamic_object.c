@@ -80,12 +80,18 @@ int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t 
   }
 }
 
-int process_queue(DynamicObject *dynamic_object, QueueItem *queue_item) {
-  int running = queue_item->action(dynamic_object, queue_item->arg1, queue_item->arg2, queue_item->arg3);
+int process_queue(DynamicObject *dynamic_object, QueueItem *queue_item, int *is_enqueuing) {
+  int running;
+  if (!*is_enqueuing) {
+    running = queue_item->action(dynamic_object, queue_item->arg1, queue_item->arg2, queue_item->arg3);
+  } else {
+    running = 0;
+  }
   return running;
 }
 
 void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void* arg3){
+  queue->is_enqueuing = 1;
    queue->items = realloc(queue->items, sizeof(queue->items) * 10);
    if (queue->size >= queue->capacity) {
      queue->capacity = queue->size * 2;
@@ -95,6 +101,7 @@ void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void
    queue->items[queue->size - 1].arg1= arg1;
    queue->items[queue->size - 1].arg2= arg2;
    queue->items[queue->size - 1].arg3= arg3;
+   queue->is_enqueuing = 0;
 }
 
 Queue dequeue(Queue *queue) 
@@ -115,6 +122,7 @@ Queue dequeue(Queue *queue)
     new_queue.size = queue->size - 1;
     new_queue.capacity = queue->capacity; 
     new_queue.prev_size = queue->size;
+    new_queue.is_enqueuing = 0;
 
     free(queue->items);
     return new_queue;
@@ -124,11 +132,13 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
   SDL_Surface *manIdleSurface = createSurface("images/man-idle.png");
   SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
   dynamic_object->action_queue.items = malloc(sizeof(QueueItem));
+  dynamic_object->action_queue.is_enqueuing = 0;
   dynamic_object->action_queue.prev_size = 0;
   dynamic_object->action_queue.size = 0;
   dynamic_object->action_queue.capacity = 1;
   dynamic_object->action_queue.timer = 0;
   dynamic_object->dialogue_queue.items = malloc(sizeof(QueueItem));
+  dynamic_object->dialogue_queue.is_enqueuing = 0;
   dynamic_object->dialogue_queue.prev_size = 0;
   dynamic_object->dialogue_queue.size = 0;
   dynamic_object->dialogue_queue.capacity = 1;

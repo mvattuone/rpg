@@ -45,6 +45,7 @@ typedef struct {
 
 typedef struct {
   QueueItem *items;
+  int is_enqueuing;
   size_t size;
   size_t capacity;
   size_t timer;
@@ -112,7 +113,7 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
 
 // Probably this should be split into two functions...
 void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void* arg3);
-int process_queue(DynamicObject *dynamic_object, QueueItem *queue_item); 
+int process_queue(DynamicObject *dynamic_object, QueueItem *queue_item, int *is_enqueuing); 
 Queue dequeue(Queue *actions);
 
 int moveLeft(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
