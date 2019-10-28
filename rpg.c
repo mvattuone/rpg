@@ -118,10 +118,8 @@ int handleEvents(Game *game) {
   return 0;
 }
 
-int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt) {
-  if (dynamic_object->isMoving) {
-    printf("what is the cof right now %f \n", currentTile->cof);
-    fflush(stdout);
+int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt, Game *game) {
+  if (dynamic_object->dx || dynamic_object->dy) {
     dynamic_object->frictionalForceX = currentTile->cof * dynamic_object->normalForce;
     dynamic_object->frictionalForceY = currentTile->cof * dynamic_object->normalForce;
   }
@@ -136,7 +134,7 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt) {
     if (dynamic_object->moveRight) {
       dynamic_object->directionX = 1;
     } else {
-      dynamic_object->thrustX *= -1;
+      dynamic_object->thrustX = 0;
     }
   }
   if (dynamic_object->moveRight) {
@@ -151,7 +149,7 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt) {
     if (dynamic_object->moveLeft) {
       dynamic_object->directionX = -1;
     } else {
-      dynamic_object->thrustX *= -1;
+      dynamic_object->thrustX = 0;
     }
   }
   if (dynamic_object->moveUp) {
@@ -165,7 +163,7 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt) {
     if (dynamic_object->moveDown) {
       dynamic_object->directionY = 1;
     } else {
-      dynamic_object->thrustY *= -1;
+      dynamic_object->thrustY = 0;
     }
   }
   if (dynamic_object->moveDown) {
@@ -180,17 +178,28 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt) {
     if (dynamic_object->moveUp) {
       dynamic_object->directionY = -1;
     } else {
-      dynamic_object->thrustY *= -1;
+      dynamic_object->thrustY = 0;
     }
   }
 
-  dynamic_object->ax = (((dynamic_object->directionX * dynamic_object->thrustX) - (dynamic_object->directionX * dynamic_object->frictionalForceX)) / dynamic_object->mass);
-  dynamic_object->ay = (((dynamic_object->directionY * dynamic_object->thrustY) - (dynamic_object->directionY * dynamic_object->frictionalForceY)) / dynamic_object->mass);
+  float prevDx = dynamic_object->dx;
+  float prevDy = dynamic_object->dy;
+  if (dynamic_object->moveLeft || dynamic_object->moveRight) {
+    dynamic_object->ax = ((dynamic_object->directionX * dynamic_object->thrustX) - (dynamic_object->directionX * dynamic_object->frictionalForceX)) / dynamic_object->mass;
+  } else {
+    dynamic_object->ax = ((dynamic_object->directionX * dynamic_object->thrustX) + (dynamic_object->directionX * dynamic_object->frictionalForceX)) / dynamic_object->mass;
+  }
+  if (dynamic_object->moveUp || dynamic_object->moveDown) {
+    dynamic_object->ay = ((dynamic_object->directionY * dynamic_object->thrustY) - (dynamic_object->directionY * dynamic_object->frictionalForceY)) / dynamic_object->mass;
+  } else {
+    dynamic_object->ay = ((dynamic_object->directionY * dynamic_object->thrustY) + (dynamic_object->directionY * dynamic_object->frictionalForceY)) / dynamic_object->mass;
+  }
   dynamic_object->dx = accelerate(dynamic_object->dx, dynamic_object->ax, *dt); 
   dynamic_object->dy = accelerate(dynamic_object->dy, dynamic_object->ay, *dt); 
+
   
-  float maxSpeed = 30.0f;
-  float maxRunningSpeed = 90.0f;
+  float maxSpeed = 10.0f;
+  float maxRunningSpeed = 20.0f;
   
   if (dynamic_object->isMoving) {
     if (!dynamic_object->isRunning && dynamic_object->dx >= maxSpeed) {
@@ -218,29 +227,42 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt) {
     if (dynamic_object->isRunning && dynamic_object->dy <= -maxRunningSpeed) {
       dynamic_object->dy = -maxRunningSpeed;
     }
+  }
 
+  if (dynamic_object->isMain) {
+    printf("what is ax %f \n", dynamic_object->ax);
+    printf("what is ay %f \n", dynamic_object->ay);
+    printf("what is thrustX %f \n", dynamic_object->thrustX);
+    printf("what is thrustY %f \n", dynamic_object->thrustY);
+    printf("what is frictionalX %f \n", dynamic_object->frictionalForceX);
+    printf("what is frictionalY %f \n", dynamic_object->frictionalForceY);
+    printf("what is dx %f \n", dynamic_object->dx);
+    printf("what is dy %f \n", dynamic_object->dy);
+    printf("what is x %f \n", dynamic_object->x);
+    printf("what is y %f \n", dynamic_object->y);
+    fflush(stdout);
   }
 
   // Clamp
   if (!dynamic_object->isMoving) {
-    if (fabs(dynamic_object->dx) < 5) {
+    if ((dynamic_object->dx < prevDx && prevDx > 0 && dynamic_object->dx < 0) || (dynamic_object->dx > prevDx && prevDx < 0 && dynamic_object->dx > 0)) {
       dynamic_object->dx = 0;
       dynamic_object->ax = 0;
-      dynamic_object->thrustX = 0;
       dynamic_object->directionX = 0;
+      dynamic_object->thrustX = 0;
       dynamic_object->frictionalForceX = 0;
     }
-    if (fabs(dynamic_object->dy) < 5) {
+    if ((dynamic_object->dy < prevDy && prevDy > 0 && dynamic_object->dy < 0) || (dynamic_object->dy > prevDy && prevDy < 0 && dynamic_object->dy > 0)) {
       dynamic_object->dy = 0;
       dynamic_object->ay = 0;
-      dynamic_object->thrustY = 0;
       dynamic_object->directionY = 0;
+      dynamic_object->thrustY = 0;
       dynamic_object->frictionalForceY = 0;
     }
   }
 
-  dynamic_object->x += dynamic_object->dx * *dt; 
-  dynamic_object->y += dynamic_object->dy * *dt; 
+  dynamic_object->x += dynamic_object->dx * *dt * PIXELS_PER_METER; 
+  dynamic_object->y += dynamic_object->dy * *dt * PIXELS_PER_METER; 
  
   return 0;
 }
@@ -320,7 +342,7 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
 void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 950, 1300, IS_IDLE, RIGHT);
+    game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 500, 800, IS_IDLE, RIGHT);
     if (game->map.dynamic_objects[i].isMain) {
       game->mainCharacter = &game->map.dynamic_objects[i];
     }
@@ -533,7 +555,7 @@ void process(Game *game) {
   }
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    handlePhysics(&game->map.dynamic_objects[i], &game->map.tiles[game->map.dynamic_objects[i].currentTile], &game->dt);
+    handlePhysics(&game->map.dynamic_objects[i], &game->map.tiles[game->map.dynamic_objects[i].currentTile], &game->dt, game);
   }
 
   game->scrollX = -game->mainCharacter->x+WINDOW_WIDTH/2;
@@ -621,8 +643,6 @@ int main(int argc, char *argv[]) {
       WINDOW_HEIGHT,                               
       SDL_WINDOW_SHOWN
       );
-
-  game.gravity = 9.8 * PIXELS_PER_METER;
 
   if (game.window == NULL) {
     fprintf(stderr, "could not create window: %s\n", SDL_GetError());

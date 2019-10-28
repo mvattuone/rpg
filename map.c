@@ -12,9 +12,9 @@
 float getCofForTile(char id) {
   float cof;
   if (id == '.') { 
-    cof = 0.41;
+    cof = 0.50;
   } else if (id == '*') {
-    cof = 0.00001;
+    cof = 0;
   } else {
     cof = 100.0;
   }

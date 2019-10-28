@@ -151,8 +151,8 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
   dynamic_object->h = manIdleSurface->h / 8;
   dynamic_object->mass = mass;
   dynamic_object->normalForce = dynamic_object->mass * GRAVITY * cos(90*M_PI); 
-  dynamic_object->walkThrust = walkThrust * PIXELS_PER_METER;
-  dynamic_object->runThrust = runThrust * PIXELS_PER_METER;
+  dynamic_object->walkThrust = walkThrust; 
+  dynamic_object->runThrust = runThrust; 
   dynamic_object->thrustX = 0;
   dynamic_object->thrustY = 0;
   dynamic_object->directionX = 0;
