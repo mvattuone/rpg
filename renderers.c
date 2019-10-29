@@ -20,3 +20,11 @@ void renderDialogBox(SDL_Renderer *renderer) {
   SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
   SDL_RenderFillRect(renderer, &dialogBoxRect); 
 }
+
+void renderPauseState(SDL_Renderer *renderer, TTF_Font *font) {
+  SDL_Rect pauseOverlayRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 50);
+  SDL_RenderFillRect(renderer, &pauseOverlayRect); 
+  SDL_Color color = {255, 255, 255};
+  renderText(renderer, font, "Paused", color, WINDOW_WIDTH/2 - 40, WINDOW_HEIGHT/2, 40, 20);
+}

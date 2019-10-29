@@ -8,6 +8,14 @@
 #include "rpg.h"
 #include "physics.h"
 
+void togglePauseState(Game *game) {
+  if (game->status == IS_PAUSED) {
+    game->status = IS_ACTIVE;
+  } else {
+    game->status = IS_PAUSED;
+  }
+}
+
 int handleEvents(Game *game) {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
@@ -17,6 +25,9 @@ int handleEvents(Game *game) {
         break;
       case SDL_KEYDOWN:
         switch (event.key.keysym.scancode) {
+          case SDL_SCANCODE_ESCAPE:
+            togglePauseState(game);
+            break;
           case SDL_SCANCODE_A:
             if (game->status != IS_CUTSCENE && game->status != IS_DIALOGUE) {
               triggerDialog(game);
@@ -103,6 +114,16 @@ int handleEvents(Game *game) {
         game->mainCharacter->moveUp = 0;
         game->mainCharacter->moveDown = 0;
       }
+    }
+
+    if (!state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_DOWN]) {
+      game->mainCharacter->moveUp = 0;
+      game->mainCharacter->moveDown = 0;
+    }
+
+    if (!state[SDL_SCANCODE_LEFT] && !state[SDL_SCANCODE_RIGHT]) {
+      game->mainCharacter->moveLeft = 0;
+      game->mainCharacter->moveRight = 0;
     }
 
     if (!state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_DOWN] && !state[SDL_SCANCODE_LEFT] && !state[SDL_SCANCODE_RIGHT]) {
@@ -198,8 +219,8 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt, G
   dynamic_object->dy = accelerate(dynamic_object->dy, dynamic_object->ay, *dt); 
 
   
-  float maxSpeed = 10.0f;
-  float maxRunningSpeed = 20.0f;
+  float maxSpeed = 2.0f;
+  float maxRunningSpeed = 4.0f;
   
   if (dynamic_object->isMoving) {
     if (!dynamic_object->isRunning && dynamic_object->dx >= maxSpeed) {
@@ -297,6 +318,7 @@ void renderTile(Game *game, int x, int y, char tileId) {
 void doRender(Game *game) {
   SDL_RenderClear(game->renderer);
 
+
   for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
@@ -313,6 +335,10 @@ void doRender(Game *game) {
       SDL_Color color = {255, 255, 255};
       renderText(game->renderer, game->font, currentDialog, color, 25, WINDOW_HEIGHT - 180, WINDOW_WIDTH - 45, 20);
     }
+  }
+
+  if (game->status == IS_PAUSED) {
+    renderPauseState(game->renderer, game->font);
   }
 
   SDL_SetRenderDrawColor(game->renderer, 25, 100, 155, 255);
@@ -342,7 +368,7 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
 void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 500, 800, IS_IDLE, RIGHT);
+    game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 600, 800, IS_IDLE, RIGHT);
     if (game->map.dynamic_objects[i].isMain) {
       game->mainCharacter = &game->map.dynamic_objects[i];
     }
@@ -655,12 +681,18 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  SDL_SetRenderDrawBlendMode(game.renderer, SDL_BLENDMODE_BLEND);
+
   loadGame(&game);
 
   int done = 0;
   while (!done) {
     done = handleEvents(&game);
-    process(&game);
+
+    if (game.status != IS_PAUSED) {
+      process(&game);
+    }
+
     doRender(&game);
 
     SDL_Delay(10);
