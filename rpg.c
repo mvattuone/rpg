@@ -219,34 +219,31 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt, G
   dynamic_object->dy = accelerate(dynamic_object->dy, dynamic_object->ay, *dt); 
 
   
-  float maxSpeed = 2.0f;
-  float maxRunningSpeed = 4.0f;
-  
   if (dynamic_object->isMoving) {
-    if (!dynamic_object->isRunning && dynamic_object->dx >= maxSpeed) {
-      dynamic_object->dx = maxSpeed; 
+    if (!dynamic_object->isRunning && dynamic_object->dx >= currentTile->maxSpeed) {
+      dynamic_object->dx = currentTile->maxSpeed; 
     }
-    if (dynamic_object->isRunning && dynamic_object->dx >= maxRunningSpeed) {
-      dynamic_object->dx = maxRunningSpeed;
+    if (dynamic_object->isRunning && dynamic_object->dx >= currentTile->maxRunningSpeed) {
+      dynamic_object->dx = currentTile->maxRunningSpeed;
     }
-    if (!dynamic_object->isRunning && dynamic_object->dx <= -maxSpeed) {
-      dynamic_object->dx = -maxSpeed; 
+    if (!dynamic_object->isRunning && dynamic_object->dx <= -currentTile->maxSpeed) {
+      dynamic_object->dx = -currentTile->maxSpeed; 
     }
-    if (dynamic_object->isRunning && dynamic_object->dx <= -maxRunningSpeed) {
-      dynamic_object->dx = -maxRunningSpeed;
+    if (dynamic_object->isRunning && dynamic_object->dx <= -currentTile->maxRunningSpeed) {
+      dynamic_object->dx = -currentTile->maxRunningSpeed;
     }
 
-    if (!dynamic_object->isRunning && dynamic_object->dy >= maxSpeed) {
-      dynamic_object->dy = maxSpeed; 
+    if (!dynamic_object->isRunning && dynamic_object->dy >= currentTile->maxSpeed) {
+      dynamic_object->dy = currentTile->maxSpeed; 
     }
-    if (dynamic_object->isRunning && dynamic_object->dy >= maxRunningSpeed) {
-      dynamic_object->dy = maxRunningSpeed;
+    if (dynamic_object->isRunning && dynamic_object->dy >=currentTile->maxRunningSpeed) {
+      dynamic_object->dy = currentTile->maxRunningSpeed;
     }
-    if (!dynamic_object->isRunning && dynamic_object->dy <= -maxSpeed) {
-      dynamic_object->dy = -maxSpeed; 
+    if (!dynamic_object->isRunning && dynamic_object->dy <= -currentTile->maxSpeed) {
+      dynamic_object->dy = -currentTile->maxSpeed; 
     }
-    if (dynamic_object->isRunning && dynamic_object->dy <= -maxRunningSpeed) {
-      dynamic_object->dy = -maxRunningSpeed;
+    if (dynamic_object->isRunning && dynamic_object->dy <= -currentTile->maxRunningSpeed) {
+      dynamic_object->dy = -currentTile->maxRunningSpeed;
     }
   }
 
@@ -319,12 +316,13 @@ void doRender(Game *game) {
   SDL_RenderClear(game->renderer);
 
 
-  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
+  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++) {
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
         renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.width].tileId);
       }
     }
+  }
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     renderMan(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
@@ -340,8 +338,6 @@ void doRender(Game *game) {
   if (game->status == IS_PAUSED) {
     renderPauseState(game->renderer, game->font);
   }
-
-  SDL_SetRenderDrawColor(game->renderer, 25, 100, 155, 255);
 
   SDL_RenderPresent(game->renderer);
 };
@@ -368,7 +364,7 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
 void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 600, 800, IS_IDLE, RIGHT);
+    game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], UP, 0, 70, 700, 800, IS_IDLE, RIGHT);
     if (game->map.dynamic_objects[i].isMain) {
       game->mainCharacter = &game->map.dynamic_objects[i];
     }

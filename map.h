@@ -12,6 +12,8 @@ typedef struct {
   char tileId;
   TileState tileState;
   float cof;
+  float maxSpeed;
+  float maxRunningSpeed;
   int dynamic_object_id;
   int x,y,w,h;
   char teleportTo[20];

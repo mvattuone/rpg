@@ -22,6 +22,20 @@ float getCofForTile(char id) {
   return cof;
 }
 
+float getMaxSpeedForTile(char id) {
+  float maxSpeed;
+
+  if (id == '.') { 
+    maxSpeed = 3.00;
+  } else if (id == '*') {
+    maxSpeed = 5.00;
+  } else {
+    maxSpeed = 0;
+  }
+
+  return maxSpeed;
+}
+
 DynamicObject* getDynamicObjectFromMap(Map *map, int id) {
   for (int i = 0; i < map->dynamic_objects_count; i++) {
     if (map->dynamic_objects[i].id == id) {
@@ -63,6 +77,8 @@ Map initializeMap(char* fileName, int tileSize) {
         tiles[count]->dynamic_object_id = 0;
         tiles[count]->tileState = fgetc(mapData) - '0'; 
         tiles[count]->cof = getCofForTile(c);
+        tiles[count]->maxSpeed = getMaxSpeedForTile(c);
+        tiles[count]->maxRunningSpeed = tiles[count]->maxSpeed * 2;
         if (tiles[count]->tileState == IS_TELEPORT) {
           char mapId[2] = {0, 0};
           int n = 0;
@@ -113,6 +129,7 @@ Map initializeMap(char* fileName, int tileSize) {
 
     char doId[3];
 
+    // Arbitrary initialization
     char e = '!';
     while ((e == '#' || (e = fgetc(mapData))) && e != EOF) {
       // get id
