@@ -91,15 +91,23 @@ Map initializeMap(char* fileName, int tileSize) {
             n++;
           }
           snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
-        } else if ((d = fgetc(mapData)) == 'x' || d == 'o') {
+        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's') {
           dynamic_objects[dynamic_objects_count] = (DynamicObject *)malloc(sizeof(DynamicObject));
-          if (d == 'x' || d == 'o') {
+          if (d == 'x' || d == 'o' || d == 's') {
+
+            if (d == 's') {
+              dynamic_objects[dynamic_objects_count]->isMovable = 1;
+              dynamic_objects[dynamic_objects_count]->type = CRATE;
+            } else {
+              dynamic_objects[dynamic_objects_count]->isMovable = 0;
+              dynamic_objects[dynamic_objects_count]->type = MAN;
+            }
 
             if (d == 'x') {
               dynamic_objects[dynamic_objects_count]->isMain = 1;        
-            } else if (d == 'o') {
+            } else {
               dynamic_objects[dynamic_objects_count]->isMain = 0;
-            }
+            } 
 
             char z;
             char doId[3];
@@ -113,7 +121,7 @@ Map initializeMap(char* fileName, int tileSize) {
             }
             dynamic_objects[dynamic_objects_count]->id = atoi(doId);
             tiles[count]->dynamic_object_id = dynamic_objects[dynamic_objects_count]->id;
-          }
+          } 
 
           dynamic_objects[dynamic_objects_count]->x = count % map.width * tileSize;
           dynamic_objects[dynamic_objects_count]->y = ceil(count/map.width) * tileSize; 

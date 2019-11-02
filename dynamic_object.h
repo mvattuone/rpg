@@ -27,6 +27,11 @@ typedef enum {
 } Direction;
 
 typedef enum {
+  MAN,
+  CRATE
+} ObjectType;
+
+typedef enum {
   IS_IDLE,
   IS_RUNNING
 } Status;
@@ -64,6 +69,7 @@ typedef struct {
   int id;
   Dialogue dialogues[MAX_DIALOGUES];
   int dialogue_index_total;
+  ObjectType type; 
   float startingX, startingY;
   float x, y;
   int w, h;
@@ -80,6 +86,8 @@ typedef struct {
   float frictionalForceX;
   float frictionalForceY;
   int isMoving;
+  int isMovable;
+  int isPushing;
   int isRunning;
   int moveLeft;
   int moveRight;
@@ -106,9 +114,10 @@ typedef struct {
   Status status;
   SDL_Texture *idleTexture;
   SDL_Texture *runningTexture;
+  SDL_Texture *crateTexture;
 } DynamicObject;
 
-DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction); 
+DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type); 
 
 
 // Probably this should be split into two functions...

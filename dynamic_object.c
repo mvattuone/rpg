@@ -129,9 +129,7 @@ Queue dequeue(Queue *queue)
     return new_queue;
 }
 
-DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction) {
-  SDL_Surface *manIdleSurface = createSurface("images/man-idle.png");
-  SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
+DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type) {
   dynamic_object->action_queue.items = malloc(sizeof(QueueItem));
   dynamic_object->action_queue.is_enqueuing = 0;
   dynamic_object->action_queue.prev_size = 0;
@@ -144,11 +142,7 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
   dynamic_object->dialogue_queue.size = 0;
   dynamic_object->dialogue_queue.capacity = 1;
   dynamic_object->dialogue_queue.timer = 0;
-  dynamic_object->idleTexture= SDL_CreateTextureFromSurface(renderer, manIdleSurface);
-  dynamic_object->runningTexture= SDL_CreateTextureFromSurface(renderer, manRunningSurface);
   dynamic_object->angle = angle;
-  dynamic_object->w = manIdleSurface->w / 8;
-  dynamic_object->h = manIdleSurface->h / 8;
   dynamic_object->mass = mass;
   dynamic_object->normalForce = dynamic_object->mass * GRAVITY * cos(90*M_PI); 
   dynamic_object->walkThrust = walkThrust; 
@@ -160,6 +154,7 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
   dynamic_object->frictionalForceX = 0;
   dynamic_object->frictionalForceY = 0;
   dynamic_object->isMoving = 0;
+  dynamic_object->isPushing = 0;
   dynamic_object->isRunning = 0;
   dynamic_object->moveLeft = 0;
   dynamic_object->moveRight = 0;
@@ -177,8 +172,28 @@ DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_objec
   dynamic_object->direction = direction;
   dynamic_object->currentDialog = NULL;
   dynamic_object->state = DEFAULT;
-  SDL_FreeSurface(manRunningSurface);
-  SDL_FreeSurface(manIdleSurface);
+  dynamic_object->idleTexture = NULL;
+  dynamic_object->crateTexture = NULL;
+  dynamic_object->runningTexture = NULL;
+
+  if (type == MAN) {
+    SDL_Surface *manIdleSurface = createSurface("images/man-idle.png");
+    SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
+    dynamic_object->idleTexture= SDL_CreateTextureFromSurface(renderer, manIdleSurface);
+    dynamic_object->runningTexture= SDL_CreateTextureFromSurface(renderer, manRunningSurface);
+    dynamic_object->w = manIdleSurface->w / 8;
+    dynamic_object->h = manIdleSurface->h / 8;
+    SDL_FreeSurface(manRunningSurface);
+    SDL_FreeSurface(manIdleSurface);
+  }
+
+  if (type == CRATE) {
+    SDL_Surface *crateSurface = createSurface("images/crate.png");
+    dynamic_object->crateTexture= SDL_CreateTextureFromSurface(renderer, crateSurface);
+    dynamic_object->w = crateSurface->w;
+    dynamic_object->h = crateSurface->h;
+    SDL_FreeSurface(crateSurface);
+  }
 
   return *dynamic_object;
 }

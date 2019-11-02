@@ -28,6 +28,7 @@ typedef struct {
   time_t startTime;
   float dt;
   SDL_Texture *terrainTexture;
+  SDL_Texture *objectsTexture;
 } Game;
 
 int handleEvents(Game *game);
