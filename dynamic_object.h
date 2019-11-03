@@ -117,7 +117,7 @@ typedef struct {
   SDL_Texture *crateTexture;
 } DynamicObject;
 
-DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type); 
+DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type); 
 
 
 // Probably this should be split into two functions...

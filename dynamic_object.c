@@ -129,7 +129,7 @@ Queue dequeue(Queue *queue)
     return new_queue;
 }
 
-DynamicObject initializeMan(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type) {
+DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type) {
   dynamic_object->action_queue.items = malloc(sizeof(QueueItem));
   dynamic_object->action_queue.is_enqueuing = 0;
   dynamic_object->action_queue.prev_size = 0;

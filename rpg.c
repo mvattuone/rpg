@@ -380,9 +380,9 @@ void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (game->map.dynamic_objects[i].type == MAN) {
-      game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN);
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN);
     } else if (game->map.dynamic_objects[i].type == CRATE) {
-      game->map.dynamic_objects[i] = initializeMan(game->renderer, &game->map.dynamic_objects[i], UP, 0, 140, 700, 800, IS_IDLE, UP, CRATE);
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 110, 500, 600, IS_IDLE, UP, CRATE);
     }
     if (game->map.dynamic_objects[i].isMain) {
       game->mainCharacter = &game->map.dynamic_objects[i];
