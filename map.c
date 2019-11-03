@@ -14,7 +14,9 @@ float getCofForTile(char id) {
   if (id == '.') { 
     cof = 0.50;
   } else if (id == '*') {
-    cof = 0;
+    cof = 0.05;
+  } else if (id == '#') {
+    cof = 0.50;
   } else {
     cof = 100.0;
   }
@@ -29,6 +31,8 @@ float getMaxSpeedForTile(char id) {
     maxSpeed = 3.00;
   } else if (id == '*') {
     maxSpeed = 5.00;
+  } else if (id == '#') {
+    maxSpeed = 1.50;
   } else {
     maxSpeed = 0;
   }

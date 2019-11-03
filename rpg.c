@@ -314,6 +314,9 @@ void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *render
   } else if (tileId == '*') {
     tileRow = 1;
     tileColumn = 13;
+  } else if (tileId == '#') {
+    tileRow = 5;
+    tileColumn = 6;
   } else {
     tileRow = 12;
     tileColumn = 7;
