@@ -336,6 +336,7 @@ void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *render
 };
 
 void doRender(Game *game) {
+  SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
   SDL_RenderClear(game->renderer);
 
 
