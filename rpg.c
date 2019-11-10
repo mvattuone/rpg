@@ -29,7 +29,10 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_A:
-            if (game->status != IS_CUTSCENE && game->status != IS_DIALOGUE) {
+            if (game->mainCharacter->has_object) { 
+              triggerDrop(game);
+            } else if (game->status != IS_CUTSCENE && game->status != IS_DIALOGUE) {
+              game->mainCharacter->isLifting = 1;
               triggerDialog(game);
               game->dismissDialog = 0;
             } else {
@@ -348,9 +351,12 @@ void doRender(Game *game) {
     if (game->map.dynamic_objects[i].type == MAN) {
       renderMan(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     } else if (game->map.dynamic_objects[i].type == JAR) {
-      printf("We did it\n");
-      fflush(stdout);
-      renderJar(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
+        if (game->map.dynamic_objects[i].isLifted) {
+          game->mainCharacter->isLifting = 0;
+          game->map.dynamic_objects[i].x = game->mainCharacter->x;
+          game->map.dynamic_objects[i].y = game->mainCharacter->y - game->mainCharacter->h;
+        }
+        renderJar(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     } else if (game->map.dynamic_objects[i].type == CRATE) {
       renderCrate(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     }
@@ -511,6 +517,12 @@ void detectCollisions(Game *game, DynamicObject *dynamic_object) {
                     game->map.dynamic_objects[i].moveUp = 1;
                   } 
                 } 
+                if (game->map.dynamic_objects[i].isLiftable)  {
+                  if (game->mainCharacter->isLifting && game->map.dynamic_objects[i].currentTile == game->mainCharacter->currentTile - game->map.width && game->mainCharacter->direction == UP) {
+                    game->map.dynamic_objects[i].isLifted = 1;
+                    game->mainCharacter->has_object = 1;
+                  } 
+                }
                 if (!game->mainCharacter->isPushing) {
                   dynamic_object->dy = 0;
                 }
@@ -520,11 +532,17 @@ void detectCollisions(Game *game, DynamicObject *dynamic_object) {
             if (mainX + mainW > objectX && mainX<objectX+objectW) {
               if (mainY + mainH > objectY && mainY < objectY && mainDy > 0) {
                 dynamic_object->y = objectY-mainH;
+                int tileIsBelowObject = game->map.dynamic_objects[i].currentTile == game->mainCharacter->currentTile + game->map.width;
                 if (game->map.dynamic_objects[i].isMovable)  {
-                  int tileIsBelowObject = game->map.dynamic_objects[i].currentTile == game->mainCharacter->currentTile + game->map.width;
                   if (game->mainCharacter->isPushing && tileIsBelowObject && game->mainCharacter->direction == DOWN) {
                     game->map.dynamic_objects[i].isMoving = 1;
                     game->map.dynamic_objects[i].moveDown = 1;
+                  }
+                }
+                if (game->map.dynamic_objects[i].isLiftable)  {
+                  if (game->mainCharacter->isLifting && tileIsBelowObject && game->mainCharacter->direction == DOWN) {
+                    game->map.dynamic_objects[i].isLifted = 1;
+                    game->mainCharacter->has_object = 1;
                   }
                 }
                 if (!game->mainCharacter->isPushing) {
@@ -536,8 +554,8 @@ void detectCollisions(Game *game, DynamicObject *dynamic_object) {
             if (mainY + mainH/2 > objectY && mainY<objectY+objectH) {
               if (mainX < objectX+objectW && mainX+mainW > objectX+objectW && mainDx < 0) {
                 dynamic_object->x = objectX + objectW;
+                int tileIsToLeftOfObject = game->map.dynamic_objects[i].currentTile == game->mainCharacter->currentTile - 1;
                 if (game->map.dynamic_objects[i].isMovable)  {
-                  int tileIsToLeftOfObject = game->map.dynamic_objects[i].currentTile == game->mainCharacter->currentTile - 1;
                   if (game->mainCharacter->isPushing && tileIsToLeftOfObject && game->mainCharacter->direction == LEFT) {
                     game->map.dynamic_objects[i].isMoving = 1;
                     game->map.dynamic_objects[i].moveLeft = 1;
@@ -546,14 +564,20 @@ void detectCollisions(Game *game, DynamicObject *dynamic_object) {
                     game->map.dynamic_objects[i].moveLeft = 0;
                   }
                 }
+                if (game->map.dynamic_objects[i].isLiftable)  {
+                  if (game->mainCharacter->isLifting && tileIsToLeftOfObject && game->mainCharacter->direction == LEFT) {
+                    game->map.dynamic_objects[i].isLifted = 1;
+                    game->mainCharacter->has_object = 1;
+                  }
+                }
                 if (!game->mainCharacter->isPushing) {
                   dynamic_object->dx = 0;
                 }
               } else if (mainX+mainW > objectX && mainX < objectX && mainDx > 0) {
                 dynamic_object->x = objectX - mainW;
                 dynamic_object->dx = 0;
+                int tileIsToRightOfObject = game->map.dynamic_objects[i].currentTile == game->mainCharacter->currentTile + 1;
                 if (game->map.dynamic_objects[i].isMovable)  {
-                  int tileIsToRightOfObject = game->map.dynamic_objects[i].currentTile == game->mainCharacter->currentTile + 1;
                   if (game->mainCharacter->isPushing && tileIsToRightOfObject && game->mainCharacter->direction == RIGHT) {
                     game->map.dynamic_objects[i].isMoving = 1;
                     game->map.dynamic_objects[i].moveRight = 1;
@@ -562,6 +586,12 @@ void detectCollisions(Game *game, DynamicObject *dynamic_object) {
                     game->map.dynamic_objects[i].isMoving = 0;
                     game->map.dynamic_objects[i].moveRight = 0;
                   }
+                }
+                if (game->map.dynamic_objects[i].isLiftable)  {
+                  if (game->mainCharacter->isLifting && tileIsToRightOfObject && game->mainCharacter->direction == RIGHT) {
+                    game->map.dynamic_objects[i].isLifted = 1;
+                    game->mainCharacter->has_object = 1;
+                  } 
                 }
               }
             }
@@ -579,6 +609,36 @@ float getAngle(Game *game) {
 int getDirection(Game *game) { 
   return (int)fabs(floor((game->mainCharacter->angle < 270 ? game->mainCharacter->angle + 90 : game->mainCharacter->angle - 270)/45));
 };
+
+// Eventually we want to have certain things that we drop and things that 
+// we can throw. Or something like that. For now we just drop the object in
+// the adjacent tile. 
+void triggerDrop(Game *game) {
+  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    if (game->map.dynamic_objects[i].isLifted) {
+      game->map.dynamic_objects[i].isLifted = 0;
+      game->mainCharacter->has_object = 0;
+      if (game->mainCharacter->direction == UP) {
+        game->map.dynamic_objects[i].x = game->mainCharacter->x;
+        game->map.dynamic_objects[i].y = game->mainCharacter->y - game->map.tiles[0].h;
+      }
+      if (game->mainCharacter->direction == DOWN) {
+        game->map.dynamic_objects[i].x = game->mainCharacter->x;
+        game->map.dynamic_objects[i].y = game->mainCharacter->y + game->map.tiles[0].h;
+      }
+      if (game->mainCharacter->direction == RIGHT) {
+        game->map.dynamic_objects[i].x = game->mainCharacter->x + game->map.tiles[0].w;
+        game->map.dynamic_objects[i].y = game->mainCharacter->y;
+      }
+      if (game->mainCharacter->direction == LEFT) {
+        game->map.dynamic_objects[i].x = game->mainCharacter->x - game->map.tiles[0].w;
+        game->map.dynamic_objects[i].y = game->mainCharacter->y; 
+      }
+    }
+  }
+
+  return;
+}
 
 void triggerDialog(Game *game) { 
   DynamicObject *townsperson = NULL;

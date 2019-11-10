@@ -36,3 +36,4 @@ void loadGame(Game *game);
 void collisionDetect(Game *game);
 void process(Game *game);
 void triggerDialog(Game *game);
+void triggerDrop(Game *game);

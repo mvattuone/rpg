@@ -86,6 +86,7 @@ typedef struct {
   float thrustY;
   float frictionalForceX;
   float frictionalForceY;
+  int has_object;
   int isLiftable;
   int isMoving;
   int isMovable;
