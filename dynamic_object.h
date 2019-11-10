@@ -28,7 +28,8 @@ typedef enum {
 
 typedef enum {
   MAN,
-  CRATE
+  CRATE,
+  JAR
 } ObjectType;
 
 typedef enum {
@@ -85,8 +86,11 @@ typedef struct {
   float thrustY;
   float frictionalForceX;
   float frictionalForceY;
+  int isLiftable;
   int isMoving;
   int isMovable;
+  int isLifted;
+  int isLifting;
   int isPushing;
   int isRunning;
   int moveLeft;
@@ -115,6 +119,7 @@ typedef struct {
   SDL_Texture *idleTexture;
   SDL_Texture *runningTexture;
   SDL_Texture *crateTexture;
+  SDL_Texture *jarTexture;
 } DynamicObject;
 
 DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type); 

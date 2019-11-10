@@ -173,6 +173,7 @@ DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *d
   dynamic_object->currentDialog = NULL;
   dynamic_object->state = DEFAULT;
   dynamic_object->idleTexture = NULL;
+  dynamic_object->jarTexture = NULL;
   dynamic_object->crateTexture = NULL;
   dynamic_object->runningTexture = NULL;
 
@@ -193,6 +194,14 @@ DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *d
     dynamic_object->w = crateSurface->w;
     dynamic_object->h = crateSurface->h;
     SDL_FreeSurface(crateSurface);
+  }
+
+  if (type == JAR) {
+    SDL_Surface *jarSurface = createSurface("images/jar.png");
+    dynamic_object->jarTexture= SDL_CreateTextureFromSurface(renderer, jarSurface);
+    dynamic_object->w = jarSurface->w / 2;
+    dynamic_object->h = jarSurface->h / 2;
+    SDL_FreeSurface(jarSurface);
   }
 
   return *dynamic_object;

@@ -95,15 +95,21 @@ Map initializeMap(char* fileName, int tileSize) {
             n++;
           }
           snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
-        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's') {
+        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's' || d == 'j') {
           dynamic_objects[dynamic_objects_count] = (DynamicObject *)malloc(sizeof(DynamicObject));
-          if (d == 'x' || d == 'o' || d == 's') {
+          if (d == 'x' || d == 'o' || d == 's' || d == 'j') {
 
             if (d == 's') {
               dynamic_objects[dynamic_objects_count]->isMovable = 1;
+              dynamic_objects[dynamic_objects_count]->isLiftable = 0;
               dynamic_objects[dynamic_objects_count]->type = CRATE;
+            } else if (d == 'j') {
+              dynamic_objects[dynamic_objects_count]->isMovable = 0;
+              dynamic_objects[dynamic_objects_count]->isLiftable = 1;
+              dynamic_objects[dynamic_objects_count]->type = JAR;
             } else {
               dynamic_objects[dynamic_objects_count]->isMovable = 0;
+              dynamic_objects[dynamic_objects_count]->isLiftable = 0;
               dynamic_objects[dynamic_objects_count]->type = MAN;
             }
 

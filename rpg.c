@@ -297,6 +297,12 @@ void renderCrate(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *rend
   SDL_RenderCopy(renderer, dynamic_object->crateTexture, &srcRect, &destRect);
 }
 
+void renderJar(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
+  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
+  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
+  SDL_RenderCopy(renderer, dynamic_object->jarTexture, &srcRect, &destRect);
+}
+
 void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
   SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
   SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
@@ -341,6 +347,10 @@ void doRender(Game *game) {
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (game->map.dynamic_objects[i].type == MAN) {
       renderMan(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->map.dynamic_objects[i].type == JAR) {
+      printf("We did it\n");
+      fflush(stdout);
+      renderJar(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     } else if (game->map.dynamic_objects[i].type == CRATE) {
       renderCrate(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     }
@@ -386,6 +396,8 @@ void loadMap(Game *game, char* fileName) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN);
     } else if (game->map.dynamic_objects[i].type == CRATE) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE);
+    } else if (game->map.dynamic_objects[i].type == JAR) {
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, JAR);
     }
     if (game->map.dynamic_objects[i].isMain) {
       game->mainCharacter = &game->map.dynamic_objects[i];
@@ -746,6 +758,7 @@ void shutdownGame(Game *game) {
     SDL_DestroyTexture(game->map.dynamic_objects[i].idleTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].runningTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].crateTexture);
+    SDL_DestroyTexture(game->map.dynamic_objects[i].jarTexture);
     free(game->map.dynamic_objects[i].action_queue.items);
     free(game->map.dynamic_objects[i].dialogue_queue.items);
   }
