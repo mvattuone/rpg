@@ -60,12 +60,19 @@ int handleEvents(Game *game) {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_UP] || state[SDL_SCANCODE_DOWN]) {
       game->mainCharacter->isMoving = 1;
+      if (state[SDL_SCANCODE_A]) {
+        game->mainCharacter->isPushing = 1;
+      } else {
+        game->mainCharacter->isPushing = 0;
+      }
     } 
     if (state[SDL_SCANCODE_A]) {
-      game->mainCharacter->isPushing = 1;
-    } else {
-      game->mainCharacter->isPushing = 0;
-    }
+      if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_UP] || state[SDL_SCANCODE_DOWN]) {
+        game->mainCharacter->isPushing = 1;
+      } else {
+        game->mainCharacter->isPushing = 0;
+      }
+    } 
     if (state[SDL_SCANCODE_SPACE]) {
       game->mainCharacter->isRunning = 1;
     }
@@ -425,10 +432,51 @@ void loadGame(Game *game) {
   loadMap(game, "map_01.lvl");
 };
 
-// Detect if two objects in space have a collision
-int hasCollision(float x1, float y1, float x2, float y2, float w1, float h1, float w2, float h2)
-{
-  return (!((x1 > (x2+w2)) || (x2 > (x1+w1)) || (y1 > (y2+h2)) || (y2 > (y1+h1))));
+void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
+  float mainX = active_dynamic_object->x;
+  float mainY = active_dynamic_object->y;
+  float mainDx = active_dynamic_object->dx;
+  float mainDy = active_dynamic_object->dy;
+  int mainW = active_dynamic_object->w;
+  int mainH = active_dynamic_object->h;
+
+  if (mainX + mainW / 2 > target->x && mainX + mainW/ 2 < target->x+target->w) {
+    if (mainY < target->h+target->y && mainY > target->y && mainDy < 0) {
+      active_dynamic_object->y = target->y+target->h;
+      active_dynamic_object->dy = 0;
+    } 
+  }
+  
+  if (mainX + mainW > target->x && mainX<target->x+target->w) {
+    if (mainY + mainH > target->y && mainY < target->y && mainDy > 0) {
+      active_dynamic_object->y = target->y-mainH;
+      if (!game->mainCharacter->isPushing) {
+        active_dynamic_object->dy = 0;
+      }
+    }
+  }
+
+  if (mainY + mainH/2 > target->y && mainY<target->y+target->h) {
+    if (mainX < target->x+target->w && mainX+mainW > target->x+target->w && mainDx < 0) {
+      active_dynamic_object->x = target->x + target->w;
+      active_dynamic_object->dx = 0;
+    } else if (mainX+mainW > target->x && mainX < target->x && mainDx > 0) {
+      active_dynamic_object->x = target->x - mainW;
+      active_dynamic_object->dx = 0;
+    }
+  }
+
+
+}
+
+void detectObjectCollision(Game *game, DynamicObject *active_dynamic_object, DynamicObject *target_object) {
+  Target target = { .x=target_object->x, .y=target_object->y, .w=target_object->w, .h=target_object->h};
+  detectCollision(game, active_dynamic_object, &target);
+}
+
+void detectTileCollision(Game *game, DynamicObject *active_dynamic_object, Tile *tile) {
+  Target target = { .x=tile->x, .y=tile->y, .w=tile->w, .h=tile->h};
+  detectCollision(game, active_dynamic_object, &target);
 }
 
 void handleObjectInteractions(Game *game, DynamicObject *active_dynamic_object) {
@@ -436,17 +484,6 @@ void handleObjectInteractions(Game *game, DynamicObject *active_dynamic_object) 
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
     int tileIndex = x + y * game->map.width;
     if (tileIndex < 0) continue;
-    float mainX = active_dynamic_object->x;
-    float mainY = active_dynamic_object->y;
-    float mainDx = active_dynamic_object->dx;
-    float mainDy = active_dynamic_object->dy;
-    int mainW = active_dynamic_object->w;
-    int mainH = active_dynamic_object->h;
-    
-    float tileX = game->map.tiles[tileIndex].x;
-    float tileY = game->map.tiles[tileIndex].y;
-    int tileW = game->map.tiles[tileIndex].w;
-    int tileH = game->map.tiles[tileIndex].h; 
 
     for (int i = 0; i < game->map.dynamic_objects_count; i++) {
       float objectX = game->map.dynamic_objects[i].x;
@@ -468,12 +505,9 @@ void handleObjectInteractions(Game *game, DynamicObject *active_dynamic_object) 
             loadMap(game, game->map.tiles[tileIndex].teleportTo);
         }
         int tileIsSolid = game->map.tiles[tileIndex].tileState == IS_SOLID;
-        int objectOnTile = game->map.dynamic_objects[i].currentTile == tileIndex;
-        int objectNotMainCharacter = !game->map.dynamic_objects[i].isMain;
-        int isCurrentlyDetectingObject = active_dynamic_object[i].currentTile == game->map.dynamic_objects[i].currentTile;
-
         int tileHasObject = game->map.tiles[tileIndex].dynamic_object_id;
         int isNotSelf = game->map.tiles[tileIndex].dynamic_object_id != active_dynamic_object->id;
+
         if (game->map.dynamic_objects[i].isMovable && !game->mainCharacter->isPushing)  {
           game->map.dynamic_objects[i].isMoving = 0;
           game->map.dynamic_objects[i].moveUp = 0;
@@ -483,95 +517,45 @@ void handleObjectInteractions(Game *game, DynamicObject *active_dynamic_object) 
         }
 
         if (tileIsSolid) {
-          if (mainX + mainW / 2 > tileX && mainX + mainW/ 2 < tileX+tileW) {
-            if (mainY < tileH+tileY && mainY > tileY && mainDy < 0) {
-              active_dynamic_object->y = tileY+tileH;
-              active_dynamic_object->dy = 0;
-            } 
-          }
-          
-          if (mainX + mainW > tileX && mainX<tileX+tileW) {
-            if (mainY + mainH > tileY && mainY < tileY && mainDy > 0) {
-              active_dynamic_object->y = tileY-mainH;
-              if (!game->mainCharacter->isPushing) {
-                active_dynamic_object->dy = 0;
-              }
-            }
-          }
-
-          if (mainY + mainH/2 > tileY && mainY<tileY+tileH) {
-            if (mainX < tileX+tileW && mainX+mainW > tileX+tileW && mainDx < 0) {
-              active_dynamic_object->x = tileX + tileW;
-              active_dynamic_object->dx = 0;
-            } else if (mainX+mainW > tileX && mainX < tileX && mainDx > 0) {
-              active_dynamic_object->x = tileX - mainW;
-              active_dynamic_object->dx = 0;
-            }
-          }
+          detectTileCollision(game, active_dynamic_object, &game->map.tiles[tileIndex]);
         }
 
-        if (tileHasObject && isNotSelf) {
-          int tileIsAboveObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile - game->map.width; 
-          int tileIsBelowObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile + game->map.width;
-          int tileIsToLeftOfObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile - 1;
-          int tileIsToRightOfObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile + 1;
-          int tileIsAdjacent =  tileIsAboveObject || tileIsBelowObject || tileIsToLeftOfObject || tileIsToRightOfObject;
+        detectObjectCollision(game, active_dynamic_object, &game->map.dynamic_objects[i]);
 
-          if (game->map.dynamic_objects[i].isLiftable && active_dynamic_object->isLifting && tileIsAdjacent)  {
-            if (tileIsBelowObject && active_dynamic_object->direction == DOWN) {
+        if (tileHasObject && isNotSelf) {
+
+          int tileIsAboveObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile - game->map.width && active_dynamic_object->direction == UP; 
+          int tileIsBelowObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile + game->map.width && active_dynamic_object->direction == DOWN;
+          int tileIsToLeftOfObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile - 1 && active_dynamic_object->direction == LEFT;
+          int tileIsToRightOfObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile + 1 && active_dynamic_object->direction == RIGHT;
+
+          if (game->map.dynamic_objects[i].isLiftable && active_dynamic_object->isLifting)  {
+            if (tileIsBelowObject) {
               game->map.dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             }
-            if (tileIsAboveObject && active_dynamic_object->direction == UP) {
+            if (tileIsAboveObject) {
               game->map.dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             } 
-            if (tileIsToLeftOfObject && active_dynamic_object->direction == LEFT) {
+            if (tileIsToLeftOfObject) {
               game->map.dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             }
-            if (tileIsToRightOfObject && active_dynamic_object->direction == RIGHT) {
+            if (tileIsToRightOfObject) {
               game->map.dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             } 
           }
 
-          if (game->map.dynamic_objects[i].isMovable && active_dynamic_object->isPushing && tileIsAdjacent)  {
-            game->map.dynamic_objects[i].isMoving = 1;
-            if (tileIsToLeftOfObject && active_dynamic_object->direction == LEFT) {
-              game->map.dynamic_objects[i].moveLeft = 1;
-            } 
-            if (tileIsAboveObject && active_dynamic_object->direction == UP) {
-              game->map.dynamic_objects[i].moveUp = 1;
-            } 
-            if (tileIsToRightOfObject && active_dynamic_object->direction == RIGHT) {
-              game->map.dynamic_objects[i].moveRight = 1;
-            } 
-            if (tileIsBelowObject && active_dynamic_object->direction == DOWN) {
-              game->map.dynamic_objects[i].moveDown = 1;
-            }
+          if (game->map.dynamic_objects[i].isMovable && active_dynamic_object->isPushing)  {
+            game->map.dynamic_objects[i].isMoving = active_dynamic_object->isPushing ? 1 : 0;
+            game->map.dynamic_objects[i].moveLeft = tileIsToLeftOfObject ? 1 : 0;
+            game->map.dynamic_objects[i].moveUp = tileIsAboveObject ? 1 : 0;
+            game->map.dynamic_objects[i].moveRight = tileIsToRightOfObject ? 1 : 0;
+            game->map.dynamic_objects[i].moveDown = tileIsBelowObject ? 1 : 0;
           } 
 
-          if (mainX + mainW / 2 > objectX && mainX + mainW/ 2 < objectX+objectW) {
-            if (mainY < objectH+objectY && mainY > objectY && mainDy < 0) {
-              active_dynamic_object->y = objectY+objectH;
-            } 
-          }
-            
-          if (mainX + mainW > objectX && mainX<objectX+objectW) {
-            if (mainY + mainH > objectY && mainY < objectY && mainDy > 0) {
-              active_dynamic_object->y = objectY-mainH;
-            }
-          }
-
-          if (mainY + mainH/2 > objectY && mainY<objectY+objectH) {
-            if (mainX < objectX+objectW && mainX+mainW > objectX+objectW && mainDx < 0) {
-              active_dynamic_object->x = objectX + objectW;
-            } else if (mainX+mainW > objectX && mainX < objectX && mainDx > 0) {
-              active_dynamic_object->x = objectX - mainW;
-              active_dynamic_object->dx = 0;
-            }
-          }
         }
       }
     }

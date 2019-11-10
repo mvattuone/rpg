@@ -15,6 +15,13 @@
 #define IS_CUTSCENE 3
 
 typedef struct {
+  int w;
+  int h;
+  float x;
+  float y;
+} Target;
+
+typedef struct {
   SDL_Window *window;
   DynamicObject *mainCharacter;
   Map map;
