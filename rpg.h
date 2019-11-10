@@ -33,7 +33,7 @@ typedef struct {
 int handleEvents(Game *game);
 void doRender(Game *game);
 void loadGame(Game *game);
-void collisionDetect(Game *game);
 void process(Game *game);
 void triggerDialog(Game *game);
 void triggerDrop(Game *game);
+void handleObjectInteractions(Game *game, DynamicObject *dynamic_object);
