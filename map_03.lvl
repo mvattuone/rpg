@@ -10,6 +10,7 @@
 
 #001
 1;
+0;
 *0
 -I am a town guard.;
 -I am doing town guard things...;
@@ -18,6 +19,7 @@
 *2
 -Leave me alone! I'm just a town guard!;
 #002
+0;
 0;
 *0
 -Hello there. Lovely weather this time of year.;

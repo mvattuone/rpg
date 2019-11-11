@@ -12,7 +12,11 @@ typedef int (*generic_function)(void*, void*, void*, void*);
 typedef enum {
   DEFAULT,
   SPOKEN,
-  SPOKEN_TWICE
+  SPOKEN_TWICE,
+  QUEST_ACTIVE,
+  QUEST_ACTIVE_SPOKEN_TWICE,
+  QUEST_COMPLETED,
+  QUEST_COMPLETED_SPOKEN_TWICE
 } State;
 
 typedef enum {
@@ -105,6 +109,7 @@ typedef struct {
   float ay;
   float walkThrust;
   float runThrust;
+  int quest;
   int isMain;
   int currentTile;
   int triggerDialog;

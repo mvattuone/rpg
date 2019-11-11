@@ -6,6 +6,7 @@
 #include "map.h"
 #include "renderers.h"
 #include "utils.h"
+#include "quest.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -29,6 +30,8 @@ typedef struct {
   float scrollX;
   float scrollY;
   SDL_Renderer *renderer;
+  Quest *quests;
+  int quest_count;
   int status;
   int dismissDialog;
   int time;

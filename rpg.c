@@ -427,6 +427,8 @@ void loadGame(Game *game) {
   game->scrollX = 0;
   game->scrollY = 0;
   game->dismissDialog = 0;
+  game->quests = malloc(sizeof(Quest));
+  game->quest_count = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
   loadMap(game, "map_01.lvl");
@@ -617,6 +619,9 @@ void triggerDialog(Game *game) {
   }
 
   if (townsperson->id &&townsperson->dialogues[townsperson->state].line_count) {
+    printf("ok so here is the state %d \n", townsperson->state);
+    printf("ok so here is the first line at this point %s \n", townsperson->dialogues[townsperson->state].lines[0]);
+    fflush(stdout);
     for (int i = 0; i < townsperson->dialogues[townsperson->state].line_count; i++) {
       enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
     }
@@ -624,11 +629,54 @@ void triggerDialog(Game *game) {
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (townsperson->id == game->map.dynamic_objects[i].id && townsperson->dialogues[townsperson->state].line_count) {
       game->status = IS_DIALOGUE;
-      if (game->map.dynamic_objects[i].state == SPOKEN && townsperson->dialogues[SPOKEN_TWICE].line_count) {
-        game->map.dynamic_objects[i].state = SPOKEN_TWICE;
+
+      printf("What is the townsperson state %d \n", townsperson->state);
+      printf("What is the dynamic object state %d \n", game->map.dynamic_objects[i].state);
+
+      if (townsperson->state == QUEST_ACTIVE && townsperson->dialogues[QUEST_ACTIVE_SPOKEN_TWICE].line_count) {
+          printf("hello 2");
+          fflush(stdout);
+          townsperson->state = QUEST_ACTIVE_SPOKEN_TWICE;
+        
+      } else if (townsperson->state == QUEST_COMPLETED && townsperson->dialogues[QUEST_COMPLETED_SPOKEN_TWICE].line_count) {
+          printf("hello 4");
+          printf("state before assignment %d \n", townsperson->state);
+          fflush(stdout);
+          townsperson->state = QUEST_COMPLETED_SPOKEN_TWICE;
+          printf("state after assignment %d \n", townsperson->state);
+          fflush(stdout);
+      } else if (townsperson->state == SPOKEN && townsperson->dialogues[SPOKEN_TWICE].line_count) {
+        townsperson->state = SPOKEN_TWICE;
       } else if (townsperson->state == DEFAULT && townsperson->dialogues[SPOKEN].line_count){
-        game->map.dynamic_objects[i].state = SPOKEN;
+        townsperson->state = SPOKEN;
       }
+    }
+  }
+
+  if (townsperson->quest != 0) {
+    int has_quest = 0;
+    for (int i = 0; i < game->quest_count; i++) {
+      if (townsperson->quest == game->quests[i].id) {
+        Quest *quest = &game->quests[i];
+        has_quest = 1;
+
+        if (quest->type == SWITCH && quest->state == IN_PROGRESS) {
+          if (quest->id == 1) {
+            for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+              if (quest->target_id == game->map.dynamic_objects[i].id) {
+                if (game->map.dynamic_objects[i].currentTile == 254) {
+                  quest->state = COMPLETED;
+                  townsperson->state = QUEST_COMPLETED;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (!has_quest) {
+      add_quest(&game->quests, &game->quest_count, townsperson->id, SWITCH);
+      townsperson->state = QUEST_ACTIVE;
     }
   }
 }

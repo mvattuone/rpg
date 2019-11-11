@@ -5,8 +5,6 @@
 #include <string.h>
 #include "map.h"
 
-#define MAX_DIALOGUE 3
-
 // We'll probably want to have the various tiles
 // and their properties stored somewhere. Like a JSON file.
 float getCofForTile(char id) {
@@ -162,6 +160,11 @@ Map initializeMap(char* fileName, int tileSize) {
             while ((e = fgetc(mapData)) && e != ';') {
               if (!isspace(e) && e != '\n') {
                 dynamic_objects[i]->default_behavior = e - '0';
+              }
+            }
+            while ((e = fgetc(mapData)) && e != ';') {
+              if (!isspace(e) && e != '\n') {
+                dynamic_objects[i]->quest = e - '0';
               }
             }
 
