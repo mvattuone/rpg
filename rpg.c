@@ -8,6 +8,24 @@
 #include "rpg.h"
 #include "physics.h"
 
+void addToInventory(Game *game, int inventory_id) {
+  game->inventory[0] = inventory_id;
+  game->inventory_count++;
+}
+
+void removeFromInventory(Game *game, int inventory_id) {
+  int *new_inventory = realloc(game->inventory, sizeof(game->inventory - 1) * sizeof(Item));
+  int new_inventory_count = 0;
+  for (int i = 0; i < game->inventory_count; i++) {
+    if (game->inventory[i] != inventory_id) {
+      new_inventory[new_inventory_count] = game->inventory[i];
+      new_inventory_count++;
+    }
+  }
+  game->inventory_count = new_inventory_count;
+}
+
+
 void loadMap(Game *game, char* fileName) {
   game->map = initializeMap(fileName, 32);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
@@ -24,11 +42,21 @@ void loadMap(Game *game, char* fileName) {
   }
 }
 
+// @TODO Need to make paused a separate setting 
+// Because we want it override "game states"
 void togglePauseState(Game *game) {
   if (game->status == IS_PAUSED) {
     game->status = IS_ACTIVE;
   } else {
     game->status = IS_PAUSED;
+  }
+}
+
+void toggleMenu(Game *game) {
+  if (game->status == IS_MENU) {
+    game->status = IS_ACTIVE;
+  } else {
+    game->status = IS_MENU;
   }
 }
 
@@ -46,6 +74,9 @@ int handleEvents(Game *game) {
             break;
           case SDL_SCANCODE_P:
             loadMap(game, "map_01.lvl");
+            break;
+          case SDL_SCANCODE_S:
+            toggleMenu(game);
             break;
           case SDL_SCANCODE_A:
             if (game->mainCharacter->has_object) { 
@@ -340,6 +371,24 @@ void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *render
     : SDL_RenderCopy(renderer, dynamic_object->idleTexture, &srcRect, &destRect);
 }
 
+void renderMenu(Game *game, TTF_Font *font) {
+  SDL_Rect MenuRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+  SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 50);
+  SDL_RenderFillRect(game->renderer, &MenuRect); 
+  int item_position_index = 0;
+  for (int i = 0; i < game->inventory_count; i++) {
+    for (int j = 0; i < game->items_count; i++) {
+      if (game->inventory[i] == game->items[j].id) {
+        SDL_Color color = { 255, 255, 255 }; 
+        char *name = game->items[j].name;
+        printf("name is %s\n", name);
+        renderText(game->renderer, font, name, color, 80, item_position_index * 2 + 40, 100, 20);
+        item_position_index++;
+      }
+    }
+  }
+}
+
  void renderTile(Game *game, int x, int y, char tileId) {
   int tileRow;
   int tileColumn;
@@ -398,6 +447,10 @@ void doRender(Game *game) {
     }
   }
 
+  if (game->status == IS_MENU) {
+    renderMenu(game, game->font);
+  }
+
   if (game->status == IS_PAUSED) {
     renderPauseState(game->renderer, game->font);
   }
@@ -435,6 +488,8 @@ void loadGame(Game *game) {
   game->quest_count = 0;
   game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
+  game->items = load_items("items.dat", &game->items_count);
+  game->inventory = malloc(sizeof(Item)); 
   loadMap(game, "map_01.lvl");
 };
 
@@ -631,8 +686,10 @@ void triggerDialog(Game *game) {
         has_quest = 1;
 
         if (quest->type == SWITCH && quest->state == IN_PROGRESS) {
+          // @TODO - Create a lookup quest information function of some kind
           if (quest->id == 1) {
             for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+              // @TODO Add the switch location
               if (quest->target_id == game->map.dynamic_objects[i].id) {
                 if (game->map.dynamic_objects[i].currentTile == 254) {
                   completed_quest = 1;
@@ -642,11 +699,21 @@ void triggerDialog(Game *game) {
               }
             }
           }
+        } else if (quest->type == ITEM && quest->state == IN_PROGRESS) {
+          if (quest->id == 1) {
+            if (game->inventory[0] == 1) {
+              completed_quest = 1;
+              quest->state = COMPLETED;
+              townsperson->state = QUEST_COMPLETED;
+              removeFromInventory(game, 1);
+              printf("what is inventory count %d\n", game->inventory_count);
+            }
+          }
         }
       }
     }
     if (!has_quest) {
-      add_quest(&game->quests, &game->quest_count, townsperson->id, SWITCH);
+      add_quest(&game->quests, &game->quest_count, townsperson->id, ITEM);
     }
   }
 
@@ -681,34 +748,19 @@ void process(Game *game) {
   game->time++;
   if (!strncmp(game->map.name, "map_01.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 150 && game->status != IS_CUTSCENE) {
-      // How do I make a switch that applies globally. 
-      // I want to have dialogue or behavior only happen when an event is triggered
-      // It should take precedence over normal dialogue behavior
-      // It _can_ persist, or not
-      // Maybe this is a "Quest" state?
-      // Do quest states have subgroups that need to be arranged accordingly
-      // Maybe quest state comes from the main character!
-      // So we still load via another level of nesting, but we 
-      // set it on the mainCharacter (or just the game?)
-      // dialogues[QUEST_STATE][DIALOGUE_STATE].lines
-      // but also "dialogues" state is like... local state. stuff that only persists
-      // while you are on the map but resets once you load a new map.
-      // But this could be true for cutscenes. Like a cutscene sets
-      // local state, but it could set quest state. I think as long
-      // as we set quest state on the game or the main character
-      // and local state on NPCs, we'll be pretty flexible.
-      // At any rate, this needs to be generalized and possible
+      // TODO: This needs to be generalized and possible
       // to add to the map, rather than hardcoded.
-      // It probably would make sense to pause all actions aside
+      // NOTE: It probably would make sense to pause all actions aside
       // from default behavior, too. Maybe just flush dialogue_queues.
       game->status = IS_CUTSCENE;
       DynamicObject *townsperson = NULL;
       townsperson = getDynamicObjectFromMap(&game->map, 2);
       enqueue(&game->mainCharacter->action_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
-      enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "You probably shouldn't try to step here again.", (void*)&game->dismissDialog, 0);
-      enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "Yikes, you just stepped in some rotten milk!", (void*)&game->dismissDialog, 0);
-      enqueue(&townsperson->dialogue_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, (void*)10000);
+      enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "Hey, it looks like somebody left their espresso martini on the ground!", (void*)&game->dismissDialog, 0);
+      enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "This might come in handy later.", (void*)&game->dismissDialog, 0);
+      /* enqueue(&townsperson->dialogue_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, 0); */
       townsperson->default_behavior = WALKING;
+      addToInventory(game, 1);
     }
   }
       
@@ -827,6 +879,10 @@ void shutdownGame(Game *game) {
     free(game->map.dynamic_objects[i].action_queue.items);
     free(game->map.dynamic_objects[i].dialogue_queue.items);
   }
+  for (int i = 0; i < game->items_count; i++) {
+    free(game->items[i].name);
+  }
+  free(game->items);
   TTF_CloseFont(game->font);
   SDL_DestroyWindow(game->window); 
 

@@ -5,7 +5,8 @@ typedef enum {
 } QuestState;
 
 typedef enum {
-  SWITCH
+  SWITCH,
+  ITEM
 } QuestType;
 
 typedef struct {

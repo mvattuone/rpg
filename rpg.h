@@ -6,6 +6,7 @@
 #include "map.h"
 #include "renderers.h"
 #include "utils.h"
+#include "item.h"
 #include "quest.h"
 
 #define WINDOW_WIDTH 640
@@ -13,7 +14,8 @@
 #define IS_ACTIVE 1
 #define IS_PAUSED 2
 #define IS_DIALOGUE 3
-#define IS_CUTSCENE 3
+#define IS_CUTSCENE 4
+#define IS_MENU 5
 
 typedef struct {
   int w;
@@ -31,10 +33,14 @@ typedef struct {
   float scrollY;
   SDL_Renderer *renderer;
   Quest *quests;
+  Item *items;
+  int items_count;
   int quest_count;
   int status;
   int dismissDialog;
   int time;
+  int *inventory;
+  int inventory_count;
   time_t startTime;
   float dt;
   SDL_Texture *terrainTexture;
