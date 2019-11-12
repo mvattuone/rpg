@@ -656,18 +656,16 @@ void triggerDialog(Game *game) {
     }
   }
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    printf("What does townsperson state  equal %d \n", townsperson->state);
+    fflush(stdout);
     if (townsperson->id == game->map.dynamic_objects[i].id && townsperson->dialogues[townsperson->state].line_count) {
       game->status = IS_DIALOGUE;
 
-      printf("What si completed quest equal %d \n", completed_quest);
-      fflush(stdout);
-
       if (!completed_quest && townsperson->state == QUEST_ACTIVE && townsperson->dialogues[QUEST_ACTIVE_SPOKEN_TWICE].line_count) {
           townsperson->state = QUEST_ACTIVE_SPOKEN_TWICE;
-        
       } else if (townsperson->state == QUEST_COMPLETED && townsperson->dialogues[QUEST_COMPLETED_SPOKEN_TWICE].line_count) {
           townsperson->state = QUEST_COMPLETED_SPOKEN_TWICE;
-      } else if (!has_quest && townsperson->state != QUEST_ACTIVE) {
+      } else if (townsperson->quest != 0 && !has_quest && townsperson->state != QUEST_ACTIVE) {
           townsperson->state = QUEST_ACTIVE;
       } else if (townsperson->state == SPOKEN && townsperson->dialogues[SPOKEN_TWICE].line_count) {
         townsperson->state = SPOKEN_TWICE;
