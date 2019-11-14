@@ -12,6 +12,12 @@ void renderText(SDL_Renderer *renderer, TTF_Font *font, char* text, SDL_Color co
   SDL_FreeSurface(surface);
 }
 
+void renderCursor(SDL_Renderer *renderer, int x, int y, int w, int h) {
+  SDL_Rect cursorRect = { x, y, w, h };
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_RenderFillRect(renderer, &cursorRect); 
+}
+
 void renderDialogBox(SDL_Renderer *renderer) {
   SDL_Rect dialogBoxBorderRect = { 0, WINDOW_HEIGHT - 220, WINDOW_WIDTH, 220};
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

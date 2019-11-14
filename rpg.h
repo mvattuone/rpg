@@ -6,6 +6,7 @@
 #include "map.h"
 #include "renderers.h"
 #include "utils.h"
+#include "menu.h"
 #include "item.h"
 #include "quest.h"
 
@@ -44,6 +45,7 @@ typedef struct {
   time_t startTime;
   float dt;
   SDL_Texture *terrainTexture;
+  Menu *inventory_menu;
 } Game;
 
 int handleEvents(Game *game);

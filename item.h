@@ -1,5 +1,6 @@
 typedef struct {
   int id;
+  char *description;
   char *name;
 } Item;
 

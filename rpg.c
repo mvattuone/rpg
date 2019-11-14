@@ -78,6 +78,11 @@ int handleEvents(Game *game) {
           case SDL_SCANCODE_S:
             toggleMenu(game);
             break;
+          case SDL_SCANCODE_X:
+            if (game->status == IS_MENU) {
+              game->inventory_menu->show_description = game->inventory_menu->show_description ? 0 : 1;
+            }
+            break;
           case SDL_SCANCODE_A:
             if (game->mainCharacter->has_object) { 
               triggerDrop(game);
@@ -383,6 +388,11 @@ void renderMenu(Game *game, TTF_Font *font) {
         char *name = game->items[j].name;
         printf("name is %s\n", name);
         renderText(game->renderer, font, name, color, 80, item_position_index * 2 + 40, 100, 20);
+        renderCursor(game->renderer, 60, game->inventory_menu->active_item_index * 2 + 40, 20, 20);
+        // @TODO: Add description field to inventory items
+        if (game->inventory_menu->show_description) {
+          renderText(game->renderer, font, game->items[j].description, color, 80, WINDOW_HEIGHT - 100, 100, 20);
+        }
         item_position_index++;
       }
     }
@@ -477,6 +487,28 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
   return font;
 }
 
+Cursor initializeMenuCursor() {
+  int x = 0;
+  int y = 0;
+  int w = 20;
+  int h = 40;
+  Cursor cursor = { .x=x, .y=y, .w=w, .h=h };
+  return cursor;
+}
+
+// @TODO Pass items in this way?
+// Might be good if we have different 
+// inventories per character...
+Menu loadInventoryMenu() {
+  Menu inventory_menu = {
+   0 
+  } ;
+  inventory_menu.show_description = 0;
+  inventory_menu.type = INVENTORY;
+  inventory_menu.active_item_index = 0;
+  inventory_menu.cursor = initializeMenuCursor();
+  return inventory_menu;
+}
 
 void loadGame(Game *game) {
   game->dt = 1.0f/60.0f;
@@ -490,6 +522,7 @@ void loadGame(Game *game) {
   game->status = IS_ACTIVE;
   game->items = load_items("items.dat", &game->items_count);
   game->inventory = malloc(sizeof(Item)); 
+  *game->inventory_menu = loadInventoryMenu();
   loadMap(game, "map_01.lvl");
 };
 
