@@ -423,6 +423,7 @@ void renderMenu(Game *game, TTF_Font *font) {
 void doRender(Game *game) {
   SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
   SDL_RenderClear(game->renderer);
+  int dialogueCount = 0;
 
 
   for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++) {
@@ -451,9 +452,10 @@ void doRender(Game *game) {
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     char* currentDialog = game->map.dynamic_objects[i].currentDialog;
     if (currentDialog != NULL) {
-      renderDialogBox(game->renderer);
+      dialogueCount++;
+      renderDialogBox(game->renderer, dialogueCount);
       SDL_Color color = {255, 255, 255};
-      renderText(game->renderer, game->font, currentDialog, color, 25, WINDOW_HEIGHT - 180, WINDOW_WIDTH - 45, 20);
+      renderText(game->renderer, game->font, currentDialog, color, 25, WINDOW_HEIGHT - (180 * dialogueCount), WINDOW_WIDTH - 45, 20);
     }
   }
 
@@ -791,7 +793,7 @@ void process(Game *game) {
       enqueue(&game->mainCharacter->action_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
       enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "Hey, it looks like somebody left their espresso martini on the ground!", (void*)&game->dismissDialog, 0);
       enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "This might come in handy later.", (void*)&game->dismissDialog, 0);
-      /* enqueue(&townsperson->dialogue_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, 0); */
+      enqueue(&townsperson->dialogue_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, 0);
       townsperson->default_behavior = WALKING;
       addToInventory(game, 1);
     }
@@ -839,11 +841,12 @@ void process(Game *game) {
     }
 
     if (!dialogue_running && game->map.dynamic_objects[i].dialogue_queue.prev_size == (game->map.dynamic_objects[i].dialogue_queue.size + 1) && game->map.dynamic_objects[i].dialogue_queue.size == 0) {
-      if (game->status == IS_DIALOGUE || game->status == IS_CUTSCENE) { 
-        game->status = IS_ACTIVE;
-        game->map.dynamic_objects[i].dialogue_queue.prev_size = 0;
-      }
+      game->map.dynamic_objects[i].dialogue_queue.prev_size = 0;
     }
+  }
+
+  if (!dialogue_running) {
+    game->status = IS_ACTIVE;
   }
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {

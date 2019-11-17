@@ -18,11 +18,11 @@ void renderCursor(SDL_Renderer *renderer, int x, int y, int w, int h) {
   SDL_RenderFillRect(renderer, &cursorRect); 
 }
 
-void renderDialogBox(SDL_Renderer *renderer) {
-  SDL_Rect dialogBoxBorderRect = { 0, WINDOW_HEIGHT - 220, WINDOW_WIDTH, 220};
+void renderDialogBox(SDL_Renderer *renderer, int i) {
+  SDL_Rect dialogBoxBorderRect = { 0, WINDOW_HEIGHT - (220 * i), WINDOW_WIDTH, 220};
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderFillRect(renderer, &dialogBoxBorderRect); 
-  SDL_Rect dialogBoxRect = { 20, WINDOW_HEIGHT - 200, WINDOW_WIDTH - 40, 180};
+  SDL_Rect dialogBoxRect = { 20, WINDOW_HEIGHT - (210 * i), WINDOW_WIDTH - 40, 180};
   SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
   SDL_RenderFillRect(renderer, &dialogBoxRect); 
 }
