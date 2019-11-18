@@ -9,20 +9,28 @@
 #include "physics.h"
 
 void addToInventory(Game *game, int inventory_id) {
-  game->inventory[0] = inventory_id;
-  game->inventory_count++;
+  if (&game->inventory.size > &game->inventory.capacity) {
+    game->inventory.items = realloc(game->inventory.items, (sizeof(game->inventory.items) * sizeof(Item)) + sizeof(Item));
+    game->inventory.capacity = sizeof(game->inventory.items) + sizeof(Item);
+  }
+
+  game->inventory.items[game->inventory.size] = inventory_id;
+  game->inventory.size++; 
 }
 
-void removeFromInventory(Game *game, int inventory_id) {
-  int *new_inventory = realloc(game->inventory, sizeof(game->inventory - 1) * sizeof(Item));
-  int new_inventory_count = 0;
-  for (int i = 0; i < game->inventory_count; i++) {
-    if (game->inventory[i] != inventory_id) {
-      new_inventory[new_inventory_count] = game->inventory[i];
-      new_inventory_count++;
+DynamicArray removeFromInventory(Game *game, int inventory_id) {
+  DynamicArray new_inventory; 
+  new_inventory.items = malloc((sizeof(game->inventory.items) * sizeof(Item)) - sizeof(Item));
+  new_inventory.capacity = (sizeof(new_inventory.items) * sizeof(Item)) - sizeof(Item);
+  new_inventory.size = game->inventory.size - 1;
+  for (int i = 0; i < game->inventory.size; i++) {
+    if (game->inventory.items[i] != inventory_id) {
+      new_inventory.items[i] = game->inventory.items[i];
     }
   }
-  game->inventory_count = new_inventory_count;
+
+  free(game->inventory.items);
+  return new_inventory;
 }
 
 
@@ -76,7 +84,9 @@ int handleEvents(Game *game) {
             loadMap(game, "map_01.lvl");
             break;
           case SDL_SCANCODE_S:
-            toggleMenu(game);
+            if (game->status == IS_ACTIVE || game->status == IS_MENU) {
+              toggleMenu(game);
+            }
             break;
           case SDL_SCANCODE_X:
             if (game->status == IS_MENU) {
@@ -380,20 +390,25 @@ void renderMenu(Game *game, TTF_Font *font) {
   SDL_Rect MenuRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
   SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 50);
   SDL_RenderFillRect(game->renderer, &MenuRect); 
+  SDL_Color text_color = { 255, 255, 255 }; 
   int item_position_index = 0;
-  for (int i = 0; i < game->inventory_count; i++) {
-    for (int j = 0; i < game->items_count; i++) {
-      if (game->inventory[i] == game->items[j].id) {
-        SDL_Color color = { 255, 255, 255 }; 
-        char *name = game->items[j].name;
-        printf("name is %s\n", name);
-        renderText(game->renderer, font, name, color, 80, item_position_index * 2 + 40, 100, 20);
-        renderCursor(game->renderer, 60, game->inventory_menu->active_item_index * 2 + 40, 20, 20);
-        // @TODO: Add description field to inventory items
-        if (game->inventory_menu->show_description) {
-          renderText(game->renderer, font, game->items[j].description, color, 80, WINDOW_HEIGHT - 100, 100, 20);
+  if (game->inventory.size <= 0) {
+    renderText(game->renderer, font, "No items", text_color, 80, 40, 100, 20);
+  } else {
+    for (int i = 0; i < game->inventory.size; i++) {
+      for (int j = 0; j < game->items_count; j++) {
+        printf("what is going on here\n");
+        fflush(stdout);
+        if (game->inventory.items[i] == game->items[j].id) {
+          char *name = game->items[j].name;
+          printf("name is %s\n", name);
+          renderText(game->renderer, font, name, text_color, 80, item_position_index * 2 + 40, 100, 20);
+          renderCursor(game->renderer, 60, game->inventory_menu->active_item_index * 2 + 40, 20, 20);
+          if (game->inventory_menu->show_description) {
+            renderText(game->renderer, font, game->items[j].description, text_color, 80, WINDOW_HEIGHT - 100, 100, 20);
+          }
+          item_position_index++;
         }
-        item_position_index++;
       }
     }
   }
@@ -523,7 +538,9 @@ void loadGame(Game *game) {
   game->terrainTexture = initializeTerrain(game->renderer);
   game->status = IS_ACTIVE;
   game->items = load_items("items.dat", &game->items_count);
-  game->inventory = malloc(sizeof(Item)); 
+  game->inventory.size = 0;
+  game->inventory.capacity = sizeof(Item); 
+  game->inventory.items = malloc(sizeof(Item)); 
   *game->inventory_menu = loadInventoryMenu();
   loadMap(game, "map_01.lvl");
 };
@@ -736,12 +753,11 @@ void triggerDialog(Game *game) {
           }
         } else if (quest->type == ITEM && quest->state == IN_PROGRESS) {
           if (quest->id == 1) {
-            if (game->inventory[0] == 1) {
+            if (game->inventory.items[0] == 1) {
               completed_quest = 1;
               quest->state = COMPLETED;
               townsperson->state = QUEST_COMPLETED;
-              removeFromInventory(game, 1);
-              printf("what is inventory count %d\n", game->inventory_count);
+              game->inventory = removeFromInventory(game, 1);
             }
           }
         }
@@ -845,7 +861,7 @@ void process(Game *game) {
     }
   }
 
-  if (!dialogue_running) {
+  if (!dialogue_running && (game->status == IS_DIALOGUE || game->status == IS_CUTSCENE)) {
     game->status = IS_ACTIVE;
   }
 

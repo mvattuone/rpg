@@ -19,6 +19,12 @@
 #define IS_MENU 5
 
 typedef struct {
+  int capacity;
+  int size; 
+  int* items;
+} DynamicArray;
+
+typedef struct {
   int w;
   int h;
   float x;
@@ -40,8 +46,7 @@ typedef struct {
   int status;
   int dismissDialog;
   int time;
-  int *inventory;
-  int inventory_count;
+  DynamicArray inventory;
   time_t startTime;
   float dt;
   SDL_Texture *terrainTexture;
