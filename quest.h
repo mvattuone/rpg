@@ -6,7 +6,8 @@ typedef enum {
 
 typedef enum {
   SWITCH,
-  ITEM
+  ITEM,
+  TALK
 } QuestType;
 
 typedef struct {

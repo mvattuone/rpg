@@ -70,6 +70,12 @@ void toggleMenu(Game *game) {
 
 int handleEvents(Game *game) {
   SDL_Event event;
+
+  // 
+  // TODO: It would be helpful to have references to the main character's 
+  // tile, as well as the objects tiles adjacent and their states.
+  //
+
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
       case SDL_QUIT:
@@ -729,13 +735,14 @@ void triggerDialog(Game *game) {
     return;
   }
 
-  int has_quest = 0;
+  int quest_active = 0;
   int completed_quest = 0;
   if (townsperson->quest != 0) {
+    printf("helloooooooo \n");
+    fflush(stdout);
     for (int i = 0; i < game->quest_count; i++) {
       if (townsperson->quest == game->quests[i].id) {
         Quest *quest = &game->quests[i];
-        has_quest = 1;
 
         if (quest->type == SWITCH && quest->state == IN_PROGRESS) {
           // @TODO - Create a lookup quest information function of some kind
@@ -751,6 +758,21 @@ void triggerDialog(Game *game) {
               }
             }
           }
+        } else if (quest->type == TALK && quest->state == IN_PROGRESS) {
+          if (quest->id == 1) {
+            for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+              printf("what is game object id %d\n state %d\n", game->map.dynamic_objects[i].id, game->map.dynamic_objects[i].state);
+              fflush(stdout);
+              printf("what is target id %d\n", quest->target_id);
+              fflush(stdout);
+              if (game->map.dynamic_objects[i].id == quest->target_id && game->map.dynamic_objects[i].state != DEFAULT) {
+                printf("helloooooo\n");
+                completed_quest = 1;
+                quest->state = COMPLETED;
+                townsperson->state = QUEST_COMPLETED;
+              }
+            }
+          } 
         } else if (quest->type == ITEM && quest->state == IN_PROGRESS) {
           if (quest->id == 1) {
             if (game->inventory.items[0] == 1) {
@@ -763,35 +785,57 @@ void triggerDialog(Game *game) {
         }
       }
     }
-    if (!has_quest) {
-      add_quest(&game->quests, &game->quest_count, townsperson->id, ITEM);
+    
+    if (townsperson->state != QUEST_ACTIVE || townsperson->state != QUEST_COMPLETED || townsperson->state != QUEST_ACTIVE_SPOKEN_TWICE) {
+      if (townsperson->id == 1 && townsperson->state == DEFAULT) {
+        add_quest(&game->quests, &game->quest_count, townsperson->id, ITEM);
+        quest_active = 1;
+      } else if (townsperson->id == 2 && townsperson->state == SPOKEN) {
+        add_quest(&game->quests, &game->quest_count, townsperson->id, TALK);
+        quest_active = 1;
+      }
     }
   }
 
-  if (townsperson->id &&townsperson->dialogues[townsperson->state].line_count) {
+  if (townsperson->id && townsperson->dialogues[townsperson->state].line_count) {
     for (int i = 0; i < townsperson->dialogues[townsperson->state].line_count; i++) {
       enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
     }
   }
+
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    printf("What does townsperson state  equal %d \n", townsperson->state);
-    fflush(stdout);
     if (townsperson->id == game->map.dynamic_objects[i].id && townsperson->dialogues[townsperson->state].line_count) {
       game->status = IS_DIALOGUE;
 
-      if (!completed_quest && townsperson->state == QUEST_ACTIVE && townsperson->dialogues[QUEST_ACTIVE_SPOKEN_TWICE].line_count) {
+      if (!completed_quest && townsperson->state == QUEST_ACTIVE) {
           townsperson->state = QUEST_ACTIVE_SPOKEN_TWICE;
-      } else if (townsperson->state == QUEST_COMPLETED && townsperson->dialogues[QUEST_COMPLETED_SPOKEN_TWICE].line_count) {
+      } else if (townsperson->state == QUEST_COMPLETED) {
           townsperson->state = QUEST_COMPLETED_SPOKEN_TWICE;
-      } else if (townsperson->quest != 0 && !has_quest && townsperson->state != QUEST_ACTIVE) {
-          townsperson->state = QUEST_ACTIVE;
-      } else if (townsperson->state == SPOKEN && townsperson->dialogues[SPOKEN_TWICE].line_count) {
+      } else if (quest_active) { 
+        townsperson->state = QUEST_ACTIVE;
+      } else if (townsperson->state == SPOKEN) {
         townsperson->state = SPOKEN_TWICE;
-      } else if (townsperson->state == DEFAULT && townsperson->dialogues[SPOKEN].line_count){
+      } else if (townsperson->state == DEFAULT){
         townsperson->state = SPOKEN;
       }
     }
   }
+}
+
+void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
+  if (dynamic_object->default_behavior == WALKING && dynamic_object->action_queue.size == 0 && !dynamic_object->isMain) {
+      int randomNumber = rand() % 4;
+
+      if (randomNumber == 0) {
+        enqueue(&dynamic_object->action_queue, (void*)&moveUp, (void*)1, (void*)&map->tileSize, NULL);
+      } else if (randomNumber == 1) {
+        enqueue(&dynamic_object->action_queue, (void*)&moveRight, (void*)1, (void*)&map->tileSize, NULL);
+      } else if (randomNumber == 2) {
+        enqueue(&dynamic_object->action_queue, (void*)&moveDown, (void*)1, (void*)&map->tileSize, NULL);
+      } else if (randomNumber == 4) {
+        enqueue(&dynamic_object->action_queue, (void*)&moveLeft, (void*)1, (void*)&map->tileSize, NULL);
+      }
+    }
 
 }
 
@@ -819,45 +863,39 @@ void process(Game *game) {
   int dialogue_running = 0;
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    if (game->map.dynamic_objects[i].default_behavior == WALKING && game->map.dynamic_objects[i].action_queue.size == 0 && !game->map.dynamic_objects[i].isMain && game->status == IS_ACTIVE) {
-      if (fmod(game->time, 240) == 0) {
-        int randomNumber = rand() % 4;
+    DynamicObject *dynamic_object = &game->map.dynamic_objects[i];
+    Queue *dialogue_queue = &dynamic_object->dialogue_queue;
+    Queue *action_queue = &dynamic_object->action_queue;
+    int has_dialogue = dialogue_queue->size > 0;
+    int has_action = action_queue->size > 0;
 
-        if (randomNumber == 0) {
-          enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveUp, (void*)1, (void*)&game->map.tileSize, NULL);
-        } else if (randomNumber == 1) {
-          enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveRight, (void*)1, (void*)&game->map.tileSize, NULL);
-        } else if (randomNumber == 2) {
-          enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
-        } else if (randomNumber == 4) {
-          enqueue(&game->map.dynamic_objects[i].action_queue, (void*)&moveLeft, (void*)1, (void*)&game->map.tileSize, NULL);
-        }
+    if (fmod(game->time, 240) == 0) {
+      process_default_behavior(dynamic_object, &game->map);
+    }
+    
+    dialogue_queue->prev_size = dialogue_queue->size;
+    action_queue->prev_size = action_queue->size;
+
+    if (has_dialogue) {
+      dialogue_running = process_queue(dynamic_object, dialogue_queue); 
+    }
+
+    if (has_action) {
+      action_running = process_queue(dynamic_object, action_queue); 
+    }
+
+    if (!dialogue_running && !dialogue_queue->is_enqueuing && has_dialogue) {
+      *dialogue_queue = dequeue(dialogue_queue);
+      dialogue_running = 1;
+
+      if (dialogue_queue->prev_size == 1 && dialogue_queue->size == 0) {
+        dialogue_queue->prev_size = 0;
       }
     }
 
-    if (game->map.dynamic_objects[i].dialogue_queue.size > 0) {
-      game->map.dynamic_objects[i].dialogue_queue.prev_size = game->map.dynamic_objects[i].dialogue_queue.size;
-      dialogue_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].dialogue_queue);
-;
-    }
-
-    if (game->map.dynamic_objects[i].action_queue.size > 0) {
-      game->map.dynamic_objects[i].action_queue.prev_size = game->map.dynamic_objects[i].action_queue.size;
-      action_running = process_queue(&game->map.dynamic_objects[i], &game->map.dynamic_objects[i].action_queue);
-    }
-
-    if (!dialogue_running && !game->map.dynamic_objects[i].dialogue_queue.is_enqueuing && game->map.dynamic_objects[i].dialogue_queue.size > 0) {
-      game->map.dynamic_objects[i].dialogue_queue = dequeue(&game->map.dynamic_objects[i].dialogue_queue);
-      dialogue_running = 1;
-    }
-
-    if (!action_running && game->map.dynamic_objects[i].action_queue.size > 0 && !game->map.dynamic_objects[i].action_queue.is_enqueuing) {
-      game->map.dynamic_objects[i].action_queue = dequeue(&game->map.dynamic_objects[i].action_queue);
+    if (!action_running && action_queue->size > 0 && !action_queue->is_enqueuing) {
+      *action_queue = dequeue(action_queue);
       action_running = 1;
-    }
-
-    if (!dialogue_running && game->map.dynamic_objects[i].dialogue_queue.prev_size == (game->map.dynamic_objects[i].dialogue_queue.size + 1) && game->map.dynamic_objects[i].dialogue_queue.size == 0) {
-      game->map.dynamic_objects[i].dialogue_queue.prev_size = 0;
     }
   }
 

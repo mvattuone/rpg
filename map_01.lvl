@@ -25,7 +25,7 @@
 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1
 
 #001
-0;
+1;
 1;
 *0
 -Hey there, could you get an espresso martini?;
@@ -42,21 +42,39 @@
 -Love me an espresso martini.;
 #002
 0;
-0;
+1;
 *0
 -I just ate a lot of oysters and boooy am I full.;
 *1
--Do you like to party?;
--...because I honestly don't.;
--I'm mainly here because my dog wanted to go.;
+-Have you seen my dog?;
+*2
+-Have you seen my dog?;
+*3
+-As soon as I find my dog I am getting on the tender and going home.;
+*4
+-As soon as I find my dog I am getting on the tender and going home.;
+*5
+-What, why is he over there? I guess I'll go get him. Thank you for that.;
+*6
+-Thanks again.;
 #003
 0;
 0;
 *0
 -Are they STILL putting out the water toys?;
 -I should go complain to the captain.;
+*1
+-Are they STILL putting out the water toys?;
+-I should go complain to the captain.;
+*2
+-Are they STILL putting out the water toys?;
+-I should go complain to the captain.;
 #004
 0;
 0;
 *0
+-Nobody move until I've had my coffee!!!!;
+*1
+-Nobody move until I've had my coffee!!!!;
+*2
 -Nobody move until I've had my coffee!!!!;
