@@ -67,9 +67,9 @@ int moveDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
 
 int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t duration) {
   time_t timer = SDL_GetTicks() / 1000;
-  time_t passedDuration = duration && timer - dynamic_object->dialogue_queue.timer;
+  time_t passedDuration = duration && timer - dynamic_object->task_queue.timer;
   if (*dismissDialog || passedDuration) {
-    dynamic_object->dialogue_queue.timer= 0;
+    dynamic_object->task_queue.timer= 0;
     dynamic_object->currentDialog = NULL;
     *dismissDialog = 0;
     return 0;
@@ -130,18 +130,12 @@ Queue dequeue(Queue *queue)
 }
 
 DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type) {
-  dynamic_object->action_queue.items = malloc(sizeof(QueueItem));
-  dynamic_object->action_queue.is_enqueuing = 0;
-  dynamic_object->action_queue.prev_size = 0;
-  dynamic_object->action_queue.size = 0;
-  dynamic_object->action_queue.capacity = 1;
-  dynamic_object->action_queue.timer = 0;
-  dynamic_object->dialogue_queue.items = malloc(sizeof(QueueItem));
-  dynamic_object->dialogue_queue.is_enqueuing = 0;
-  dynamic_object->dialogue_queue.prev_size = 0;
-  dynamic_object->dialogue_queue.size = 0;
-  dynamic_object->dialogue_queue.capacity = 1;
-  dynamic_object->dialogue_queue.timer = 0;
+  dynamic_object->task_queue.items = malloc(sizeof(QueueItem));
+  dynamic_object->task_queue.is_enqueuing = 0;
+  dynamic_object->task_queue.prev_size = 0;
+  dynamic_object->task_queue.size = 0;
+  dynamic_object->task_queue.capacity = 1;
+  dynamic_object->task_queue.timer = 0;
   dynamic_object->angle = angle;
   dynamic_object->mass = mass;
   dynamic_object->normalForce = dynamic_object->mass * GRAVITY * cos(90*M_PI); 

@@ -45,6 +45,7 @@
 1;
 *0
 -I just ate a lot of oysters and boooy am I full.;
+v1;
 *1
 -Have you seen my dog?;
 *2
@@ -55,6 +56,8 @@
 -As soon as I find my dog I am getting on the tender and going home.;
 *5
 -What, why is he over there? I guess I'll go get him. Thank you for that.;
+<15;
+v10;
 *6
 -Thanks again.;
 #003

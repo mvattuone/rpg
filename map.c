@@ -174,41 +174,53 @@ Map initializeMap(char* fileName, int tileSize) {
               }
             }
 
-            int dialogueIndex = 0;
-            int dialogue_index_total = 0;
+            int interactionIndex = 0;
+            int interactions_count = 0;
             while (e == '*') {
               for (int d = 0; d < 1; d++) {
-                dialogueIndex = fgetc(mapData) - '0'; 
+                interactionIndex = fgetc(mapData) - '0'; 
               }
 
               if (e == '*') { 
                 e = fgetc(mapData); 
               };
 
-              dynamic_objects[i]->dialogues[dialogue_index_total].line_count = 0;
-              char line[MAX_DIALOGUE_SIZE];
+              dynamic_objects[i]->interactions[interactions_count].task_count = 0;
+              char data[MAX_TASK_SIZE];
 
-              while ((e = fgetc(mapData)) && e == '-') {
+              while ((e = fgetc(mapData)) && (e == '-' || e == '<' || e == '>' || e == '^' || e == 'v')) {
+                if ( e == '-') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = SPEAK;
+                } else if ( e == '<') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_LEFT;
+                } else if ( e == '>') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_RIGHT;
+                } else if ( e == 'v') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_DOWN;
+                } else if ( e == '^') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_UP;
+                }
+
                 int j = 0;
                 while ((e = fgetc(mapData)) && e != ';') {
-                  line[j] = e; 
+                  data[j] = e; 
                   j++;
                 }
-                line[j+1]='\0';
-                for (int l = 0; l < MAX_DIALOGUE_LINES; l++) {
-                  if (l == dynamic_objects[i]->dialogues[dialogueIndex].line_count) {
-                    for (int b = 0; b < MAX_DIALOGUE_SIZE; b++) {
-                      dynamic_objects[i]->dialogues[dialogueIndex].lines[l][b] = line[b];
+                data[j+1]='\0';
+                for (int l = 0; l < MAX_TASKS; l++) {
+                  if (l == dynamic_objects[i]->interactions[interactionIndex].task_count) {
+                    for (int b = 0; b < MAX_TASK_SIZE; b++) {
+                      dynamic_objects[i]->interactions[interactionIndex].tasks[l].data[b] = data[b];
                     }
                   }
                 }
-                dynamic_objects[i]->dialogues[dialogueIndex].line_count++; 
                 // gross...
                 e = fgetc(mapData);
+                dynamic_objects[i]->interactions[interactionIndex].task_count++;
               }
-              dialogue_index_total++;
+              interactions_count++;
             } 
-            dynamic_objects[i]->dialogue_index_total = dialogue_index_total;
+            dynamic_objects[i]->interactions_count = interactions_count;
           }
         }
       }

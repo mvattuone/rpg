@@ -57,6 +57,6 @@ int handleEvents(Game *game);
 void doRender(Game *game);
 void loadGame(Game *game);
 void process(Game *game);
-void triggerDialog(Game *game);
+void handleInteraction(Game *game);
 void triggerDrop(Game *game);
-void handleObjectInteractions(Game *game, DynamicObject *dynamic_object);
+void handleObjectCollisions(Game *game, DynamicObject *dynamic_object);

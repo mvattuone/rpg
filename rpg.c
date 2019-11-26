@@ -87,7 +87,7 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_01.lvl");
+            loadMap(game, "map_02.lvl");
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -104,7 +104,7 @@ int handleEvents(Game *game) {
               triggerDrop(game);
             } else if (game->status != IS_CUTSCENE && game->status != IS_DIALOGUE) {
               game->mainCharacter->isLifting = 1;
-              triggerDialog(game);
+              handleInteraction(game);
               game->dismissDialog = 0;
             } else {
               game->dismissDialog = 1;
@@ -548,7 +548,7 @@ void loadGame(Game *game) {
   game->inventory.capacity = sizeof(Item); 
   game->inventory.items = malloc(sizeof(Item)); 
   *game->inventory_menu = loadInventoryMenu();
-  loadMap(game, "map_01.lvl");
+  loadMap(game, "map_02.lvl");
 };
 
 void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
@@ -598,7 +598,7 @@ void detectTileCollision(Game *game, DynamicObject *active_dynamic_object, Tile 
   detectCollision(game, active_dynamic_object, &target);
 }
 
-void handleObjectInteractions(Game *game, DynamicObject *active_dynamic_object) {
+void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
   for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
     int tileIndex = x + y * game->map.width;
@@ -720,7 +720,9 @@ void triggerDrop(Game *game) {
   return;
 }
 
-void triggerDialog(Game *game) { 
+// This is more like the function that gets called when
+// you try to interact with object
+void handleInteraction(Game *game) { 
   DynamicObject *townsperson = NULL;
   if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
@@ -797,14 +799,39 @@ void triggerDialog(Game *game) {
     }
   }
 
-  if (townsperson->id && townsperson->dialogues[townsperson->state].line_count) {
-    for (int i = 0; i < townsperson->dialogues[townsperson->state].line_count; i++) {
-      enqueue(&townsperson->dialogue_queue, (void*)&speak, townsperson->dialogues[townsperson->state].lines[i], (void*)&game->dismissDialog, 0);
+    if (townsperson->id && townsperson->interactions[townsperson->state].task_count) {
+      for (int i = 0; i < townsperson->interactions[townsperson->state].task_count; i++) {
+        TaskType task_type = townsperson->interactions[townsperson->state].tasks[i].type;
+
+        printf("whoa %s\n", townsperson->interactions[townsperson->state].tasks[i].data);
+        printf("whoa 2 %d\n", townsperson->interactions[townsperson->state].tasks[i].type);
+        printf("whoa 3 %d\n", game->map.tileSize);
+        fflush(stdout);
+        switch (task_type) {
+          case SPEAK:
+            enqueue(&townsperson->task_queue, (void*)&speak, townsperson->interactions[townsperson->state].tasks[i].data, (void*)&game->dismissDialog, 0);
+            break;
+          case MOVE_LEFT:
+            enqueue(&townsperson->task_queue, (void*)&moveLeft, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+            break;
+          case MOVE_RIGHT:
+            enqueue(&townsperson->task_queue, (void*)&moveRight, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+            break;
+          case MOVE_UP:
+            enqueue(&townsperson->task_queue, (void*)&moveUp, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+            break;
+          case MOVE_DOWN:
+            enqueue(&townsperson->task_queue, (void*)&moveDown, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+            break;
+          default:
+            break;
+        }
     }
   }
+ 
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    if (townsperson->id == game->map.dynamic_objects[i].id && townsperson->dialogues[townsperson->state].line_count) {
+    if (townsperson->id == game->map.dynamic_objects[i].id && townsperson->interactions[townsperson->state].task_count) {
       game->status = IS_DIALOGUE;
 
       if (!completed_quest && townsperson->state == QUEST_ACTIVE) {
@@ -823,17 +850,17 @@ void triggerDialog(Game *game) {
 }
 
 void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
-  if (dynamic_object->default_behavior == WALKING && dynamic_object->action_queue.size == 0 && !dynamic_object->isMain) {
+  if (dynamic_object->default_behavior == WALKING && dynamic_object->task_queue.size == 0 && !dynamic_object->isMain) {
       int randomNumber = rand() % 4;
 
       if (randomNumber == 0) {
-        enqueue(&dynamic_object->action_queue, (void*)&moveUp, (void*)1, (void*)&map->tileSize, NULL);
+        enqueue(&dynamic_object->task_queue, (void*)&moveUp, (void*)1, (void*)&map->tileSize, NULL);
       } else if (randomNumber == 1) {
-        enqueue(&dynamic_object->action_queue, (void*)&moveRight, (void*)1, (void*)&map->tileSize, NULL);
+        enqueue(&dynamic_object->task_queue, (void*)&moveRight, (void*)1, (void*)&map->tileSize, NULL);
       } else if (randomNumber == 2) {
-        enqueue(&dynamic_object->action_queue, (void*)&moveDown, (void*)1, (void*)&map->tileSize, NULL);
+        enqueue(&dynamic_object->task_queue, (void*)&moveDown, (void*)1, (void*)&map->tileSize, NULL);
       } else if (randomNumber == 4) {
-        enqueue(&dynamic_object->action_queue, (void*)&moveLeft, (void*)1, (void*)&map->tileSize, NULL);
+        enqueue(&dynamic_object->task_queue, (void*)&moveLeft, (void*)1, (void*)&map->tileSize, NULL);
       }
     }
 
@@ -841,65 +868,52 @@ void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
 
 void process(Game *game) {
   game->time++;
-  if (!strncmp(game->map.name, "map_01.lvl", 12)) { 
+  if (!strncmp(game->map.name, "map_02.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 150 && game->status != IS_CUTSCENE) {
       // TODO: This needs to be generalized and possible
       // to add to the map, rather than hardcoded.
       // NOTE: It probably would make sense to pause all actions aside
-      // from default behavior, too. Maybe just flush dialogue_queues.
+      // from default behavior, too. Maybe just flush task_queue
       game->status = IS_CUTSCENE;
       DynamicObject *townsperson = NULL;
       townsperson = getDynamicObjectFromMap(&game->map, 2);
-      enqueue(&game->mainCharacter->action_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
-      enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "Hey, it looks like somebody left their espresso martini on the ground!", (void*)&game->dismissDialog, 0);
-      enqueue(&game->mainCharacter->dialogue_queue, (void*)&speak, "This might come in handy later.", (void*)&game->dismissDialog, 0);
-      enqueue(&townsperson->dialogue_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, 0);
+      enqueue(&game->mainCharacter->task_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
+      enqueue(&game->mainCharacter->task_queue, (void*)&speak, "Hey, it looks like somebody left their espresso martini on the ground!", (void*)&game->dismissDialog, 0);
+      enqueue(&game->mainCharacter->task_queue, (void*)&speak, "This might come in handy later.", (void*)&game->dismissDialog, 0);
+      enqueue(&townsperson->task_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, 0);
       townsperson->default_behavior = WALKING;
       addToInventory(game, 1);
     }
   }
       
-  int action_running = 0;
-  int dialogue_running = 0;
+  int task_running = 0;
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     DynamicObject *dynamic_object = &game->map.dynamic_objects[i];
-    Queue *dialogue_queue = &dynamic_object->dialogue_queue;
-    Queue *action_queue = &dynamic_object->action_queue;
-    int has_dialogue = dialogue_queue->size > 0;
-    int has_action = action_queue->size > 0;
+    Queue *task_queue = &dynamic_object->task_queue;
+    int has_task = task_queue->size > 0;
 
     if (fmod(game->time, 240) == 0) {
       process_default_behavior(dynamic_object, &game->map);
     }
     
-    dialogue_queue->prev_size = dialogue_queue->size;
-    action_queue->prev_size = action_queue->size;
+    task_queue->prev_size = task_queue->size;
 
-    if (has_dialogue) {
-      dialogue_running = process_queue(dynamic_object, dialogue_queue); 
+    if (has_task) {
+      task_running = process_queue(dynamic_object, task_queue); 
     }
 
-    if (has_action) {
-      action_running = process_queue(dynamic_object, action_queue); 
-    }
+    if (!task_running && !task_queue->is_enqueuing && has_task) {
+      *task_queue = dequeue(task_queue);
+      task_running = 1;
 
-    if (!dialogue_running && !dialogue_queue->is_enqueuing && has_dialogue) {
-      *dialogue_queue = dequeue(dialogue_queue);
-      dialogue_running = 1;
-
-      if (dialogue_queue->prev_size == 1 && dialogue_queue->size == 0) {
-        dialogue_queue->prev_size = 0;
+      if (task_queue->prev_size == 1 && task_queue->size == 0) {
+        task_queue->prev_size = 0;
       }
-    }
-
-    if (!action_running && action_queue->size > 0 && !action_queue->is_enqueuing) {
-      *action_queue = dequeue(action_queue);
-      action_running = 1;
     }
   }
 
-  if (!dialogue_running && (game->status == IS_DIALOGUE || game->status == IS_CUTSCENE)) {
+  if (!task_running && (game->status == IS_DIALOGUE || game->status == IS_CUTSCENE)) {
     game->status = IS_ACTIVE;
   }
 
@@ -955,7 +969,7 @@ void process(Game *game) {
         game->map.dynamic_objects[i].status = game->map.dynamic_objects[i].dx != 0 || game->map.dynamic_objects[i].dy != 0 ? IS_RUNNING : IS_IDLE;
         }
       } 
-      handleObjectInteractions(game, &game->map.dynamic_objects[i]);
+      handleObjectCollisions(game, &game->map.dynamic_objects[i]);
     }
 };
 
@@ -966,8 +980,7 @@ void shutdownGame(Game *game) {
     SDL_DestroyTexture(game->map.dynamic_objects[i].runningTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].crateTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].jarTexture);
-    free(game->map.dynamic_objects[i].action_queue.items);
-    free(game->map.dynamic_objects[i].dialogue_queue.items);
+    free(game->map.dynamic_objects[i].task_queue.items);
   }
   for (int i = 0; i < game->items_count; i++) {
     free(game->items[i].name);

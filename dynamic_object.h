@@ -2,9 +2,9 @@
 #include "physics.h"
 #include "utils.h"
 
-#define MAX_DIALOGUE_SIZE 250
-#define MAX_DIALOGUE_LINES 10
-#define MAX_DIALOGUES 20
+#define MAX_TASK_SIZE 250
+#define MAX_TASKS 10
+#define MAX_INTERACTIONS 10
 
 typedef int (*generic_function)(void*, void*, void*, void*);
 
@@ -62,18 +62,29 @@ typedef struct {
   size_t prev_size; 
 } Queue;
 
-typedef char Line[MAX_DIALOGUE_SIZE];
 
-typedef struct { 
-  int id;
-  int line_count;
-  Line lines[MAX_DIALOGUE_LINES];
-} Dialogue;
+typedef enum {
+  MOVE_LEFT,
+  MOVE_RIGHT,
+  MOVE_UP,
+  MOVE_DOWN,
+  SPEAK,
+} TaskType;
+
+typedef struct {
+  TaskType type; 
+  char data[MAX_TASK_SIZE];
+} Task;
+
+typedef struct {
+  int task_count;
+  Task tasks[MAX_TASKS];
+} Interaction;
 
 typedef struct {
   int id;
-  Dialogue dialogues[MAX_DIALOGUES];
-  int dialogue_index_total;
+  Interaction interactions[MAX_INTERACTIONS];
+  int interactions_count;
   ObjectType type; 
   float startingX, startingY;
   float x, y;
@@ -115,8 +126,7 @@ typedef struct {
   int triggerDialog;
   char* currentDialog;
   int startingTile;
-  Queue action_queue;
-  Queue dialogue_queue;
+  Queue task_queue;
   char *name; // string
   int sprite;
   Behavior default_behavior;
