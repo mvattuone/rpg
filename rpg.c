@@ -87,7 +87,7 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_02.lvl");
+            loadMap(game, "map_04.lvl");
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -429,6 +429,9 @@ void renderMenu(Game *game, TTF_Font *font) {
   } else if (tileId == '*') {
     tileRow = 1;
     tileColumn = 13;
+  } else if (tileId == '$') {
+    tileRow = 8;
+    tileColumn = 4;
   } else if (tileId == '#') {
     tileRow = 5;
     tileColumn = 6;
@@ -548,7 +551,7 @@ void loadGame(Game *game) {
   game->inventory.capacity = sizeof(Item); 
   game->inventory.items = malloc(sizeof(Item)); 
   *game->inventory_menu = loadInventoryMenu();
-  loadMap(game, "map_02.lvl");
+  loadMap(game, "map_04.lvl");
 };
 
 void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
@@ -868,7 +871,7 @@ void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
 
 void process(Game *game) {
   game->time++;
-  if (!strncmp(game->map.name, "map_02.lvl", 12)) { 
+  if (!strncmp(game->map.name, "map_04.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 150 && game->status != IS_CUTSCENE) {
       // TODO: This needs to be generalized and possible
       // to add to the map, rather than hardcoded.
