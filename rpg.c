@@ -826,6 +826,9 @@ void handleInteraction(Game *game) {
           case MOVE_DOWN:
             enqueue(&townsperson->task_queue, (void*)&moveDown, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
             break;
+          case REMOVE:
+            enqueue(&townsperson->task_queue, (void*)&removeObject, NULL, NULL, NULL);
+            break;
           default:
             break;
         }

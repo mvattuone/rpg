@@ -80,6 +80,13 @@ int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t 
   }
 }
 
+// @TODO - actually remove object?
+int removeObject(DynamicObject *dynamic_object) {
+  dynamic_object->x = -9999;
+  dynamic_object->y = -9999;
+  return 0;
+}
+
 int process_queue(DynamicObject *dynamic_object, Queue *queue) {
   int running;
   if (!queue->is_enqueuing) {

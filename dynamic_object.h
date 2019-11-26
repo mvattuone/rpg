@@ -69,6 +69,7 @@ typedef enum {
   MOVE_UP,
   MOVE_DOWN,
   SPEAK,
+  REMOVE
 } TaskType;
 
 typedef struct {
@@ -151,3 +152,4 @@ int moveRight(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
 int moveUp(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
 int moveDown(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
 int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t duration);
+int removeObject(DynamicObject *dynamic_object);
