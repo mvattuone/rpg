@@ -8,14 +8,15 @@
 #include "rpg.h"
 #include "physics.h"
 
-void addToInventory(Game *game, int inventory_id) {
-  if (&game->inventory.size > &game->inventory.capacity) {
-    game->inventory.items = realloc(game->inventory.items, (sizeof(game->inventory.items) * sizeof(Item)) + sizeof(Item));
-    game->inventory.capacity = sizeof(game->inventory.items) + sizeof(Item);
+int addToInventory(DynamicObject *dynamic_object, int inventory_id, DynamicArray *inventory) {
+  if (&inventory->size > &inventory->capacity) {
+    inventory->items = realloc(inventory->items, (sizeof(inventory->items) * sizeof(Item)) + sizeof(Item));
+    inventory->capacity = sizeof(inventory->items) + sizeof(Item);
   }
 
-  game->inventory.items[game->inventory.size] = inventory_id;
-  game->inventory.size++; 
+  inventory->items[inventory->size] = inventory_id;
+  inventory->size++; 
+  return 0;
 }
 
 DynamicArray removeFromInventory(Game *game, int inventory_id) {
@@ -829,6 +830,9 @@ void handleInteraction(Game *game) {
           case REMOVE:
             enqueue(&townsperson->task_queue, (void*)&removeObject, NULL, NULL, NULL);
             break;
+          case ADD_ITEM:
+            enqueue(&townsperson->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), &game->inventory, NULL);
+            break;
           default:
             break;
         }
@@ -874,7 +878,7 @@ void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
 
 void process(Game *game) {
   game->time++;
-  if (!strncmp(game->map.name, "map_04.lvl", 12)) { 
+  if (!strncmp(game->map.name, "map_01.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 150 && game->status != IS_CUTSCENE) {
       // TODO: This needs to be generalized and possible
       // to add to the map, rather than hardcoded.
@@ -888,7 +892,7 @@ void process(Game *game) {
       enqueue(&game->mainCharacter->task_queue, (void*)&speak, "This might come in handy later.", (void*)&game->dismissDialog, 0);
       enqueue(&townsperson->task_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, 0);
       townsperson->default_behavior = WALKING;
-      addToInventory(game, 1);
+      addToInventory(game->mainCharacter, 1, &game->inventory);
     }
   }
       

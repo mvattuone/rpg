@@ -188,7 +188,7 @@ Map initializeMap(char* fileName, int tileSize) {
               dynamic_objects[i]->interactions[interactions_count].task_count = 0;
               char data[MAX_TASK_SIZE];
 
-              while ((e = fgetc(mapData)) && (e == '-' || e == '<' || e == '>' || e == '^' || e == 'v' || e == 'x')) {
+              while ((e = fgetc(mapData)) && (e == '-' || e == '<' || e == '>' || e == '^' || e == 'v' || e == 'x' || e == '%')) {
                 if ( e == '-') {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = SPEAK;
                 } else if ( e == '<') {
@@ -201,6 +201,8 @@ Map initializeMap(char* fileName, int tileSize) {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_UP;
                 } else if ( e == 'x') {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = REMOVE;
+                } else if ( e == '%') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = ADD_ITEM;
                 }
 
                 int j = 0;
