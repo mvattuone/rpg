@@ -90,6 +90,9 @@ int handleEvents(Game *game) {
           case SDL_SCANCODE_P:
             loadMap(game, "map_04.lvl");
             break;
+          case SDL_SCANCODE_O:
+            loadMap(game, "map_01.lvl");
+            break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
               toggleMenu(game);
@@ -994,7 +997,10 @@ void shutdownGame(Game *game) {
   }
   for (int i = 0; i < game->items_count; i++) {
     free(game->items[i].name);
+    free(game->items[i].description);
+    free(game->inventory.items);
   }
+  free(game->quests);
   free(game->items);
   TTF_CloseFont(game->font);
   SDL_DestroyWindow(game->window); 
