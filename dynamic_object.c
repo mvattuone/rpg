@@ -205,5 +205,13 @@ DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *d
     SDL_FreeSurface(jarSurface);
   }
 
+  if (type == BED) {
+    SDL_Surface *bedSurface = createSurface("images/bed.png");
+    dynamic_object->bedTexture= SDL_CreateTextureFromSurface(renderer, bedSurface);
+    dynamic_object->w = bedSurface->w;
+    dynamic_object->h = bedSurface->h;
+    SDL_FreeSurface(bedSurface);
+  }
+
   return *dynamic_object;
 }

@@ -1,9 +1,9 @@
-12 18 3
+12 19 4
 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1
 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1
-@1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1 @1
-@1 .0 .0 .0 $1 .0 .0 .0 .0 .0 .0 @1
-@1 .0x000 .0 .0 $1 .0 .0 .0 .0 .0 .0 @1
+@1 @0 @0 .0 @1 @1 @1 @1 @1 @1 @1 @1
+@1 .0 .0b003 .0 $1 .0 .0 .0 .0 .0 .0 @1
+.0 .0x000 .0 .0 $1 .0 .0 .0 .0 .0 .0 @1
 @1 .0 .0 .0 .0 .0 .0 .0 .0 .0 .0 @1
 @1 $1 $1 $1 $1 .0 .0 .0 .0 .0 .0 @1
 @1 .0 .0 .0 .0 .0 .0 .0 .0o002 .0 .0 @1
@@ -45,3 +45,12 @@ x;
 *2
 -I was up during anchor watch. I should probably go back to sleep.;
 -I just really wanted to get some breakfast.;
+#003
+0;
+0;
+*0
+-As much as you want it to be, now is really not the time to go back to bed.;
+*1
+-As much as you want it to be, now is really not the time to go back to bed.;
+*2
+-As much as you want it to be, now is really not the time to go back to bed.;

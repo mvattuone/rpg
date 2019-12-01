@@ -14,9 +14,8 @@
 #define WINDOW_HEIGHT 480
 #define IS_ACTIVE 1
 #define IS_PAUSED 2
-#define IS_DIALOGUE 3
-#define IS_CUTSCENE 4
-#define IS_MENU 5
+#define IS_CUTSCENE 3
+#define IS_MENU 4
 
 typedef struct {
   int capacity;
@@ -60,3 +59,4 @@ void process(Game *game);
 void handleInteraction(Game *game);
 void triggerDrop(Game *game);
 void handleObjectCollisions(Game *game, DynamicObject *dynamic_object);
+

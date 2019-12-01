@@ -93,9 +93,9 @@ Map initializeMap(char* fileName, int tileSize) {
             n++;
           }
           snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
-        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's' || d == 'j') {
+        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b') {
           dynamic_objects[dynamic_objects_count] = (DynamicObject *)malloc(sizeof(DynamicObject));
-          if (d == 'x' || d == 'o' || d == 's' || d == 'j') {
+          if (d == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b') {
 
             if (d == 's') {
               dynamic_objects[dynamic_objects_count]->isMovable = 1;
@@ -105,6 +105,10 @@ Map initializeMap(char* fileName, int tileSize) {
               dynamic_objects[dynamic_objects_count]->isMovable = 0;
               dynamic_objects[dynamic_objects_count]->isLiftable = 1;
               dynamic_objects[dynamic_objects_count]->type = JAR;
+            } else if (d == 'b') {
+              dynamic_objects[dynamic_objects_count]->isMovable = 0;
+              dynamic_objects[dynamic_objects_count]->isLiftable = 0;
+              dynamic_objects[dynamic_objects_count]->type = BED;
             } else {
               dynamic_objects[dynamic_objects_count]->isMovable = 0;
               dynamic_objects[dynamic_objects_count]->isLiftable = 0;
@@ -129,13 +133,20 @@ Map initializeMap(char* fileName, int tileSize) {
             }
             dynamic_objects[dynamic_objects_count]->id = atoi(doId);
             tiles[count]->dynamic_object_id = dynamic_objects[dynamic_objects_count]->id;
+            printf("hey yoooo %d \n", dynamic_objects[dynamic_objects_count]->id);
+            fflush(stdout);
           } 
 
-          dynamic_objects[dynamic_objects_count]->x = count % map.width * tileSize;
-          dynamic_objects[dynamic_objects_count]->y = ceil(count/map.width) * tileSize; 
+          if (dynamic_objects[dynamic_objects_count]->type == BED) {
+            dynamic_objects[dynamic_objects_count]->x = ((count % map.width) - 1) * tileSize;
+            dynamic_objects[dynamic_objects_count]->y = ceil((count - (map.width * 2))/map.width) * tileSize; 
+          } else {
+            dynamic_objects[dynamic_objects_count]->x = count % map.width * tileSize;
+            dynamic_objects[dynamic_objects_count]->y = ceil(count/map.width) * tileSize; 
+          }
           dynamic_objects[dynamic_objects_count]->startingX = dynamic_objects[dynamic_objects_count]->x;
           dynamic_objects[dynamic_objects_count]->startingY = dynamic_objects[dynamic_objects_count]->y;
-          dynamic_objects[dynamic_objects_count]->startingTile = count % map.width + ceil(count/map.width) * map.width;
+          dynamic_objects[dynamic_objects_count]->startingTile = count % map.width + ceil(count/(map.width*2)) * map.width;
           dynamic_objects[dynamic_objects_count]->currentTile = dynamic_objects[dynamic_objects_count]->startingTile;
           dynamic_objects_count++;
         }

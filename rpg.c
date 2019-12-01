@@ -44,6 +44,8 @@ void loadMap(Game *game, char* fileName) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE);
     } else if (game->map.dynamic_objects[i].type == JAR) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR);
+    } else if (game->map.dynamic_objects[i].type == BED) {
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED);
     }
     if (game->map.dynamic_objects[i].isMain) {
       game->mainCharacter = &game->map.dynamic_objects[i];
@@ -106,7 +108,9 @@ int handleEvents(Game *game) {
           case SDL_SCANCODE_A:
             if (game->mainCharacter->has_object) { 
               triggerDrop(game);
-            } else if (game->status != IS_CUTSCENE && game->status != IS_DIALOGUE) {
+            } else if (game->status != IS_CUTSCENE) {
+              printf("what is game main chracter current tile %d\n", game->mainCharacter->currentTile);
+              fflush(stdout);
               game->mainCharacter->isLifting = 1;
               handleInteraction(game);
               game->dismissDialog = 0;
@@ -382,6 +386,12 @@ void renderCrate(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *rend
   SDL_RenderCopy(renderer, dynamic_object->crateTexture, &srcRect, &destRect);
 }
 
+void renderBed(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
+  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
+  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
+  SDL_RenderCopy(renderer, dynamic_object->bedTexture, &srcRect, &destRect);
+}
+
 void renderJar(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
   SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
   SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
@@ -472,6 +482,8 @@ void doRender(Game *game) {
           game->map.dynamic_objects[i].y = game->mainCharacter->y - game->mainCharacter->h;
         }
         renderJar(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->map.dynamic_objects[i].type == BED) {
+      renderBed(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     } else if (game->map.dynamic_objects[i].type == CRATE) {
       renderCrate(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     }
@@ -498,13 +510,6 @@ void doRender(Game *game) {
   SDL_RenderPresent(game->renderer);
 };
 
-SDL_Texture* initializeTerrain(SDL_Renderer *renderer) {
-  SDL_Surface *surface = createSurface("images/terrain.png");
-  SDL_Texture *terrainTexture = SDL_CreateTextureFromSurface(renderer, surface);
-  SDL_FreeSurface(surface);
-
-  return terrainTexture;
-}
 
 TTF_Font* initializeFont(char* fileName, int fontSize) {
   TTF_Font *font = TTF_OpenFont(fileName, fontSize);
@@ -548,7 +553,10 @@ void loadGame(Game *game) {
   game->dismissDialog = 0;
   game->quests = malloc(sizeof(Quest));
   game->quest_count = 0;
-  game->terrainTexture = initializeTerrain(game->renderer);
+  // @NOTE - once we have a better sense of our art,
+  // this all will likely be condensed into a single tileset.
+  // or sets grouped by location type (e.g. snowy, desert)
+  game->terrainTexture = createTexture(game->renderer, "images/terrain.png");
   game->status = IS_ACTIVE;
   game->items = load_items("items.dat", &game->items_count);
   game->inventory.size = 0;
@@ -731,6 +739,9 @@ void triggerDrop(Game *game) {
 // you try to interact with object
 void handleInteraction(Game *game) { 
   DynamicObject *townsperson = NULL;
+  printf("what is the target tile %d \n", game->mainCharacter->currentTile - game->map.width);
+  printf("what is the current id %d \n", game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
+  fflush(stdout);
   if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
   } else if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
@@ -845,7 +856,7 @@ void handleInteraction(Game *game) {
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (townsperson->id == game->map.dynamic_objects[i].id && townsperson->interactions[townsperson->state].task_count) {
-      game->status = IS_DIALOGUE;
+      game->status = IS_CUTSCENE;
 
       if (!completed_quest && townsperson->state == QUEST_ACTIVE) {
           townsperson->state = QUEST_ACTIVE_SPOKEN_TWICE;
@@ -926,7 +937,7 @@ void process(Game *game) {
     }
   }
 
-  if (!task_running && (game->status == IS_DIALOGUE || game->status == IS_CUTSCENE)) {
+  if (!task_running && (game->status == IS_CUTSCENE)) {
     game->status = IS_ACTIVE;
   }
 
@@ -993,12 +1004,15 @@ void shutdownGame(Game *game) {
     SDL_DestroyTexture(game->map.dynamic_objects[i].runningTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].crateTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].jarTexture);
+    SDL_DestroyTexture(game->map.dynamic_objects[i].bedTexture);
     free(game->map.dynamic_objects[i].task_queue.items);
   }
   for (int i = 0; i < game->items_count; i++) {
     free(game->items[i].name);
     free(game->items[i].description);
-    free(game->inventory.items);
+    if (game->inventory.items) {
+      free(game->inventory.items);
+    }
   }
   free(game->quests);
   free(game->items);
