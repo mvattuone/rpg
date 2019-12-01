@@ -71,7 +71,8 @@ typedef enum {
   MOVE_DOWN,
   SPEAK,
   REMOVE,
-  ADD_ITEM
+  ADD_ITEM,
+  REMOVE_ITEM
 } TaskType;
 
 typedef struct {

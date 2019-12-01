@@ -214,6 +214,8 @@ Map initializeMap(char* fileName, int tileSize) {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = REMOVE;
                 } else if ( e == '%') {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = ADD_ITEM;
+                } else if ( e == '#') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = REMOVE_ITEM;
                 }
 
                 int j = 0;

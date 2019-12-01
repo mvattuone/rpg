@@ -19,7 +19,7 @@ int addToInventory(DynamicObject *dynamic_object, int inventory_id, DynamicArray
   return 0;
 }
 
-DynamicArray removeFromInventory(Game *game, int inventory_id) {
+DynamicArray removeFromInventory(DynamicObject *dynamic_object, Game *game, int inventory_id) {
   DynamicArray new_inventory; 
   new_inventory.items = malloc((sizeof(game->inventory.items) * sizeof(Item)) - sizeof(Item));
   new_inventory.capacity = (sizeof(new_inventory.items) * sizeof(Item)) - sizeof(Item);
@@ -799,7 +799,7 @@ void handleInteraction(Game *game) {
               completed_quest = 1;
               quest->state = COMPLETED;
               townsperson->state = QUEST_COMPLETED;
-              game->inventory = removeFromInventory(game, 1);
+              game->inventory = removeFromInventory(NULL, game, 1);
             }
           }
         }
@@ -847,6 +847,8 @@ void handleInteraction(Game *game) {
           case ADD_ITEM:
             enqueue(&townsperson->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), &game->inventory, NULL);
             break;
+          case REMOVE_ITEM:
+            enqueue(&townsperson->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), &game->inventory, NULL);
           default:
             break;
         }
