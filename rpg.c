@@ -133,6 +133,21 @@ int handleEvents(Game *game) {
         break;
     }
   }
+
+  if (game->status == IS_MENU) {
+    SDL_PumpEvents();
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+    if (state[SDL_SCANCODE_UP]) {
+      if (game->inventory_menu->active_item_index) {
+        game->inventory_menu->active_item_index--;
+      }
+    }
+    if (state[SDL_SCANCODE_DOWN]) {
+      if (game->inventory_menu->active_item_index < game->inventory.size - 1) {
+        game->inventory_menu->active_item_index++;
+      }
+    }
+  }
  
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
@@ -422,8 +437,8 @@ void renderMenu(Game *game, TTF_Font *font) {
           printf("Does this not happen twice what is i %d\n", i);
           fflush(stdout);
           renderText(game->renderer, font, name, text_color, 80, (i + 1) * 40, 100, 20);
-          renderCursor(game->renderer, 60, game->inventory_menu->active_item_index * 2 + 40, 20, 20);
-          if (game->inventory_menu->show_description) {
+          renderCursor(game->renderer, 60, (game->inventory_menu->active_item_index + 1) * 40, 20, 20);
+          if (game->inventory_menu->show_description && i == game->inventory_menu->active_item_index) {
             renderText(game->renderer, font, game->items[j].description, text_color, 80, WINDOW_HEIGHT - 100, 100, 20);
           }
           item_position_index++;
