@@ -417,12 +417,11 @@ void renderMenu(Game *game, TTF_Font *font) {
   } else {
     for (int i = 0; i < game->inventory.size; i++) {
       for (int j = 0; j < game->items_count; j++) {
-        printf("what is going on here\n");
-        fflush(stdout);
         if (game->inventory.items[i] == game->items[j].id) {
           char *name = game->items[j].name;
-          printf("name is %s\n", name);
-          renderText(game->renderer, font, name, text_color, 80, item_position_index * 2 + 40, 100, 20);
+          printf("Does this not happen twice what is i %d\n", i);
+          fflush(stdout);
+          renderText(game->renderer, font, name, text_color, 80, (i + 1) * 40, 100, 20);
           renderCursor(game->renderer, 60, game->inventory_menu->active_item_index * 2 + 40, 20, 20);
           if (game->inventory_menu->show_description) {
             renderText(game->renderer, font, game->items[j].description, text_color, 80, WINDOW_HEIGHT - 100, 100, 20);

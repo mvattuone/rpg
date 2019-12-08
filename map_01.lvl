@@ -30,29 +30,12 @@
 *0
 -Hey there, could you get an espresso martini?;
 -You work here, don't you?;
--Test;
--Here is another test.;
--I just want to see how much of this I can get away with.
-<2;
--Because in theory, if I do this right, I should have a pretty robust and powerful way of creating scenes without having to worry about having to get into a code mode, so to speak.;
-%1;
--Here, have this Espresso Martini.;
--Oh! And a bag of cheerios.;
-%2;
 *1
+I am still waiting for that martini...;
 *2
+-Chop chop.;
 *3
--Hey there, could you get an espresso martini?;
--You work here, don't you?;
--Test;
--Here is another test.;
--I just want to see how much of this I can get away with.
-<2;
--Because in theory, if I do this right, I should have a pretty robust and powerful way of creating scenes without having to worry about having to get into a code mode, so to speak.;
-%1;
--Here, have this Espresso Martini.;
--Oh! And a bag of cheerios.;
-%2;I am still waiting for that martini...;
+I am still waiting for that martini...;
 *4
 -Chop chop.;
 *5
@@ -97,7 +80,7 @@ v10;
 *0
 -Nobody move until I've had my coffee!!!!;
 -But you, you can have this bag of cheerios;
-%2
+%2;
 *1
 -Nobody move until I've had my coffee!!!!;
 *2

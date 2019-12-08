@@ -10,6 +10,7 @@ void renderText(SDL_Renderer *renderer, TTF_Font *font, char* text, SDL_Color co
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
   SDL_RenderCopy(renderer, texture, NULL, &textRect);
   SDL_FreeSurface(surface);
+  SDL_DestroyTexture(texture);
 }
 
 void renderCursor(SDL_Renderer *renderer, int x, int y, int w, int h) {
