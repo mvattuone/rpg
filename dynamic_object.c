@@ -1,7 +1,7 @@
 #include <SDL2/SDL_image.h>
 #include "rpg.h"
 
-int moveLeft(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+int walkLeft(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   if (fabs(dynamic_object->totalMovedX) >= (tileDistance * *(int*)tileSize)/2) {
     dynamic_object->isMoving = 0;
     dynamic_object->moveLeft = 0;
@@ -17,7 +17,7 @@ int moveLeft(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   }
 }
 
-int moveRight(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+int walkRight(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   if (fabs(dynamic_object->totalMovedX) >= (tileDistance * *(int*)tileSize)/2) {
     dynamic_object->isMoving = 0;
     dynamic_object->moveRight = 0;
@@ -33,7 +33,7 @@ int moveRight(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   }
 }
 
-int moveUp(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+int walkUp(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   if (fabs(dynamic_object->totalMovedY) >= (tileDistance * *(int*)tileSize)/2) {
     dynamic_object->isMoving = 0;
     dynamic_object->moveUp = 0;
@@ -49,7 +49,7 @@ int moveUp(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   }
 }
 
-int moveDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+int walkDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   if (fabs(dynamic_object->totalMovedY) >= (tileDistance * *(int*)tileSize)/2) {
     dynamic_object->isMoving = 0;
     dynamic_object->moveDown = 0;
@@ -59,6 +59,78 @@ int moveDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   } else { 
     dynamic_object->direction = DOWN;
     dynamic_object->isMoving = 1;
+    dynamic_object->moveDown = 1;
+    dynamic_object->totalMovedY = dynamic_object->y - dynamic_object->startingY;
+    return 1;
+  }
+}
+
+int runLeft(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+  if (fabs(dynamic_object->totalMovedX) >= (tileDistance * *(int*)tileSize)/2) {
+    dynamic_object->isMoving = 0;
+    dynamic_object->moveLeft = 0;
+    dynamic_object->isRunning = 0;
+    dynamic_object->totalMovedX = 0;
+    dynamic_object->startingX = dynamic_object->x;
+    return 0;
+  } else { 
+    dynamic_object->direction = LEFT;
+    dynamic_object->isMoving = 1;
+    dynamic_object->isRunning = 1;
+    dynamic_object->moveLeft = 1;
+    dynamic_object->totalMovedX = dynamic_object->x - dynamic_object->startingX;
+    return 1;
+  }
+}
+
+int runRight(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+  if (fabs(dynamic_object->totalMovedX) >= (tileDistance * *(int*)tileSize)/2) {
+    dynamic_object->isMoving = 0;
+    dynamic_object->moveRight = 0;
+    dynamic_object->isRunning = 0;
+    dynamic_object->totalMovedX = 0;
+    dynamic_object->startingX = dynamic_object->x;
+    return 0;
+  } else { 
+    dynamic_object->direction = RIGHT;
+    dynamic_object->isMoving = 1;
+    dynamic_object->isRunning = 1;
+    dynamic_object->moveRight = 1;
+    dynamic_object->totalMovedX = dynamic_object->x - dynamic_object->startingX;
+    return 1;
+  }
+}
+
+int runUp(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+  if (fabs(dynamic_object->totalMovedY) >= (tileDistance * *(int*)tileSize)/2) {
+    dynamic_object->isMoving = 0;
+    dynamic_object->moveUp = 0;
+    dynamic_object->isRunning = 0;
+    dynamic_object->totalMovedY = 0;
+    dynamic_object->startingY = dynamic_object->y;
+    return 0;
+  } else { 
+    dynamic_object->direction = UP;
+    dynamic_object->isMoving = 1;
+    dynamic_object->isRunning = 1;
+    dynamic_object->moveUp = 1;
+    dynamic_object->totalMovedY = dynamic_object->y - dynamic_object->startingY;
+    return 1;
+  }
+}
+
+int runDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+  if (fabs(dynamic_object->totalMovedY) >= (tileDistance * *(int*)tileSize)/2) {
+    dynamic_object->isMoving = 0;
+    dynamic_object->isRunning = 0;
+    dynamic_object->moveDown = 0;
+    dynamic_object->totalMovedY = 0;
+    dynamic_object->startingY = dynamic_object->y;
+    return 0;
+  } else { 
+    dynamic_object->direction = DOWN;
+    dynamic_object->isMoving = 1;
+    dynamic_object->isRunning = 1;
     dynamic_object->moveDown = 1;
     dynamic_object->totalMovedY = dynamic_object->y - dynamic_object->startingY;
     return 1;

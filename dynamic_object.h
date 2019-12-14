@@ -65,10 +65,14 @@ typedef struct {
 
 
 typedef enum {
-  MOVE_LEFT,
-  MOVE_RIGHT,
-  MOVE_UP,
-  MOVE_DOWN,
+  WALK_LEFT,
+  WALK_RIGHT,
+  WALK_UP,
+  WALK_DOWN,
+  RUN_LEFT,
+  RUN_RIGHT,
+  RUN_UP,
+  RUN_DOWN,
   SPEAK,
   REMOVE,
   ADD_ITEM,
@@ -151,9 +155,13 @@ void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void
 int process_queue(DynamicObject *dynamic_object, Queue *queue); 
 Queue dequeue(Queue *actions);
 
-int moveLeft(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
-int moveRight(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
-int moveUp(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
-int moveDown(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int walkLeft(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int walkRight(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int walkUp(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int walkDown(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int runLeft(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int runRight(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int runUp(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
+int runDown(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
 int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t duration);
 int removeObject(DynamicObject *dynamic_object);

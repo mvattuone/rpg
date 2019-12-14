@@ -203,13 +203,37 @@ Map initializeMap(char* fileName, int tileSize) {
                 if ( e == '-') {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = SPEAK;
                 } else if ( e == '<') {
-                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_LEFT;
+                  e = fgetc(mapData);
+                  if (e == '<') {
+                    dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = RUN_LEFT;
+                  } else {
+                    ungetc(e, mapData);
+                    dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = WALK_LEFT;
+                  }
                 } else if ( e == '>') {
-                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_RIGHT;
+                  e = fgetc(mapData);
+                  if (e == '>') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = RUN_RIGHT;
+                  } else {
+                    ungetc(e, mapData);
+                    dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = WALK_RIGHT;
+                  }
                 } else if ( e == 'v') {
-                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_DOWN;
+                  e = fgetc(mapData);
+                  if (e == 'v') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = RUN_DOWN;
+                  } else {
+                    ungetc(e, mapData);
+                    dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = WALK_DOWN;
+                  }
                 } else if ( e == '^') {
-                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = MOVE_UP;
+                  e = fgetc(mapData);
+                  if (e == '^') {
+                  dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = RUN_UP;
+                  } else {
+                    dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = WALK_UP;
+                    ungetc(e, mapData);
+                  }
                 } else if ( e == 'x') {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = REMOVE;
                 } else if ( e == '%') {

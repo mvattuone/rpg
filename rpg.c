@@ -845,17 +845,29 @@ void handleInteraction(Game *game) {
           case SPEAK:
             enqueue(&townsperson->task_queue, (void*)&speak, townsperson->interactions[townsperson->state].tasks[i].data, (void*)&game->dismissDialog, 0);
             break;
-          case MOVE_LEFT:
-            enqueue(&townsperson->task_queue, (void*)&moveLeft, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          case WALK_LEFT:
+            enqueue(&townsperson->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
             break;
-          case MOVE_RIGHT:
-            enqueue(&townsperson->task_queue, (void*)&moveRight, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          case WALK_RIGHT:
+            enqueue(&townsperson->task_queue, (void*)&walkRight, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
             break;
-          case MOVE_UP:
-            enqueue(&townsperson->task_queue, (void*)&moveUp, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          case WALK_UP:
+            enqueue(&townsperson->task_queue, (void*)&walkUp, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
             break;
-          case MOVE_DOWN:
-            enqueue(&townsperson->task_queue, (void*)&moveDown, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          case WALK_DOWN:
+            enqueue(&townsperson->task_queue, (void*)&walkDown, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+            break;
+          case RUN_LEFT:
+            enqueue(&townsperson->task_queue, (void*)&runLeft, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+            break;
+          case RUN_RIGHT:
+            enqueue(&townsperson->task_queue, (void*)&runRight, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+            break;
+          case RUN_UP:
+            enqueue(&townsperson->task_queue, (void*)&runUp, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+            break;
+          case RUN_DOWN:
+            enqueue(&townsperson->task_queue, (void*)&runDown, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
             break;
           case REMOVE:
             enqueue(&townsperson->task_queue, (void*)&removeObject, NULL, NULL, NULL);
@@ -896,13 +908,13 @@ void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
       int randomNumber = rand() % 4;
 
       if (randomNumber == 0) {
-        enqueue(&dynamic_object->task_queue, (void*)&moveUp, (void*)1, (void*)&map->tileSize, NULL);
+        enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)1, (void*)&map->tileSize, NULL);
       } else if (randomNumber == 1) {
-        enqueue(&dynamic_object->task_queue, (void*)&moveRight, (void*)1, (void*)&map->tileSize, NULL);
+        enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)1, (void*)&map->tileSize, NULL);
       } else if (randomNumber == 2) {
-        enqueue(&dynamic_object->task_queue, (void*)&moveDown, (void*)1, (void*)&map->tileSize, NULL);
+        enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)1, (void*)&map->tileSize, NULL);
       } else if (randomNumber == 4) {
-        enqueue(&dynamic_object->task_queue, (void*)&moveLeft, (void*)1, (void*)&map->tileSize, NULL);
+        enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)1, (void*)&map->tileSize, NULL);
       }
     }
 
@@ -919,7 +931,7 @@ void process(Game *game) {
       game->status = IS_CUTSCENE;
       DynamicObject *townsperson = NULL;
       townsperson = getDynamicObjectFromMap(&game->map, 2);
-      enqueue(&game->mainCharacter->task_queue, (void*)&moveDown, (void*)1, (void*)&game->map.tileSize, NULL);
+      enqueue(&game->mainCharacter->task_queue, (void*)&walkDown, (void*)1, (void*)&game->map.tileSize, NULL);
       enqueue(&game->mainCharacter->task_queue, (void*)&speak, "Hey, it looks like somebody left their espresso martini on the ground!", (void*)&game->dismissDialog, 0);
       enqueue(&game->mainCharacter->task_queue, (void*)&speak, "This might come in handy later.", (void*)&game->dismissDialog, 0);
       enqueue(&townsperson->task_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, 0);
