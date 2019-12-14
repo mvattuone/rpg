@@ -23,7 +23,6 @@
 @1 @1 @1 @1 @1 .202 .202 @1 @1 @1 @1 @1
 @1 @1 @1 @1 @1 .0 .0 @1 @1 @1 @1 @1
 @1 @1 @1 @1 @1 .0 .0 @1 @1 @1 @1 @1
-
 #001
 1;
 1;
@@ -31,11 +30,9 @@
 -Hey there, could you get an espresso martini?;
 -You work here, don't you?;
 *1
-I am still waiting for that martini...;
 *2
--Chop chop.;
 *3
-I am still waiting for that martini...;
+-I am still waiting for that martini...;
 *4
 -Chop chop.;
 *5
@@ -44,10 +41,9 @@ I am still waiting for that martini...;
 -Love me an espresso martini.;
 #002
 0;
-1;
+2;
 *0
 -I just ate a lot of oysters and boooy am I full.;
-v1;
 *1
 -Have you seen my dog?;
 *2
@@ -58,8 +54,6 @@ v1;
 -As soon as I find my dog I am getting on the tender and going home.;
 *5
 -What, why is he over there? I guess I'll go get him. Thank you for that.;
-<15;
-v10;
 *6
 -Thanks again.;
 #003
@@ -79,7 +73,7 @@ v10;
 0;
 *0
 -Nobody move until I've had my coffee!!!!;
--But you, you can have this bag of cheerios;
+-But you, you can have this bag of cheerios.;
 %2;
 *1
 -Nobody move until I've had my coffee!!!!;

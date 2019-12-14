@@ -70,7 +70,7 @@ Map initializeMap(char* fileName, int tileSize) {
     char d;
     while (count < map.width * map.height && (c = fgetc(mapData))) {
       if (c != '\n' && c != ' ' && !isspace(c)) {
-        tiles[count] = (Tile *)malloc(sizeof(Tile));
+        tiles[count] = malloc(sizeof(Tile));
         tiles[count]->tileId = c; 
         tiles[count]->w = tileSize;
         tiles[count]->h = tileSize;

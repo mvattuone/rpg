@@ -565,8 +565,9 @@ void loadGame(Game *game) {
   game->scrollX = 0;
   game->scrollY = 0;
   game->dismissDialog = 0;
-  game->quests = malloc(sizeof(Quest));
-  game->quest_count = 0;
+  game->active_quests.size = 0; 
+  game->active_quests.capacity = sizeof(Quest); 
+  game->active_quests.items = malloc(sizeof(Quest)); 
   // @NOTE - once we have a better sense of our art,
   // this all will likely be condensed into a single tileset.
   // or sets grouped by location type (e.g. snowy, desert)
@@ -577,6 +578,7 @@ void loadGame(Game *game) {
   game->inventory.capacity = sizeof(Item); 
   game->inventory.items = malloc(sizeof(Item)); 
   *game->inventory_menu = loadInventoryMenu();
+  game->quests = load_quests("quests.dat", &game->quests_count);
   loadMap(game, "map_04.lvl");
 };
 
@@ -774,9 +776,9 @@ void handleInteraction(Game *game) {
   if (townsperson->quest != 0) {
     printf("helloooooooo \n");
     fflush(stdout);
-    for (int i = 0; i < game->quest_count; i++) {
-      if (townsperson->quest == game->quests[i].id) {
-        Quest *quest = &game->quests[i];
+    for (int i = 0; i < game->active_quests.size; i++) {
+      if (townsperson->quest == game->active_quests.items[i].id) {
+        Quest *quest = &game->active_quests.items[i];
 
         if (quest->type == SWITCH && quest->state == IN_PROGRESS) {
           // @TODO - Create a lookup quest information function of some kind
@@ -793,43 +795,43 @@ void handleInteraction(Game *game) {
             }
           }
         } else if (quest->type == TALK && quest->state == IN_PROGRESS) {
-          if (quest->id == 1) {
-            for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-              printf("what is game object id %d\n state %d\n", game->map.dynamic_objects[i].id, game->map.dynamic_objects[i].state);
-              fflush(stdout);
-              printf("what is target id %d\n", quest->target_id);
-              fflush(stdout);
-              if (game->map.dynamic_objects[i].id == quest->target_id && game->map.dynamic_objects[i].state != DEFAULT) {
-                printf("helloooooo\n");
-                completed_quest = 1;
-                quest->state = COMPLETED;
-                townsperson->state = QUEST_COMPLETED;
-              }
-            }
-          } 
-        } else if (quest->type == ITEM && quest->state == IN_PROGRESS) {
-          if (quest->id == 1) {
-            if (game->inventory.items[0] == 1) {
+          for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+            if (game->map.dynamic_objects[i].id == quest->target_id && game->map.dynamic_objects[i].state != DEFAULT) {
               completed_quest = 1;
               quest->state = COMPLETED;
               townsperson->state = QUEST_COMPLETED;
-              game->inventory = removeFromInventory(NULL, game, 1);
             }
+          }
+        } else if (quest->type == ITEM && quest->state == IN_PROGRESS) {
+          if (game->inventory.items[0] == quest->target_id) {
+            completed_quest = 1;
+            quest->state = COMPLETED;
+            townsperson->state = QUEST_COMPLETED;
+            game->inventory = removeFromInventory(NULL, game, 1);
           }
         }
       }
     }
-    
+
     if (townsperson->state != QUEST_ACTIVE || townsperson->state != QUEST_COMPLETED || townsperson->state != QUEST_ACTIVE_SPOKEN_TWICE) {
-      if (townsperson->id == 1 && townsperson->state == DEFAULT) {
-        add_quest(&game->quests, &game->quest_count, townsperson->id, ITEM);
+      Quest *quest = NULL;
+      for (int i = 0; i < game->quests_count; i++) {
+        if (townsperson->quest == game->quests[i].id) {
+          quest = &game->quests[i];
+          printf("what is quest id %d\n", quest->id);
+          fflush(stdout);
+        }
+      }
+      if (quest && townsperson->id == 1 && townsperson->state == DEFAULT) {
+        add_quest(&game->active_quests, townsperson->id, quest);
         quest_active = 1;
-      } else if (townsperson->id == 2 && townsperson->state == SPOKEN) {
-        add_quest(&game->quests, &game->quest_count, townsperson->id, TALK);
+      } else if (quest && townsperson->id == 2 && townsperson->state == SPOKEN) {
+        add_quest(&game->active_quests, townsperson->id, quest);
         quest_active = 1;
       }
     }
   }
+  
 
     if (townsperson->id && townsperson->interactions[townsperson->state].task_count) {
       for (int i = 0; i < townsperson->interactions[townsperson->state].task_count; i++) {
@@ -1029,6 +1031,9 @@ void shutdownGame(Game *game) {
     if (game->inventory.items) {
       free(game->inventory.items);
     }
+  }
+  if (game->active_quests.items) {
+    free(game->active_quests.items);
   }
   free(game->quests);
   free(game->items);

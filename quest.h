@@ -11,6 +11,8 @@ typedef enum {
 } QuestType;
 
 typedef struct {
+  char* description;
+  char* name;
   int id;
   int assignee_id;
   int target_id;
@@ -18,4 +20,11 @@ typedef struct {
   QuestType type;
 } Quest;
 
-void add_quest(Quest *quests[], int *quest_count, int assignee_id, QuestType type);
+typedef struct {
+  int capacity;
+  int size; 
+  Quest* items;
+} ActiveQuests;
+
+void add_quest(ActiveQuests *quests, int assignee_id, Quest *quest);
+Quest* load_quests(char* file_name, int *quests_count); 

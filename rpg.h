@@ -39,9 +39,11 @@ typedef struct {
   float scrollY;
   SDL_Renderer *renderer;
   Quest *quests;
+  ActiveQuests active_quests;
   Item *items;
   int items_count;
-  int quest_count;
+  int quests_count;
+  int active_quest_count;
   int status;
   int dismissDialog;
   int time;

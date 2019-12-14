@@ -19,7 +19,7 @@ Item* load_items(char* file_name, int *items_count) {
     fflush(stdout);
     if (buffer[0] == '*') {
       items = realloc(items, sizeof(items) + sizeof(buffer) * 2);
-      items[i].id = i + 1;
+      items[i].id = i;
     } else if (buffer[0] == '$') {
       char *bufferPtr = buffer;
       bufferPtr++;
