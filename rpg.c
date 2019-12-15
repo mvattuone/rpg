@@ -46,6 +46,8 @@ void loadMap(Game *game, char* fileName) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR);
     } else if (game->map.dynamic_objects[i].type == BED) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED);
+    } else if (game->map.dynamic_objects[i].type == DOOR) {
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR);
     }
     if (game->map.dynamic_objects[i].isMain) {
       game->mainCharacter = &game->map.dynamic_objects[i];
@@ -109,7 +111,7 @@ int handleEvents(Game *game) {
             if (game->mainCharacter->has_object) { 
               triggerDrop(game);
             } else if (game->status != IS_CUTSCENE) {
-              printf("what is game main chracter current tile %d\n", game->mainCharacter->currentTile);
+              printf("ok\n");
               fflush(stdout);
               game->mainCharacter->isLifting = 1;
               handleInteraction(game);
@@ -407,6 +409,12 @@ void renderBed(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *render
   SDL_RenderCopy(renderer, dynamic_object->bedTexture, &srcRect, &destRect);
 }
 
+void renderDoor(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
+  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
+  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
+  SDL_RenderCopy(renderer, dynamic_object->doorTexture, &srcRect, &destRect);
+}
+
 void renderJar(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
   SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
   SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
@@ -434,8 +442,6 @@ void renderMenu(Game *game, TTF_Font *font) {
       for (int j = 0; j < game->items_count; j++) {
         if (game->inventory.items[i] == game->items[j].id) {
           char *name = game->items[j].name;
-          printf("Does this not happen twice what is i %d\n", i);
-          fflush(stdout);
           renderText(game->renderer, font, name, text_color, 80, (i + 1) * 40, 100, 20);
           renderCursor(game->renderer, 60, (game->inventory_menu->active_item_index + 1) * 40, 20, 20);
           if (game->inventory_menu->show_description && i == game->inventory_menu->active_item_index) {
@@ -448,28 +454,14 @@ void renderMenu(Game *game, TTF_Font *font) {
   }
 }
 
- void renderTile(Game *game, int x, int y, char tileId) {
+ void renderTile(Game *game, int x, int y, char tileId, SDL_Texture *texture) {
   int tileRow;
   int tileColumn;
-  if (tileId == '@') {
-    tileRow = 4;
-    tileColumn = 4;
-  } else if (tileId == '*') {
-    tileRow = 1;
-    tileColumn = 13;
-  } else if (tileId == '$') {
-    tileRow = 8;
-    tileColumn = 4;
-  } else if (tileId == '#') {
-    tileRow = 5;
-    tileColumn = 6;
-  } else {
-    tileRow = 12;
-    tileColumn = 7;
-  }
+  tileRow = tileId % 16;
+  tileColumn = tileId / 16;
   SDL_Rect srcRect = {tileRow * 16, tileColumn * 16, 16, 16};
   SDL_Rect tileRect = {x + game->scrollX, y + game->scrollY, game->map.tileSize, game->map.tileSize};
-  SDL_RenderCopy(game->renderer, game->terrainTexture, &srcRect, &tileRect);
+  SDL_RenderCopy(game->renderer, texture, &srcRect, &tileRect);
 };
 
 void doRender(Game *game) {
@@ -481,7 +473,7 @@ void doRender(Game *game) {
   for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++) {
     for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
-        renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.width].tileId);
+        renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.width].tileId, game->indoorTexture);
       }
     }
   }
@@ -500,6 +492,16 @@ void doRender(Game *game) {
       renderBed(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     } else if (game->map.dynamic_objects[i].type == CRATE) {
       renderCrate(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->map.dynamic_objects[i].type == DOOR) {
+      renderDoor(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
+    }
+  }
+
+  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++) {
+    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
+      if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height && game->map.tiles[x+y*game->map.width].tileState == IS_ABOVE) {
+        renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.width].tileId, game->indoorTexture);
+      }
     }
   }
 
@@ -572,6 +574,7 @@ void loadGame(Game *game) {
   // this all will likely be condensed into a single tileset.
   // or sets grouped by location type (e.g. snowy, desert)
   game->terrainTexture = createTexture(game->renderer, "images/terrain.png");
+  game->indoorTexture = createTexture(game->renderer, "images/indoor.png");
   game->status = IS_ACTIVE;
   game->items = load_items("items.dat", &game->items_count);
   game->inventory.size = 0;
@@ -635,6 +638,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
     int tileIndex = x + y * game->map.width;
     if (tileIndex < 0) continue;
 
+
     for (int i = 0; i < game->map.dynamic_objects_count; i++) {
       float objectX = game->map.dynamic_objects[i].x;
       float objectY = game->map.dynamic_objects[i].y;
@@ -646,8 +650,18 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
       game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
 
       if (previousTile != game->map.dynamic_objects[i].currentTile) {
-        game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
-        game->map.tiles[previousTile].dynamic_object_id = 0;
+        if (game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_type != DOOR) {
+          game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
+        }
+        if (game->map.tiles[previousTile].dynamic_object_type != DOOR) {
+          printf("here we are changing the value at tile %d\n", previousTile);
+          fflush(stdout);
+          game->map.tiles[previousTile].dynamic_object_id = 0;
+        } else {
+          printf("here we are not changing the value at tile %d\n", previousTile);
+          printf("and here is the id %d\n", game->map.tiles[previousTile].dynamic_object_id);
+          fflush(stdout);
+        }
       } 
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
@@ -670,7 +684,9 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           detectTileCollision(game, active_dynamic_object, &game->map.tiles[tileIndex]);
         }
 
-        detectObjectCollision(game, active_dynamic_object, &game->map.dynamic_objects[i]);
+        if (game->map.dynamic_objects[i].isPassable == 0) {
+          detectObjectCollision(game, active_dynamic_object, &game->map.dynamic_objects[i]);
+        }
 
         if (tileHasObject && isNotSelf) {
 
@@ -752,11 +768,11 @@ void triggerDrop(Game *game) {
 }
 
 // This is more like the function that gets called when
+// prin
 // you try to interact with object
 void handleInteraction(Game *game) { 
   DynamicObject *townsperson = NULL;
-  printf("what is the target tile %d \n", game->mainCharacter->currentTile - game->map.width);
-  printf("what is the current id %d \n", game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
+  printf("what is the dynamic object id here %d\n", game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
   fflush(stdout);
   if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
@@ -771,11 +787,20 @@ void handleInteraction(Game *game) {
     return;
   }
 
+  if (townsperson->type == DOOR) {
+    if (townsperson->direction == UP) {
+      townsperson->direction = DOWNRIGHT; 
+      townsperson->isPassable = 1;
+    } else {
+      townsperson->direction = UP; 
+      townsperson->isPassable= 0;
+    }
+    return;
+  }
+
   int quest_active = 0;
   int completed_quest = 0;
   if (townsperson->quest != 0) {
-    printf("helloooooooo \n");
-    fflush(stdout);
     for (int i = 0; i < game->active_quests.size; i++) {
       if (townsperson->quest == game->active_quests.items[i].id) {
         Quest *quest = &game->active_quests.items[i];
@@ -818,8 +843,6 @@ void handleInteraction(Game *game) {
       for (int i = 0; i < game->quests_count; i++) {
         if (townsperson->quest == game->quests[i].id) {
           quest = &game->quests[i];
-          printf("what is quest id %d\n", quest->id);
-          fflush(stdout);
         }
       }
       if (quest && townsperson->id == 1 && townsperson->state == DEFAULT) {
@@ -837,10 +860,6 @@ void handleInteraction(Game *game) {
       for (int i = 0; i < townsperson->interactions[townsperson->state].task_count; i++) {
         TaskType task_type = townsperson->interactions[townsperson->state].tasks[i].type;
 
-        printf("whoa %s\n", townsperson->interactions[townsperson->state].tasks[i].data);
-        printf("whoa 2 %d\n", townsperson->interactions[townsperson->state].tasks[i].type);
-        printf("whoa 3 %d\n", game->map.tileSize);
-        fflush(stdout);
         switch (task_type) {
           case SPEAK:
             enqueue(&townsperson->task_queue, (void*)&speak, townsperson->interactions[townsperson->state].tasks[i].data, (void*)&game->dismissDialog, 0);
@@ -1029,11 +1048,13 @@ void process(Game *game) {
 
 void shutdownGame(Game *game) {
   SDL_DestroyTexture(game->terrainTexture);
+  SDL_DestroyTexture(game->indoorTexture);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     SDL_DestroyTexture(game->map.dynamic_objects[i].idleTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].runningTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].crateTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].jarTexture);
+    SDL_DestroyTexture(game->map.dynamic_objects[i].doorTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].bedTexture);
     free(game->map.dynamic_objects[i].task_queue.items);
   }

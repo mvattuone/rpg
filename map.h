@@ -5,7 +5,8 @@
 typedef enum {
   IS_WALKABLE,
   IS_SOLID,
-  IS_TELEPORT
+  IS_TELEPORT,
+  IS_ABOVE
 } TileState;
 
 typedef struct {
@@ -15,6 +16,7 @@ typedef struct {
   float maxSpeed;
   float maxRunningSpeed;
   int dynamic_object_id;
+  ObjectType dynamic_object_type;
   int x,y,w,h;
   char teleportTo[20];
 } Tile;

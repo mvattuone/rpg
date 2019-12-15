@@ -9,14 +9,14 @@
 // and their properties stored somewhere. Like a JSON file.
 float getCofForTile(char id) {
   float cof;
-  if (id == '.') { 
+  if (id == 1) { 
     cof = 0.50;
-  } else if (id == '*') {
+  } else if (id == 2) {
     cof = 0.05;
-  } else if (id == '#') {
+  } else if (id == 3) {
     cof = 0.50;
   } else {
-    cof = 100.0;
+    cof = 0.50;
   }
 
   return cof;
@@ -25,21 +25,24 @@ float getCofForTile(char id) {
 float getMaxSpeedForTile(char id) {
   float maxSpeed;
 
-  if (id == '.') { 
+  if (id == 1) { 
     maxSpeed = 3.00;
-  } else if (id == '*') {
+  } else if (id == 2) {
     maxSpeed = 5.00;
-  } else if (id == '#') {
+  } else if (id == 3) {
     maxSpeed = 1.50;
   } else {
-    maxSpeed = 0;
+    maxSpeed = 3.00;
   }
 
   return maxSpeed;
 }
 
 DynamicObject* getDynamicObjectFromMap(Map *map, int id) {
+  printf("what is the ID here %d\n", id);
   for (int i = 0; i < map->dynamic_objects_count; i++) {
+    printf("now what is the ID here %d\n", map->dynamic_objects[i].id);
+    fflush(stdout);
     if (map->dynamic_objects[i].id == id) {
       return &map->dynamic_objects[i];
     } 
@@ -70,8 +73,11 @@ Map initializeMap(char* fileName, int tileSize) {
     char d;
     while (count < map.width * map.height && (c = fgetc(mapData))) {
       if (c != '\n' && c != ' ' && !isspace(c)) {
+        char tempId[2];
+        tempId[0] = c;
+        tempId[1] = fgetc(mapData);
         tiles[count] = malloc(sizeof(Tile));
-        tiles[count]->tileId = c; 
+        tiles[count]->tileId = atoi(tempId);
         tiles[count]->w = tileSize;
         tiles[count]->h = tileSize;
         tiles[count]->x = (count % map.width) * tileSize;
@@ -93,23 +99,32 @@ Map initializeMap(char* fileName, int tileSize) {
             n++;
           }
           snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
-        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b') {
+        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b' || d == 'd') {
           dynamic_objects[dynamic_objects_count] = (DynamicObject *)malloc(sizeof(DynamicObject));
-          if (d == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b') {
+          if (d == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b' || d == 'd') {
 
             if (d == 's') {
+              dynamic_objects[dynamic_objects_count]->isPassable = 0;
               dynamic_objects[dynamic_objects_count]->isMovable = 1;
               dynamic_objects[dynamic_objects_count]->isLiftable = 0;
               dynamic_objects[dynamic_objects_count]->type = CRATE;
             } else if (d == 'j') {
+              dynamic_objects[dynamic_objects_count]->isPassable = 0;
               dynamic_objects[dynamic_objects_count]->isMovable = 0;
               dynamic_objects[dynamic_objects_count]->isLiftable = 1;
               dynamic_objects[dynamic_objects_count]->type = JAR;
+            } else if (d == 'd') {
+              dynamic_objects[dynamic_objects_count]->isPassable = 0;
+              dynamic_objects[dynamic_objects_count]->isMovable = 0;
+              dynamic_objects[dynamic_objects_count]->isLiftable = 0;
+              dynamic_objects[dynamic_objects_count]->type = DOOR;
             } else if (d == 'b') {
+              dynamic_objects[dynamic_objects_count]->isPassable = 0;
               dynamic_objects[dynamic_objects_count]->isMovable = 0;
               dynamic_objects[dynamic_objects_count]->isLiftable = 0;
               dynamic_objects[dynamic_objects_count]->type = BED;
             } else {
+              dynamic_objects[dynamic_objects_count]->isPassable = 0;
               dynamic_objects[dynamic_objects_count]->isMovable = 0;
               dynamic_objects[dynamic_objects_count]->isLiftable = 0;
               dynamic_objects[dynamic_objects_count]->type = MAN;
@@ -133,8 +148,7 @@ Map initializeMap(char* fileName, int tileSize) {
             }
             dynamic_objects[dynamic_objects_count]->id = atoi(doId);
             tiles[count]->dynamic_object_id = dynamic_objects[dynamic_objects_count]->id;
-            printf("hey yoooo %d \n", dynamic_objects[dynamic_objects_count]->id);
-            fflush(stdout);
+            tiles[count]->dynamic_object_type = dynamic_objects[dynamic_objects_count]->type;
           } 
 
           if (dynamic_objects[dynamic_objects_count]->type == BED) {

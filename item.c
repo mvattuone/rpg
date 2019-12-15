@@ -16,7 +16,6 @@ Item* load_items(char* file_name, int *items_count) {
   }
 
   while (fgets(buffer, 1024, fp) != NULL) {
-    fflush(stdout);
     if (buffer[0] == '*') {
       items = realloc(items, sizeof(items) + sizeof(buffer) * 2);
       items[i].id = i;

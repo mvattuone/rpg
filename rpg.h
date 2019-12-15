@@ -50,6 +50,7 @@ typedef struct {
   DynamicArray inventory;
   time_t startTime;
   float dt;
+  SDL_Texture *indoorTexture;
   SDL_Texture *terrainTexture;
   Menu *inventory_menu;
 } Game;

@@ -13,7 +13,6 @@ void add_quest(ActiveQuests *quests, int assignee_id, Quest *quest) {
     quests->items[quests->size].assignee_id = assignee_id;
     quests->items[quests->size].state = IN_PROGRESS;
     quests->size++;
-    fflush(stdout);
 };
 
 Quest* load_quests(char* file_name, int *quests_count) {
@@ -29,12 +28,9 @@ Quest* load_quests(char* file_name, int *quests_count) {
   }
 
   while (fgets(buffer, 1024, fp) != NULL) {
-    fflush(stdout);
     if (buffer[0] == '*') {
       quests = realloc(quests , sizeof(quests) + sizeof(buffer) * 2);
       quests[i].id = i;
-      printf("what is the id of the quest %d\n", quests[i].id);
-      fflush(stdout);
     } else if (buffer[0] == '#') {
       char *bufferPtr = buffer;
       bufferPtr++;
@@ -44,8 +40,6 @@ Quest* load_quests(char* file_name, int *quests_count) {
       char *bufferPtr = buffer;
       bufferPtr++;
       bufferPtr[strlen(bufferPtr) - 1] = 0;
-      printf("what is bufferPtr %d\n", atoi(bufferPtr));
-      fflush(stdout);
       quests[i].target_id = atoi(bufferPtr);
     } else if (buffer[0] == '$') {
       char *bufferPtr = buffer;

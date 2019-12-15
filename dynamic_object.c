@@ -285,5 +285,13 @@ DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *d
     SDL_FreeSurface(bedSurface);
   }
 
+  if (type == DOOR) {
+    SDL_Surface *doorSurface = createSurface("images/doors.png");
+    dynamic_object->doorTexture = SDL_CreateTextureFromSurface(renderer, doorSurface);
+    dynamic_object->w = doorSurface->w / 6;
+    dynamic_object->h = doorSurface->h / 4;
+    SDL_FreeSurface(doorSurface);
+  }
+
   return *dynamic_object;
 }
