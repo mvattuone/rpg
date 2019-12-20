@@ -684,7 +684,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           detectTileCollision(game, active_dynamic_object, &game->map.tiles[tileIndex]);
         }
 
-        if (game->map.dynamic_objects[i].isPassable == 0) {
+        if (game->status == IS_ACTIVE && game->map.dynamic_objects[i].isPassable == 0) {
           detectObjectCollision(game, active_dynamic_object, &game->map.dynamic_objects[i]);
         }
 
@@ -941,6 +941,8 @@ void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
 
 void process(Game *game) {
   game->time++;
+  printf("what is the state %d\n", game->status);
+  fflush(stdout);
   if (!strncmp(game->map.name, "map_01.lvl", 12)) { 
     if (game->mainCharacter->currentTile == 150 && game->status != IS_CUTSCENE) {
       // TODO: This needs to be generalized and possible
