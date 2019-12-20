@@ -684,7 +684,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           detectTileCollision(game, active_dynamic_object, &game->map.tiles[tileIndex]);
         }
 
-        if (game->status == IS_ACTIVE && game->map.dynamic_objects[i].isPassable == 0) {
+        if (game->status == IS_ACTIVE && (game->map.dynamic_objects[i].isPassable == 0)) {
           detectObjectCollision(game, active_dynamic_object, &game->map.dynamic_objects[i]);
         }
 
@@ -712,6 +712,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
               game->map.dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             } 
+            game->map.dynamic_objects[i].isPassable = 1;
           }
 
           if (game->map.dynamic_objects[i].isMovable && active_dynamic_object->isPushing)  {
@@ -744,6 +745,7 @@ void triggerDrop(Game *game) {
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (game->map.dynamic_objects[i].isLifted) {
       game->map.dynamic_objects[i].isLifted = 0;
+      game->map.dynamic_objects[i].isPassable = 0;
       game->mainCharacter->has_object = 0;
       if (game->mainCharacter->direction == UP) {
         game->map.dynamic_objects[i].x = game->mainCharacter->x;
