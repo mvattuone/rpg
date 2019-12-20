@@ -19,6 +19,7 @@ typedef struct {
   ObjectType dynamic_object_type;
   int x,y,w,h;
   char teleportTo[20];
+  int teleportTile;
 } Tile;
 
 typedef struct {
@@ -32,5 +33,5 @@ typedef struct {
 } Map;
 
 DynamicObject * getDynamicObjectFromMap(Map *map, int id);
-Map initializeMap(char* fileName, int tileSize); 
+Map initializeMap(char* fileName, int tileSize, int startingTile); 
 

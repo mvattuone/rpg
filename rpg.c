@@ -35,8 +35,8 @@ DynamicArray removeFromInventory(DynamicObject *dynamic_object, Game *game, int 
 }
 
 
-void loadMap(Game *game, char* fileName) {
-  game->map = initializeMap(fileName, 32);
+void loadMap(Game *game, char* fileName, int startingTile) {
+  game->map = initializeMap(fileName, 32, startingTile);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (game->map.dynamic_objects[i].type == MAN) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN);
@@ -92,10 +92,10 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_04.lvl");
+            loadMap(game, "map_04.lvl", 0);
             break;
           case SDL_SCANCODE_O:
-            loadMap(game, "map_01.lvl");
+            loadMap(game, "map_01.lvl", 0);
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -111,8 +111,6 @@ int handleEvents(Game *game) {
             if (game->mainCharacter->has_object) { 
               triggerDrop(game);
             } else if (game->status != IS_CUTSCENE) {
-              printf("ok\n");
-              fflush(stdout);
               game->mainCharacter->isLifting = 1;
               handleInteraction(game);
               game->dismissDialog = 0;
@@ -582,7 +580,7 @@ void loadGame(Game *game) {
   game->inventory.items = malloc(sizeof(Item)); 
   *game->inventory_menu = loadInventoryMenu();
   game->quests = load_quests("quests.dat", &game->quests_count);
-  loadMap(game, "map_04.lvl");
+  loadMap(game, "map_04.lvl", 0);
 };
 
 void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
@@ -666,7 +664,9 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
         if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
-            loadMap(game, game->map.tiles[tileIndex].teleportTo);
+            printf("what is the teleport tile %d\n", game->map.tiles[tileIndex].teleportTile);
+            fflush(stdout);
+            loadMap(game, game->map.tiles[tileIndex].teleportTo, game->map.tiles[tileIndex].teleportTile);
         }
         int tileIsSolid = game->map.tiles[tileIndex].tileState == IS_SOLID;
         int tileHasObject = game->map.tiles[tileIndex].dynamic_object_id;
