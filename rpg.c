@@ -46,6 +46,8 @@ void loadMap(Game *game, char* fileName, int startingTile) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR);
     } else if (game->map.dynamic_objects[i].type == BED) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED);
+    } else if (game->map.dynamic_objects[i].type == EVENT) {
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT);
     } else if (game->map.dynamic_objects[i].type == DOOR) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR);
     }
@@ -92,10 +94,10 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_04.lvl", 0);
+            loadMap(game, "map_04.lvl", 100);
             break;
           case SDL_SCANCODE_O:
-            loadMap(game, "map_01.lvl", 0);
+            loadMap(game, "map_02.lvl", 100);
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -492,6 +494,8 @@ void doRender(Game *game) {
       renderCrate(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     } else if (game->map.dynamic_objects[i].type == DOOR) {
       renderDoor(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->map.dynamic_objects[i].type == EVENT) {
+      renderMan(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
     }
   }
 
@@ -647,29 +651,35 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
       int previousTile = game->map.dynamic_objects[i].currentTile;
       game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
 
+      // Handle resetting dynamic object ids when movement occurs
+      // Need to avoid this when an object is static i.e. door, event
       if (previousTile != game->map.dynamic_objects[i].currentTile) {
-        if (game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_type != DOOR) {
+        if (game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_type != DOOR && game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_type != EVENT) {
           game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
         }
-        if (game->map.tiles[previousTile].dynamic_object_type != DOOR) {
-          printf("here we are changing the value at tile %d\n", previousTile);
-          fflush(stdout);
+        if (game->map.tiles[previousTile].dynamic_object_type != DOOR && game->map.tiles[previousTile].dynamic_object_type != EVENT) {
           game->map.tiles[previousTile].dynamic_object_id = 0;
         } else {
-          printf("here we are not changing the value at tile %d\n", previousTile);
-          printf("and here is the id %d\n", game->map.tiles[previousTile].dynamic_object_id);
           fflush(stdout);
         }
       } 
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
+        int tileIsSolid = game->map.tiles[tileIndex].tileState == IS_SOLID;
+        int tileHasObject = game->map.tiles[tileIndex].dynamic_object_id;
+        int tileHasEvent = game->map.tiles[tileIndex].dynamic_object_type == EVENT;
+        if (game->status != IS_CUTSCENE && tileHasEvent && tileIndex == game->mainCharacter->currentTile) { 
+          game->status = IS_CUTSCENE;
+          DynamicObject *event = getDynamicObjectFromMap(&game->map, game->map.tiles[tileIndex].dynamic_object_id);
+          triggerEvent(game, event);
+          return;
+        }
+
         if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
             printf("what is the teleport tile %d\n", game->map.tiles[tileIndex].teleportTile);
             fflush(stdout);
             loadMap(game, game->map.tiles[tileIndex].teleportTo, game->map.tiles[tileIndex].teleportTile);
         }
-        int tileIsSolid = game->map.tiles[tileIndex].tileState == IS_SOLID;
-        int tileHasObject = game->map.tiles[tileIndex].dynamic_object_id;
         int isNotSelf = game->map.tiles[tileIndex].dynamic_object_id != active_dynamic_object->id;
 
         if (game->map.dynamic_objects[i].isMovable && !game->mainCharacter->isPushing)  {
@@ -770,7 +780,6 @@ void triggerDrop(Game *game) {
 }
 
 // This is more like the function that gets called when
-// prin
 // you try to interact with object
 void handleInteraction(Game *game) { 
   DynamicObject *townsperson = NULL;
@@ -800,11 +809,15 @@ void handleInteraction(Game *game) {
     return;
   }
 
+  triggerEvent(game, townsperson);
+}
+
+void triggerEvent(Game *game, DynamicObject *dynamic_object) {
   int quest_active = 0;
   int completed_quest = 0;
-  if (townsperson->quest != 0) {
+  if (dynamic_object->quest != 0) {
     for (int i = 0; i < game->active_quests.size; i++) {
-      if (townsperson->quest == game->active_quests.items[i].id) {
+      if (dynamic_object->quest == game->active_quests.items[i].id) {
         Quest *quest = &game->active_quests.items[i];
 
         if (quest->type == SWITCH && quest->state == IN_PROGRESS) {
@@ -816,7 +829,7 @@ void handleInteraction(Game *game) {
                 if (game->map.dynamic_objects[i].currentTile == 254) {
                   completed_quest = 1;
                   quest->state = COMPLETED;
-                  townsperson->state = QUEST_COMPLETED;
+                  dynamic_object->state = QUEST_COMPLETED;
                 }
               }
             }
@@ -826,99 +839,100 @@ void handleInteraction(Game *game) {
             if (game->map.dynamic_objects[i].id == quest->target_id && game->map.dynamic_objects[i].state != DEFAULT) {
               completed_quest = 1;
               quest->state = COMPLETED;
-              townsperson->state = QUEST_COMPLETED;
+              dynamic_object->state = QUEST_COMPLETED;
             }
           }
         } else if (quest->type == ITEM && quest->state == IN_PROGRESS) {
           if (game->inventory.items[0] == quest->target_id) {
             completed_quest = 1;
             quest->state = COMPLETED;
-            townsperson->state = QUEST_COMPLETED;
+            dynamic_object->state = QUEST_COMPLETED;
             game->inventory = removeFromInventory(NULL, game, 1);
           }
         }
       }
     }
 
-    if (townsperson->state != QUEST_ACTIVE || townsperson->state != QUEST_COMPLETED || townsperson->state != QUEST_ACTIVE_SPOKEN_TWICE) {
+    if (dynamic_object->state != QUEST_ACTIVE || dynamic_object->state != QUEST_COMPLETED || dynamic_object->state != QUEST_ACTIVE_SPOKEN_TWICE) {
       Quest *quest = NULL;
       for (int i = 0; i < game->quests_count; i++) {
-        if (townsperson->quest == game->quests[i].id) {
+        if (dynamic_object->quest == game->quests[i].id) {
           quest = &game->quests[i];
         }
       }
-      if (quest && townsperson->id == 1 && townsperson->state == DEFAULT) {
-        add_quest(&game->active_quests, townsperson->id, quest);
+      if (quest && dynamic_object->id == 1 && dynamic_object->state == DEFAULT) {
+        add_quest(&game->active_quests, dynamic_object->id, quest);
         quest_active = 1;
-      } else if (quest && townsperson->id == 2 && townsperson->state == SPOKEN) {
-        add_quest(&game->active_quests, townsperson->id, quest);
+      } else if (quest && dynamic_object->id == 2 && dynamic_object->state == SPOKEN) {
+        add_quest(&game->active_quests, dynamic_object->id, quest);
         quest_active = 1;
       }
     }
   }
-  
 
-    if (townsperson->id && townsperson->interactions[townsperson->state].task_count) {
-      for (int i = 0; i < townsperson->interactions[townsperson->state].task_count; i++) {
-        TaskType task_type = townsperson->interactions[townsperson->state].tasks[i].type;
 
-        switch (task_type) {
-          case SPEAK:
-            enqueue(&townsperson->task_queue, (void*)&speak, townsperson->interactions[townsperson->state].tasks[i].data, (void*)&game->dismissDialog, 0);
-            break;
-          case WALK_LEFT:
-            enqueue(&townsperson->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
-            break;
-          case WALK_RIGHT:
-            enqueue(&townsperson->task_queue, (void*)&walkRight, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
-            break;
-          case WALK_UP:
-            enqueue(&townsperson->task_queue, (void*)&walkUp, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
-            break;
-          case WALK_DOWN:
-            enqueue(&townsperson->task_queue, (void*)&walkDown, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
-            break;
-          case RUN_LEFT:
-            enqueue(&townsperson->task_queue, (void*)&runLeft, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
-            break;
-          case RUN_RIGHT:
-            enqueue(&townsperson->task_queue, (void*)&runRight, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
-            break;
-          case RUN_UP:
-            enqueue(&townsperson->task_queue, (void*)&runUp, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
-            break;
-          case RUN_DOWN:
-            enqueue(&townsperson->task_queue, (void*)&runDown, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
-            break;
-          case REMOVE:
-            enqueue(&townsperson->task_queue, (void*)&removeObject, NULL, NULL, NULL);
-            break;
-          case ADD_ITEM:
-            enqueue(&townsperson->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), &game->inventory, NULL);
-            break;
-          case REMOVE_ITEM:
-            enqueue(&townsperson->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(townsperson->interactions[townsperson->state].tasks[i].data), &game->inventory, NULL);
-          default:
-            break;
-        }
+  if (dynamic_object->id && dynamic_object->interactions[dynamic_object->state].task_count) {
+    for (int i = 0; i < dynamic_object->interactions[dynamic_object->state].task_count; i++) {
+      TaskType task_type = dynamic_object->interactions[dynamic_object->state].tasks[i].type;
+
+      switch (task_type) {
+        case SPEAK:
+          game->status = IS_CUTSCENE;
+          enqueue(&dynamic_object->task_queue, (void*)&speak, dynamic_object->interactions[dynamic_object->state].tasks[i].data, (void*)&game->dismissDialog, 0);
+          break;
+        case WALK_LEFT:
+          enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          break;
+        case WALK_RIGHT:
+          enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          break;
+        case WALK_UP:
+          enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          break;
+        case WALK_DOWN:
+          enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          break;
+        case RUN_LEFT:
+          enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          break;
+        case RUN_RIGHT:
+          enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          break;
+        case RUN_UP:
+          enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          break;
+        case RUN_DOWN:
+          enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          break;
+        case REMOVE:
+          enqueue(&dynamic_object->task_queue, (void*)&removeObject, NULL, NULL, NULL);
+          break;
+        case ADD_ITEM:
+          enqueue(&dynamic_object->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), &game->inventory, NULL);
+          break;
+        case REMOVE_ITEM:
+          enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), &game->inventory, NULL);
+        default:
+          break;
+      }
     }
   }
- 
+
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    if (townsperson->id == game->map.dynamic_objects[i].id && townsperson->interactions[townsperson->state].task_count) {
+    if (dynamic_object->id == game->map.dynamic_objects[i].id && dynamic_object->interactions[dynamic_object->state].task_count) {
       game->status = IS_CUTSCENE;
 
-      if (!completed_quest && townsperson->state == QUEST_ACTIVE) {
-          townsperson->state = QUEST_ACTIVE_SPOKEN_TWICE;
-      } else if (townsperson->state == QUEST_COMPLETED) {
-          townsperson->state = QUEST_COMPLETED_SPOKEN_TWICE;
+      if (!completed_quest && dynamic_object->state == QUEST_ACTIVE) {
+        dynamic_object->state = QUEST_ACTIVE_SPOKEN_TWICE;
+      } else if (dynamic_object->state == QUEST_COMPLETED) {
+        dynamic_object->state = QUEST_COMPLETED_SPOKEN_TWICE;
       } else if (quest_active) { 
-        townsperson->state = QUEST_ACTIVE;
-      } else if (townsperson->state == SPOKEN) {
-        townsperson->state = SPOKEN_TWICE;
-      } else if (townsperson->state == DEFAULT){
-        townsperson->state = SPOKEN;
+        dynamic_object->state = QUEST_ACTIVE;
+      } else if (dynamic_object->state == SPOKEN) {
+        dynamic_object->state = SPOKEN_TWICE;
+      } else if (dynamic_object->state == DEFAULT){
+        dynamic_object->state = SPOKEN;
       }
     }
   }
@@ -957,26 +971,6 @@ void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
 
 void process(Game *game) {
   game->time++;
-  printf("what is the state %d\n", game->status);
-  fflush(stdout);
-  if (!strncmp(game->map.name, "map_01.lvl", 12)) { 
-    if (game->mainCharacter->currentTile == 150 && game->status != IS_CUTSCENE) {
-      // TODO: This needs to be generalized and possible
-      // to add to the map, rather than hardcoded.
-      // NOTE: It probably would make sense to pause all actions aside
-      // from default behavior, too. Maybe just flush task_queue
-      game->status = IS_CUTSCENE;
-      DynamicObject *townsperson = NULL;
-      townsperson = getDynamicObjectFromMap(&game->map, 2);
-      enqueue(&game->mainCharacter->task_queue, (void*)&walkDown, (void*)1, (void*)&game->map.tileSize, NULL);
-      enqueue(&game->mainCharacter->task_queue, (void*)&speak, "Hey, it looks like somebody left their espresso martini on the ground!", (void*)&game->dismissDialog, 0);
-      enqueue(&game->mainCharacter->task_queue, (void*)&speak, "This might come in handy later.", (void*)&game->dismissDialog, 0);
-      enqueue(&townsperson->task_queue, (void*)&speak, "Egads!", (void*)&game->dismissDialog, 0);
-      townsperson->default_behavior = WALKING;
-      addToInventory(game->mainCharacter, 1, &game->inventory);
-    }
-  }
-      
   int task_running = 0;
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {

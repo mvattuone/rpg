@@ -35,7 +35,8 @@ typedef enum {
   CRATE,
   JAR,
   BED,
-  DOOR
+  DOOR,
+  EVENT
 } ObjectType;
 
 typedef enum {

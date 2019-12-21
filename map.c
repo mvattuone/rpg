@@ -107,9 +107,9 @@ Map initializeMap(char* fileName, int tileSize, int startingTile) {
           }
           snprintf(tiles[count]->teleportTo, sizeof tiles[count]->teleportTo, "map_%.2s.lvl", mapId);
           tiles[count]->teleportTile = atoi(tileId);
-        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b' || d == 'd') {
+        } else if ((d = fgetc(mapData)) == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b' || d == 'd' || d == 'e') {
           dynamic_objects[dynamic_objects_count] = (DynamicObject *)malloc(sizeof(DynamicObject));
-          if (d == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b' || d == 'd') {
+          if (d == 'x' || d == 'o' || d == 's' || d == 'j' || d == 'b' || d == 'd' || d == 'e') {
 
             if (d == 's') {
               dynamic_objects[dynamic_objects_count]->isPassable = 0;
@@ -131,13 +131,18 @@ Map initializeMap(char* fileName, int tileSize, int startingTile) {
               dynamic_objects[dynamic_objects_count]->isMovable = 0;
               dynamic_objects[dynamic_objects_count]->isLiftable = 0;
               dynamic_objects[dynamic_objects_count]->type = BED;
+            } else if (d == 'e') {
+              dynamic_objects[dynamic_objects_count]->isPassable = 1;
+              dynamic_objects[dynamic_objects_count]->isMovable = 0;
+              dynamic_objects[dynamic_objects_count]->isLiftable = 0;
+              dynamic_objects[dynamic_objects_count]->type = EVENT;
             } else {
               dynamic_objects[dynamic_objects_count]->isPassable = 0;
               dynamic_objects[dynamic_objects_count]->isMovable = 0;
               dynamic_objects[dynamic_objects_count]->isLiftable = 0;
               dynamic_objects[dynamic_objects_count]->type = MAN;
-            }
-
+            }             
+            
             if (d == 'x') {
               dynamic_objects[dynamic_objects_count]->isMain = 1;        
             } else {
