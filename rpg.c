@@ -939,6 +939,20 @@ void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
       }
     }
 
+  if (dynamic_object->default_behavior == RUNNING && dynamic_object->task_queue.size == 0 && !dynamic_object->isMain) {
+      int randomNumber = rand() % 4;
+
+      if (randomNumber == 0) {
+        enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)1, (void*)&map->tileSize, NULL);
+      } else if (randomNumber == 1) {
+        enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)1, (void*)&map->tileSize, NULL);
+      } else if (randomNumber == 2) {
+        enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)1, (void*)&map->tileSize, NULL);
+      } else if (randomNumber == 4) {
+        enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)1, (void*)&map->tileSize, NULL);
+      }
+    }
+
 }
 
 void process(Game *game) {
@@ -970,7 +984,7 @@ void process(Game *game) {
     Queue *task_queue = &dynamic_object->task_queue;
     int has_task = task_queue->size > 0;
 
-    if (fmod(game->time, 240) == 0) {
+    if (fmod(game->time, 180) == 0) {
       process_default_behavior(dynamic_object, &game->map);
     }
     

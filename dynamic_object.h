@@ -45,7 +45,8 @@ typedef enum {
 
 typedef enum {
   IDLE,
-  WALKING
+  WALKING,
+  RUNNING
 } Behavior;
 
 typedef struct {
