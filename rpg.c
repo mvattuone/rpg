@@ -669,7 +669,6 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
         int tileHasObject = game->map.tiles[tileIndex].dynamic_object_id;
         int tileHasEvent = game->map.tiles[tileIndex].dynamic_object_type == EVENT;
         if (game->status != IS_CUTSCENE && tileHasEvent && tileIndex == game->mainCharacter->currentTile) { 
-          game->status = IS_CUTSCENE;
           DynamicObject *event = getDynamicObjectFromMap(&game->map, game->map.tiles[tileIndex].dynamic_object_id);
           triggerEvent(game, event);
           return;
@@ -813,6 +812,8 @@ void handleInteraction(Game *game) {
 }
 
 void triggerEvent(Game *game, DynamicObject *dynamic_object) {
+  
+
   int quest_active = 0;
   int completed_quest = 0;
   if (dynamic_object->quest != 0) {
@@ -872,12 +873,24 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
 
 
   if (dynamic_object->id && dynamic_object->interactions[dynamic_object->state].task_count) {
+    if (game->mainCharacter->isMoving) {
+      game->mainCharacter->isMoving = 0;
+      game->mainCharacter->ax = 0;
+      game->mainCharacter->ay = 0;
+      game->mainCharacter->dx = 0;
+      game->mainCharacter->dy = 0;
+      game->mainCharacter->directionX = 0;
+      game->mainCharacter->thrustX = 0;
+      game->mainCharacter->frictionalForceX = 0;
+      game->mainCharacter->directionY = 0;
+      game->mainCharacter->thrustY = 0;
+      game->mainCharacter->frictionalForceY = 0;
+    }
     for (int i = 0; i < dynamic_object->interactions[dynamic_object->state].task_count; i++) {
       TaskType task_type = dynamic_object->interactions[dynamic_object->state].tasks[i].type;
 
       switch (task_type) {
         case SPEAK:
-          game->status = IS_CUTSCENE;
           enqueue(&dynamic_object->task_queue, (void*)&speak, dynamic_object->interactions[dynamic_object->state].tasks[i].data, (void*)&game->dismissDialog, 0);
           break;
         case WALK_LEFT:
@@ -972,6 +985,10 @@ void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
 void process(Game *game) {
   game->time++;
   int task_running = 0;
+  int no_tasks_left = 1;
+
+  printf("hello %d\n", game->status);
+  fflush(stdout);
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     DynamicObject *dynamic_object = &game->map.dynamic_objects[i];
@@ -986,6 +1003,7 @@ void process(Game *game) {
 
     if (has_task) {
       task_running = process_queue(dynamic_object, task_queue); 
+      no_tasks_left = 0;
     }
 
     if (!task_running && !task_queue->is_enqueuing && has_task) {
@@ -998,12 +1016,14 @@ void process(Game *game) {
     }
   }
 
-  if (!task_running && (game->status == IS_CUTSCENE)) {
+  if (no_tasks_left && (game->status == IS_CUTSCENE)) {
     game->status = IS_ACTIVE;
   }
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    handlePhysics(&game->map.dynamic_objects[i], &game->map.tiles[game->map.dynamic_objects[i].currentTile], &game->dt, game);
+    if (game->status == IS_ACTIVE || !game->map.dynamic_objects[i].isMain) {
+      handlePhysics(&game->map.dynamic_objects[i], &game->map.tiles[game->map.dynamic_objects[i].currentTile], &game->dt, game);
+    }
   }
 
   game->scrollX = -game->mainCharacter->x+WINDOW_WIDTH/2;
