@@ -110,7 +110,17 @@ int handleEvents(Game *game) {
             }
             break;
           case SDL_SCANCODE_A:
-            if (game->mainCharacter->has_object) { 
+            if (game->status == IS_MENU) {
+              MenuState menu_state = game->inventory_menu->state;
+              if (menu_state == DEFAULT_MENU) {
+                game->inventory_menu->selected_item_index = game->inventory_menu->active_item_index;
+                game->inventory_menu->state = ITEM_SELECTED;
+              } else if (menu_state == ITEM_SELECTED) {
+                swap_ints(game->inventory.items, game->inventory_menu->selected_item_index, game->inventory_menu->active_item_index);
+                game->inventory_menu->selected_item_index = -1;
+                game->inventory_menu->state = DEFAULT_MENU;
+              }
+            } else if (game->mainCharacter->has_object) { 
               triggerDrop(game);
             } else if (game->status != IS_CUTSCENE) {
               game->mainCharacter->isLifting = 1;
@@ -118,6 +128,20 @@ int handleEvents(Game *game) {
               game->dismissDialog = 0;
             } else {
               game->dismissDialog = 1;
+            }
+            break;
+          case SDL_SCANCODE_UP:
+            if (game->status == IS_MENU) {
+              if (game->inventory_menu->active_item_index) {
+                game->inventory_menu->active_item_index--;
+              }
+            }
+            break;
+          case SDL_SCANCODE_DOWN:
+            if (game->status == IS_MENU) {
+              if (game->inventory_menu->active_item_index < game->inventory.size - 1) {
+                game->inventory_menu->active_item_index++;
+              }
             }
             break;
           default:
@@ -136,21 +160,6 @@ int handleEvents(Game *game) {
     }
   }
 
-  if (game->status == IS_MENU) {
-    SDL_PumpEvents();
-    const Uint8 *state = SDL_GetKeyboardState(NULL);
-    if (state[SDL_SCANCODE_UP]) {
-      if (game->inventory_menu->active_item_index) {
-        game->inventory_menu->active_item_index--;
-      }
-    }
-    if (state[SDL_SCANCODE_DOWN]) {
-      if (game->inventory_menu->active_item_index < game->inventory.size - 1) {
-        game->inventory_menu->active_item_index++;
-      }
-    }
-  }
- 
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -436,16 +445,22 @@ void renderMenu(Game *game, TTF_Font *font) {
   SDL_Color text_color = { 255, 255, 255 }; 
   int item_position_index = 0;
   if (game->inventory.size <= 0) {
-    renderText(game->renderer, font, "No items", text_color, 80, 40, 100, 20);
+    renderText(game->renderer, font, "No items", text_color, 80, 40, NULL);
   } else {
     for (int i = 0; i < game->inventory.size; i++) {
       for (int j = 0; j < game->items_count; j++) {
         if (game->inventory.items[i] == game->items[j].id) {
           char *name = game->items[j].name;
-          renderText(game->renderer, font, name, text_color, 80, (i + 1) * 40, 100, 20);
+          if (game->inventory_menu->state == ITEM_SELECTED && game->inventory_menu->selected_item_index == i) {
+            SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(font, name, text_color, WINDOW_WIDTH - 50);
+            SDL_Rect SelectedItemRect = {80, (i + 1) * 40, surface->w, surface->h};
+            SDL_SetRenderDrawColor(game->renderer, 90, 110, 140, 100);
+            SDL_RenderFillRect(game->renderer, &SelectedItemRect); 
+          }
+          renderText(game->renderer, font, name, text_color, 80, (i + 1) * 40, NULL);
           renderCursor(game->renderer, 60, (game->inventory_menu->active_item_index + 1) * 40, 20, 20);
           if (game->inventory_menu->show_description && i == game->inventory_menu->active_item_index) {
-            renderText(game->renderer, font, game->items[j].description, text_color, 80, WINDOW_HEIGHT - 100, 100, 20);
+            renderText(game->renderer, font, game->items[j].description, text_color, 80, WINDOW_HEIGHT - 100, NULL);
           }
           item_position_index++;
         }
@@ -513,7 +528,7 @@ void doRender(Game *game) {
       dialogueCount++;
       renderDialogBox(game->renderer, dialogueCount);
       SDL_Color color = {255, 255, 255};
-      renderText(game->renderer, game->font, currentDialog, color, 25, WINDOW_HEIGHT - (180 * dialogueCount), WINDOW_WIDTH - 45, 20);
+      renderText(game->renderer, game->font, currentDialog, color, 25, WINDOW_HEIGHT - (180 * dialogueCount), NULL);
     }
   }
 
@@ -545,20 +560,22 @@ Cursor initializeMenuCursor() {
   int y = 0;
   int w = 20;
   int h = 40;
-  Cursor cursor = { .x=x, .y=y, .w=w, .h=h };
+  int index = 0;
+  Cursor cursor = { .x=x, .y=y, .w=w, .h=h, .index=index };
   return cursor;
 }
 
 // @TODO Pass items in this way?
 // Might be good if we have different 
 // inventories per character...
-Menu loadInventoryMenu() {
+Menu load_inventory_menu() {
   Menu inventory_menu = {
    0 
   } ;
   inventory_menu.show_description = 0;
   inventory_menu.type = INVENTORY;
   inventory_menu.active_item_index = 0;
+  inventory_menu.selected_item_index = -1;
   inventory_menu.cursor = initializeMenuCursor();
   return inventory_menu;
 }
@@ -579,10 +596,13 @@ void loadGame(Game *game) {
   game->indoorTexture = createTexture(game->renderer, "images/indoor.png");
   game->status = IS_ACTIVE;
   game->items = load_items("items.dat", &game->items_count);
-  game->inventory.size = 0;
-  game->inventory.capacity = sizeof(Item); 
-  game->inventory.items = malloc(sizeof(Item)); 
-  *game->inventory_menu = loadInventoryMenu();
+  game->inventory.size = 4;
+  game->inventory.capacity = sizeof(Item) * game->inventory.size; 
+  game->inventory.items = malloc(sizeof(Item) * game->inventory.size); 
+  memset(game->inventory.items, -1, sizeof(Item) * game->inventory.size);
+  game->inventory.items[0] = 1;
+  game->inventory.items[1] = 2;
+  *game->inventory_menu = load_inventory_menu();
   game->quests = load_quests("quests.dat", &game->quests_count);
   loadMap(game, "map_04.lvl", 0);
 };
@@ -659,9 +679,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
         }
         if (game->map.tiles[previousTile].dynamic_object_type != DOOR && game->map.tiles[previousTile].dynamic_object_type != EVENT) {
           game->map.tiles[previousTile].dynamic_object_id = 0;
-        } else {
-          fflush(stdout);
-        }
+        } 
       } 
 
       if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
@@ -987,8 +1005,8 @@ void process(Game *game) {
   int task_running = 0;
   int no_tasks_left = 1;
 
-  printf("hello %d\n", game->status);
-  fflush(stdout);
+  /* printf("hello %d\n", game->status); */
+  /* fflush(stdout); */
 
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     DynamicObject *dynamic_object = &game->map.dynamic_objects[i];

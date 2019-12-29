@@ -4,8 +4,10 @@
 #include "rpg.h"
 #include "renderers.h"
 
-void renderText(SDL_Renderer *renderer, TTF_Font *font, char* text, SDL_Color color, int x, int y, int w, int h) {
-  SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(font, text, color, WINDOW_WIDTH - 50);
+void renderText(SDL_Renderer *renderer, TTF_Font *font, char* text, SDL_Color color, int x, int y, SDL_Surface *surface) {
+  if (surface == NULL) {
+    surface = TTF_RenderText_Blended_Wrapped(font, text, color, WINDOW_WIDTH - 50);
+  }
   SDL_Rect textRect = {x, y, surface->w, surface->h};
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
   SDL_RenderCopy(renderer, texture, NULL, &textRect);
@@ -33,5 +35,5 @@ void renderPauseState(SDL_Renderer *renderer, TTF_Font *font) {
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 50);
   SDL_RenderFillRect(renderer, &pauseOverlayRect); 
   SDL_Color color = {255, 255, 255};
-  renderText(renderer, font, "Paused", color, WINDOW_WIDTH/2 - 40, WINDOW_HEIGHT/2, 40, 20);
+  renderText(renderer, font, "Paused", color, WINDOW_WIDTH/2 - 40, WINDOW_HEIGHT/2, NULL);
 }
