@@ -47,6 +47,11 @@ Quest* load_quests(char* file_name, int *quests_count) {
       bufferPtr[strlen(bufferPtr) - 1] = 0;
       quests[i].name = malloc(sizeof(buffer));
       strcpy(quests[i].name, bufferPtr);
+    } else if (buffer[0] == '&') {
+      char *bufferPtr = buffer;
+      bufferPtr++;
+      bufferPtr[strlen(bufferPtr) - 1] = 0;
+      quests[i].target_tile = atoi(bufferPtr);
     } else if (buffer[0] == '%') {
       char *bufferPtr = buffer;
       bufferPtr++;

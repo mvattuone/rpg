@@ -670,6 +670,10 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
       int doIndexY = (objectY + objectH/2)/game->map.tileSize;
       int previousTile = game->map.dynamic_objects[i].currentTile;
       game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
+      if (game->map.dynamic_objects[i].id == 5) {
+        printf("game current tile %d\n", game->map.dynamic_objects[i].currentTile);
+      }
+      fflush(stdout);
 
       // Handle resetting dynamic object ids when movement occurs
       // Need to avoid this when an object is static i.e. door, event
@@ -800,10 +804,6 @@ void triggerDrop(Game *game) {
 // you try to interact with object
 void handleInteraction(Game *game) { 
   DynamicObject *townsperson = NULL;
-  printf("What is the current tile %d\n", game->mainCharacter->currentTile);
-  printf("What is the target tile %d\n", game->mainCharacter->currentTile - game->map.width);
-  printf("what is the dynamic object id here %d\n", game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
-  fflush(stdout);
   if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
   } else if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
@@ -843,15 +843,18 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
 
         if (quest->type == SWITCH && quest->state == IN_PROGRESS) {
           // @TODO - Create a lookup quest information function of some kind
-          if (quest->id == 1) {
-            for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-              // @TODO Add the switch location
-              if (quest->target_id == game->map.dynamic_objects[i].id) {
-                if (game->map.dynamic_objects[i].currentTile == 254) {
-                  completed_quest = 1;
-                  quest->state = COMPLETED;
-                  dynamic_object->state = QUEST_COMPLETED;
-                }
+          for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+            // @TODO Add the switch location
+            printf("this should work %d\n", quest->target_id);
+            fflush(stdout);
+            if (quest->target_id == game->map.dynamic_objects[i].id) {
+              printf("game current tile %d", game->map.dynamic_objects[i].currentTile);
+              printf("game target tile %d", quest->target_tile);
+              fflush(stdout);
+              if (game->map.dynamic_objects[i].currentTile == quest->target_tile) {
+                completed_quest = 1;
+                quest->state = COMPLETED;
+                dynamic_object->state = QUEST_COMPLETED;
               }
             }
           }

@@ -26,7 +26,7 @@
 0;
 *0
 #001
-073;
+081;
 0;
 0;
 0;
@@ -43,17 +43,22 @@ x;
 041;
 0;
 0;
-0;
+3;
 *0
 -Hey Foo... Captain sounded pretty angry on the radio.;
--You'd better hurry up. He hates when people aren't on time.;
--Especially when they're the boatswain.;
 *1
 -I was up during anchor watch. I should probably go back to sleep.;
--I just really wanted to get some breakfast.;
+-Can you move that box for me?;
 *2
--I was up during anchor watch. I should probably go back to sleep.;
--I just really wanted to get some breakfast.;
+*3
+-Just move the box over real quick.;
+*4
+-Pleeeeeease.;
+*5
+-Thanks for moving the box! Here's an espresso martini.;
+%1;
+*6
+-That box looks great.;
 #003
 013;
 3;
@@ -73,8 +78,8 @@ x;
 *0
 -You had better get over to the Captain! Your radio's been going off for at least half an hour!;
 #005
-210;
-2;
+100;
+1;
 0;
 0;
 *0

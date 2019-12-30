@@ -16,6 +16,7 @@ typedef struct {
   int id;
   int assignee_id;
   int target_id;
+  int target_tile;
   QuestState state;
   QuestType type;
 } Quest;
