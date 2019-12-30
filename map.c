@@ -66,7 +66,6 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
     DynamicObject **dynamic_objects = malloc(map.dynamic_objects_count * sizeof(DynamicObject));
     char c;
     int count = 0;
-    char d;
     while (count < map.width * map.height && (c = fgetc(mapData))) {
       if (c != '\n' && c != ' ' && !isspace(c)) {
         char tempId[2];
@@ -152,10 +151,13 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
         }
 
         if (dynamic_objects[dynamic_objects_count]->type == BED) {
-          dynamic_objects[dynamic_objects_count]->x = ((count % map.width) - 1) * tileSize;
-          dynamic_objects[dynamic_objects_count]->y = ceil((count - (map.width * 2))/map.width) * tileSize; 
-        } else if (dynamic_objects[dynamic_objects_count]->isMain && starting_tile) {
-          dynamic_objects[dynamic_objects_count]->x = ((starting_tile % map.width) - 1) * tileSize;
+          int starting_tile = dynamic_objects[dynamic_objects_count]->startingTile;
+          dynamic_objects[dynamic_objects_count]->x = ((starting_tile % map.width)) * tileSize;
+          dynamic_objects[dynamic_objects_count]->y = ceil((starting_tile - (map.width * 2))/map.width) * tileSize; 
+          printf("What is the current tile %d\n", dynamic_objects[dynamic_objects_count]->startingTile);
+              fflush(stdout);
+        } else if (dynamic_objects[dynamic_objects_count]->isMain && starting_tile > -1) {
+          dynamic_objects[dynamic_objects_count]->x = (starting_tile % map.width) - 1 * tileSize;
           dynamic_objects[dynamic_objects_count]->y = ceil((starting_tile - (map.width * 2))/map.width) * tileSize; 
         } else {
           dynamic_objects[i]->x = dynamic_objects[i]->startingTile % map.width * tileSize;
@@ -163,8 +165,15 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
         }
         dynamic_objects[i]->startingX = dynamic_objects[i]->x;
         dynamic_objects[i]->startingY = dynamic_objects[i]->y;
-        tiles[dynamic_objects[i]->startingTile]->dynamic_object_id = dynamic_objects[i]->id;
         ObjectType type = dynamic_objects[i]->type;
+        if (type == BED) {
+          // Even though the current tile is in the upper right quadrant, we want
+          // the bottom tiles to be interactable.
+          tiles[dynamic_objects[i]->startingTile + map.width + 1]->dynamic_object_id = dynamic_objects[i]->id;
+          tiles[dynamic_objects[i]->startingTile + map.width]->dynamic_object_id = dynamic_objects[i]->id;
+        } else {
+          tiles[dynamic_objects[i]->startingTile]->dynamic_object_id = dynamic_objects[i]->id;
+        }
         tiles[dynamic_objects[i]->startingTile]->dynamic_object_type = type;
         if (type == CRATE) {
           dynamic_objects[dynamic_objects_count]->isPassable = 0;

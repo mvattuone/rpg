@@ -94,10 +94,10 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_04.lvl", 100);
+            loadMap(game, "map_04.lvl", -1);
             break;
           case SDL_SCANCODE_O:
-            loadMap(game, "map_02.lvl", 100);
+            loadMap(game, "map_02.lvl", -1);
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -604,7 +604,7 @@ void loadGame(Game *game) {
   game->inventory.items[1] = 2;
   *game->inventory_menu = load_inventory_menu();
   game->quests = load_quests("quests.dat", &game->quests_count);
-  loadMap(game, "map_04.lvl", 0);
+  loadMap(game, "map_04.lvl", -1);
 };
 
 void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
@@ -800,6 +800,8 @@ void triggerDrop(Game *game) {
 // you try to interact with object
 void handleInteraction(Game *game) { 
   DynamicObject *townsperson = NULL;
+  printf("What is the current tile %d\n", game->mainCharacter->currentTile);
+  printf("What is the target tile %d\n", game->mainCharacter->currentTile - game->map.width);
   printf("what is the dynamic object id here %d\n", game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
   fflush(stdout);
   if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {

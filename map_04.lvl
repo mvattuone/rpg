@@ -20,13 +20,13 @@
 251 251 251 251 251 02202223 02202224 251 251 251 251 251
 
 #000
-040;
+037;
 0;
 0;
 0;
 *0
 #001
-030;
+073;
 0;
 0;
 0;
@@ -55,8 +55,8 @@ x;
 -I was up during anchor watch. I should probably go back to sleep.;
 -I just really wanted to get some breakfast.;
 #003
-101;
-0;
+013;
+3;
 0;
 0;
 *0
@@ -66,33 +66,33 @@ x;
 *2
 -As much as you want it to be, now is really not the time to go back to bed.;
 #004
-040;
+037;
 5;
 0;
 0;
 *0
--Hi there;
+-You had better get over to the Captain! Your radio's been going off for at least half an hour!;
 #005
 210;
-0;
+2;
 0;
 0;
 *0
 #006
-114;
-0;
+061;
+4;
 0;
 0;
 *0
 #007
-054;
-0;
+069;
+4;
 0;
 0;
 *0
 #008
-124;
-0;
+158;
+4;
 0;
 0;
 *0
