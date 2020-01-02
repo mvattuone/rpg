@@ -208,7 +208,7 @@ Queue dequeue(Queue *queue)
     return new_queue;
 }
 
-DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type) {
+DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type, HatType hat_type) {
   dynamic_object->task_queue.items = malloc(sizeof(QueueItem));
   dynamic_object->task_queue.is_enqueuing = 0;
   dynamic_object->task_queue.prev_size = 0;
@@ -251,14 +251,22 @@ DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *d
   dynamic_object->runningTexture = NULL;
 
   if (type == MAN) {
+    SDL_Surface *hatSurface = NULL;
     SDL_Surface *manIdleSurface = createSurface("images/man-idle.png");
     SDL_Surface *manRunningSurface = createSurface("images/man-running.png");
     dynamic_object->idleTexture= SDL_CreateTextureFromSurface(renderer, manIdleSurface);
-    dynamic_object->runningTexture= SDL_CreateTextureFromSurface(renderer, manRunningSurface);
+    dynamic_object->runningTexture = SDL_CreateTextureFromSurface(renderer, manRunningSurface);
+    dynamic_object->hatTexture = NULL;
     dynamic_object->w = manIdleSurface->w / 8;
     dynamic_object->h = manIdleSurface->h / 8;
     SDL_FreeSurface(manRunningSurface);
     SDL_FreeSurface(manIdleSurface);
+
+    if (hat_type == CAPTAIN) {
+      hatSurface = createSurface("images/peaked_cap.png");
+      dynamic_object->hatTexture= SDL_CreateTextureFromSurface(renderer, hatSurface);
+    }
+    SDL_FreeSurface(hatSurface);
   }
 
   if (type == CRATE) {

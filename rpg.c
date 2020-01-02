@@ -39,17 +39,17 @@ void loadMap(Game *game, char* fileName, int startingTile) {
   game->map = initializeMap(fileName, 32, startingTile);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
     if (game->map.dynamic_objects[i].type == MAN) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN);
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, 0);
     } else if (game->map.dynamic_objects[i].type == CRATE) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE);
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE, -1);
     } else if (game->map.dynamic_objects[i].type == JAR) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR);
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR, -1);
     } else if (game->map.dynamic_objects[i].type == BED) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED);
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED, -1);
     } else if (game->map.dynamic_objects[i].type == EVENT) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT);
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
     } else if (game->map.dynamic_objects[i].type == DOOR) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR);
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
     }
     if (game->map.dynamic_objects[i].isMain) {
       game->mainCharacter = &game->map.dynamic_objects[i];
@@ -430,12 +430,39 @@ void renderJar(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *render
   SDL_RenderCopy(renderer, dynamic_object->jarTexture, &srcRect, &destRect);
 }
 
+int getHatDirection(Direction direction) {
+  switch (direction) {
+    case UP:
+      return 0;
+      break;
+    case LEFT:
+      return 1;
+      break;
+    case DOWN:
+      return 2;
+      break;
+    case RIGHT:
+      return 3;
+      break;
+    default:
+      break;
+  }
+
+  return -1;
+};
+
 void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
   SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
   SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
   dynamic_object->status == IS_RUNNING
     ? SDL_RenderCopy(renderer, dynamic_object->runningTexture, &srcRect, &destRect)
     : SDL_RenderCopy(renderer, dynamic_object->idleTexture, &srcRect, &destRect);
+  if (dynamic_object->hatTexture != NULL) {
+    int hat_direction = getHatDirection(dynamic_object->direction);
+    SDL_Rect srcRect = { hat_direction * 64, 0, 64, 64};
+    SDL_Rect destRect = {x - 10, y - 10, dynamic_object->w * 2, dynamic_object->h * 2};
+    SDL_RenderCopy(renderer, dynamic_object->hatTexture, &srcRect, &destRect);
+  }
 }
 
 void renderMenu(Game *game, TTF_Font *font) {
@@ -671,7 +698,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
       int previousTile = game->map.dynamic_objects[i].currentTile;
       game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
       if (game->map.dynamic_objects[i].id == 5) {
-        printf("game current tile %d\n", game->map.dynamic_objects[i].currentTile);
+        /* printf("game current tile %d\n", game->map.dynamic_objects[i].currentTile); */
       }
       fflush(stdout);
 
@@ -845,11 +872,11 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           // @TODO - Create a lookup quest information function of some kind
           for (int i = 0; i < game->map.dynamic_objects_count; i++) {
             // @TODO Add the switch location
-            printf("this should work %d\n", quest->target_id);
-            fflush(stdout);
+            /* printf("this should work %d\n", quest->target_id); */
+            /* fflush(stdout); */
             if (quest->target_id == game->map.dynamic_objects[i].id) {
-              printf("game current tile %d", game->map.dynamic_objects[i].currentTile);
-              printf("game target tile %d", quest->target_tile);
+              /* printf("game current tile %d", game->map.dynamic_objects[i].currentTile); */
+              /* printf("game target tile %d", quest->target_tile); */
               fflush(stdout);
               if (game->map.dynamic_objects[i].currentTile == quest->target_tile) {
                 completed_quest = 1;
@@ -1109,6 +1136,7 @@ void shutdownGame(Game *game) {
     SDL_DestroyTexture(game->map.dynamic_objects[i].runningTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].crateTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].jarTexture);
+    SDL_DestroyTexture(game->map.dynamic_objects[i].hatTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].doorTexture);
     SDL_DestroyTexture(game->map.dynamic_objects[i].bedTexture);
     free(game->map.dynamic_objects[i].task_queue.items);

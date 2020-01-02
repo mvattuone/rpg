@@ -40,6 +40,10 @@ typedef enum {
 } ObjectType;
 
 typedef enum {
+  CAPTAIN
+} HatType;
+
+typedef enum {
   IS_IDLE,
   IS_RUNNING
 } Status;
@@ -146,13 +150,14 @@ typedef struct {
   Status status;
   SDL_Texture *idleTexture;
   SDL_Texture *runningTexture;
+  SDL_Texture *hatTexture;
   SDL_Texture *crateTexture;
   SDL_Texture *jarTexture;
   SDL_Texture *bedTexture;
   SDL_Texture *doorTexture;
 } DynamicObject;
 
-DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type); 
+DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *dynamic_object, int spriteValue, float angle, float mass, float walkThrust, float runThrust, Status status, Direction direction, ObjectType type, HatType hat_type); 
 
 
 // Probably this should be split into two functions...
