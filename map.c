@@ -68,9 +68,10 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
     int count = 0;
     while (count < map.width * map.height && (c = fgetc(mapData))) {
       if (c != '\n' && c != ' ' && !isspace(c)) {
-        char tempId[2];
+        char tempId[3];
         tempId[0] = c;
         tempId[1] = fgetc(mapData);
+        tempId[2] = '\0';
         tiles[count] = malloc(sizeof(Tile));
         tiles[count]->tileId = atoi(tempId);
         tiles[count]->w = tileSize;
