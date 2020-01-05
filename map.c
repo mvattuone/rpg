@@ -62,6 +62,10 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
     exit(1);
   } else {
     fscanf(mapData, "%d %d %d", &map.width, &map.height, &map.dynamic_objects_count);
+    // Move to next line
+    fgetc(mapData);
+    fgets(map.name, sizeof(map.name), mapData);
+    printf("what is map name %s\n", map.name);
     if (map.dynamic_objects_count > MAX_DYNAMIC_OBJECTS) {
       printf("More dynamic objects than allowed. Either increase MAX_DYNAMIC_OBJECTS or remove dynamic objects. Max Object Size is %d and current count is %d\n", MAX_DYNAMIC_OBJECTS, map.dynamic_objects_count);
       exit(1);

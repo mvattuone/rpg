@@ -20,7 +20,7 @@ typedef struct {
 } Tile;
 
 typedef struct {
-  char name[12];
+  char name[50];
   int width; // in tile units
   int height; // in tile units
   int tileSize;
