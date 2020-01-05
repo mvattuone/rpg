@@ -83,6 +83,7 @@ typedef enum {
   SPEAK,
   REMOVE,
   ADD_ITEM,
+  LOAD_MAP,
   REMOVE_ITEM
 } TaskType;
 

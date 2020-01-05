@@ -1,11 +1,10 @@
 #include "dynamic_object.h"
 #define MAX_TILE_SIZE 5000
-#define MAX_DYNAMIC_OBJECTS 10
+#define MAX_DYNAMIC_OBJECTS 12
 
 typedef enum {
   IS_WALKABLE,
   IS_SOLID,
-  IS_TELEPORT,
   IS_ABOVE
 } TileState;
 
@@ -18,8 +17,6 @@ typedef struct {
   int dynamic_object_id;
   ObjectType dynamic_object_type;
   int x,y,w,h;
-  char teleportTo[20];
-  int teleportTile;
 } Tile;
 
 typedef struct {

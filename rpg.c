@@ -37,7 +37,11 @@ DynamicArray removeFromInventory(DynamicObject *dynamic_object, Game *game, int 
 
 void loadMap(Game *game, char* fileName, int startingTile) {
   game->map = initializeMap(fileName, 32, startingTile);
+  printf("total count %d\n", game->map.dynamic_objects_count);
+  fflush(stdout);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+    printf("Do you reach here with the filename %d\n", game->map.dynamic_objects[i].id);
+    fflush(stdout);
     if (game->map.dynamic_objects[i].type == MAN) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, 0);
     } else if (game->map.dynamic_objects[i].type == CRATE) {
@@ -723,11 +727,6 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           return;
         }
 
-        if (game->map.tiles[tileIndex].tileState == IS_TELEPORT && tileIndex == game->mainCharacter->currentTile) {
-            printf("what is the teleport tile %d\n", game->map.tiles[tileIndex].teleportTile);
-            fflush(stdout);
-            loadMap(game, game->map.tiles[tileIndex].teleportTo, game->map.tiles[tileIndex].teleportTile);
-        }
         int isNotSelf = game->map.tiles[tileIndex].dynamic_object_id != active_dynamic_object->id;
 
         if (game->map.dynamic_objects[i].isMovable && !game->mainCharacter->isPushing)  {
@@ -939,6 +938,25 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
     for (int i = 0; i < dynamic_object->interactions[dynamic_object->state].task_count; i++) {
       TaskType task_type = dynamic_object->interactions[dynamic_object->state].tasks[i].type;
 
+      char tile_id[3];
+      char filename[12]; // e.g. map_01.lvl
+      char *token;
+
+      if (task_type == LOAD_MAP) {
+        token = strtok(dynamic_object->interactions[dynamic_object->state].tasks[i].data, ".");
+        snprintf(filename, sizeof filename, "map_%.2s.lvl", token);
+        while (token != NULL) {
+          token = strtok(NULL, ".");
+          for (int i = 0; i < 3; i++) {
+            if (token != NULL) {
+              tile_id[i] = token[i];
+            }
+          }
+          printf("what is it %s", filename);
+          fflush(stdout);
+        }
+      }
+
       switch (task_type) {
         case SPEAK:
           enqueue(&dynamic_object->task_queue, (void*)&speak, dynamic_object->interactions[dynamic_object->state].tasks[i].data, (void*)&game->dismissDialog, 0);
@@ -975,6 +993,10 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           break;
         case REMOVE_ITEM:
           enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), &game->inventory, NULL);
+          break;
+        case LOAD_MAP:
+          loadMap(game, filename, atoi(tile_id));
+          break;
         default:
           break;
       }
