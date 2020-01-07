@@ -701,14 +701,14 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
       int doIndexY = (objectY + objectH/2)/game->map.tileSize;
       int previousTile = game->map.dynamic_objects[i].currentTile;
       game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
-      if (game->map.dynamic_objects[i].id == 5) {
-        /* printf("game current tile %d\n", game->map.dynamic_objects[i].currentTile); */
-      }
       fflush(stdout);
 
       // Handle resetting dynamic object ids when movement occurs
       // Need to avoid this when an object is static i.e. door, event
       if (previousTile != game->map.dynamic_objects[i].currentTile) {
+        if (game->map.dynamic_objects[i].id == 0) {
+          printf("game current tile %d\n", game->map.dynamic_objects[i].currentTile);
+        }
         if (game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_type != DOOR && game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_type != EVENT) {
           game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
         }
