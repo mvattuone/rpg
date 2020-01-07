@@ -40,6 +40,7 @@ typedef enum {
 } ObjectType;
 
 typedef enum {
+  NONE,
   CAPTAIN
 } HatType;
 
@@ -98,6 +99,10 @@ typedef struct {
 } Interaction;
 
 typedef struct {
+  HatType hat;
+} Equipment;
+
+typedef struct {
   int id;
   Interaction interactions[MAX_INTERACTIONS];
   int interactions_count;
@@ -141,6 +146,7 @@ typedef struct {
   int isMain;
   int currentTile;
   int triggerDialog;
+  Equipment equipment;
   char* currentDialog;
   int startingTile;
   Queue task_queue;

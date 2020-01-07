@@ -193,6 +193,11 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
             dynamic_objects[i]->quest = e - '0';
           }
         }
+        while ((e = fgetc(mapData)) && e != ';') {
+          if (!isspace(e) && e != '\n') {
+            dynamic_objects[i]->equipment.hat = e - '0';
+          }
+        }
 
         if (e == ';') {
           while (e != '*') {

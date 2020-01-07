@@ -25,9 +25,11 @@ Crew Quarters
 0;
 0;
 0;
+0;
 *0
 #001
 081;
+0;
 0;
 0;
 0;
@@ -42,6 +44,7 @@ vv11;
 x;
 #002
 041;
+0;
 0;
 0;
 3;
@@ -65,6 +68,7 @@ x;
 3;
 0;
 0;
+0;
 *0
 -As much as you want it to be, now is really not the time to go back to bed.;
 *1
@@ -76,11 +80,13 @@ x;
 5;
 0;
 0;
+0;
 *0
 -You had better get over to the Captain! Your radio's been going off for at least half an hour!;
 #005
 100;
 1;
+0;
 0;
 0;
 *0
@@ -89,10 +95,12 @@ x;
 4;
 0;
 0;
+0;
 *0
 #007
 069;
 4;
+0;
 0;
 0;
 *0
@@ -101,10 +109,12 @@ x;
 4;
 0;
 0;
+0;
 *0
 #009
 221;
 5;
+0;
 0;
 0;
 *0
@@ -112,6 +122,7 @@ x;
 #010
 222;
 5;
+0;
 0;
 0;
 *0

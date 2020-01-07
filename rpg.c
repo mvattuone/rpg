@@ -40,19 +40,19 @@ void loadMap(Game *game, char* fileName, int startingTile) {
   printf("total count %d\n", game->map.dynamic_objects_count);
   fflush(stdout);
   for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    printf("Do you reach here with the filename %d\n", game->map.dynamic_objects[i].id);
-    fflush(stdout);
-    if (game->map.dynamic_objects[i].type == MAN) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, 0);
-    } else if (game->map.dynamic_objects[i].type == CRATE) {
+    ObjectType type = game->map.dynamic_objects[i].type;
+    if (type == MAN) {
+      HatType hat = game->map.dynamic_objects[i].equipment.hat;
+      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, hat);
+    } else if (type == CRATE) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE, -1);
-    } else if (game->map.dynamic_objects[i].type == JAR) {
+    } else if (type == JAR) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR, -1);
-    } else if (game->map.dynamic_objects[i].type == BED) {
+    } else if (type == BED) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED, -1);
-    } else if (game->map.dynamic_objects[i].type == EVENT) {
+    } else if (type == EVENT) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
-    } else if (game->map.dynamic_objects[i].type == DOOR) {
+    } else if (type == DOOR) {
       game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
     }
     if (game->map.dynamic_objects[i].isMain) {
