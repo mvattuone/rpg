@@ -723,6 +723,9 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
         int tileHasEvent = game->map.tiles[tileIndex].dynamic_object_type == EVENT;
         if (game->status != IS_CUTSCENE && tileHasEvent && tileIndex == game->mainCharacter->currentTile) { 
           DynamicObject *event = getDynamicObjectFromMap(&game->map, game->map.tiles[tileIndex].dynamic_object_id);
+          printf("Sup %d \n", event->state);
+          printf("quest id %d \n", event->quest);
+          fflush(stdout);
           triggerEvent(game, event);
           return;
         }
@@ -910,13 +913,10 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           quest = &game->quests[i];
         }
       }
-      if (quest && dynamic_object->id == 1 && dynamic_object->state == DEFAULT) {
+      if (quest && ((dynamic_object->state == DEFAULT && dynamic_object->interactions[SPOKEN].task_count == 0 ) || (dynamic_object->state == SPOKEN))) {
         add_quest(&game->active_quests, dynamic_object->id, quest);
         quest_active = 1;
-      } else if (quest && dynamic_object->id == 2 && dynamic_object->state == SPOKEN) {
-        add_quest(&game->active_quests, dynamic_object->id, quest);
-        quest_active = 1;
-      }
+      } 
     }
   }
 

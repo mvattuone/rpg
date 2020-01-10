@@ -10,11 +10,17 @@ $Get the guest a martini
 &-1
 $Find my dog
 %The charter guest wants their dog!
-*2
+*3
 #0
 @5
 &101
 $Push the box
 %Just push that box over.
+*4
+#2
+@2
+&-1
+$Talk to the box guy.
+%He's now the target. Why not.
 
 
