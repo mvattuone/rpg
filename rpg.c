@@ -586,16 +586,6 @@ TTF_Font* initializeFont(char* fileName, int fontSize) {
   return font;
 }
 
-Cursor initializeMenuCursor() {
-  int x = 0;
-  int y = 0;
-  int w = 20;
-  int h = 40;
-  int index = 0;
-  Cursor cursor = { .x=x, .y=y, .w=w, .h=h, .index=index };
-  return cursor;
-}
-
 // @TODO Pass items in this way?
 // Might be good if we have different 
 // inventories per character...

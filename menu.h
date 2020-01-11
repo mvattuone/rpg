@@ -33,3 +33,5 @@ typedef struct {
   MenuType type;
   Cursor cursor;
 } Menu;
+
+Cursor initializeMenuCursor();
