@@ -35,28 +35,57 @@ DynamicArray removeFromInventory(DynamicObject *dynamic_object, Game *game, int 
 }
 
 
-void loadMap(Game *game, char* fileName, int startingTile) {
-  game->map = initializeMap(fileName, 32, startingTile);
-  printf("total count %d\n", game->map.dynamic_objects_count);
+void loadMap(Game *game, char* fileName, int startingTile, int map_id) {
+  printf("what is map id %d\n", map_id);
+  printf("what is map name %s\n", game->maps[map_id].name);
+  int map_loaded = 0;
+
+  if (game->mainCharacter != NULL) {
+    removeObject(game->mainCharacter);
+  }
+
+  if (strcmp(game->maps[map_id].name, "No Name")) {
+    printf("map %d exists, setting \n", map_id);
+    fflush(stdout);
+    game->current_map = &game->maps[map_id];
+    map_loaded = 1;
+  }
+
+  printf("Map %d was not loaded, initializing...\n", map_id);
   fflush(stdout);
-  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    ObjectType type = game->map.dynamic_objects[i].type;
-    if (type == MAN) {
-      HatType hat = game->map.dynamic_objects[i].equipment.hat;
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, hat);
-    } else if (type == CRATE) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE, -1);
-    } else if (type == JAR) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR, -1);
-    } else if (type == BED) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED, -1);
-    } else if (type == EVENT) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
-    } else if (type == DOOR) {
-      game->map.dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->map.dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
+  if (!map_loaded) {
+    game->maps[map_id] = initializeMap(fileName, 32, startingTile);
+    game->current_map = &game->maps[map_id];
+  }
+  for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+    if (!map_loaded) {
+      ObjectType type = game->current_map->dynamic_objects[i].type;
+      // @TODO It would be cool if we reset _certain_ parameters regardless
+      // of whether we have loaded the map or not. We could do that here.
+      // And move the other state that should not reset ever elsewhere.
+      if (type == MAN) {
+        HatType hat = game->current_map->dynamic_objects[i].equipment.hat;
+        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, hat);
+      } else if (type == CRATE) {
+        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE, -1);
+      } else if (type == JAR) {
+        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR, -1);
+      } else if (type == BED) {
+        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED, -1);
+      } else if (type == EVENT) {
+        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
+      } else if (type == DOOR) {
+        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
+      }
     }
-    if (game->map.dynamic_objects[i].isMain) {
-      game->mainCharacter = &game->map.dynamic_objects[i];
+    if (game->current_map->dynamic_objects[i].isMain) {
+      game->mainCharacter = &game->current_map->dynamic_objects[i];
+      // @TODO Make a function like setDynamicObjectPosition
+      // I guess it can be void?
+      game->current_map->dynamic_objects[i].x = (startingTile % game->current_map->width) * game->current_map->tileSize;
+      game->current_map->dynamic_objects[i].y = floor(startingTile/game->current_map->width) * game->current_map->tileSize; 
+      game->current_map->dynamic_objects[i].startingTile = startingTile;
+      game->current_map->dynamic_objects[i].currentTile = game->mainCharacter->startingTile;
     }
   }
 }
@@ -98,10 +127,10 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_04.lvl", -1);
+            loadMap(game, "map_01.lvl", -1, 0);
             break;
           case SDL_SCANCODE_O:
-            loadMap(game, "map_02.lvl", -1);
+            loadMap(game, "map_02.lvl", -1, 1);
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -506,7 +535,7 @@ void renderMenu(Game *game, TTF_Font *font) {
   tileRow = tileId % 16;
   tileColumn = tileId / 16;
   SDL_Rect srcRect = {tileRow * 16, tileColumn * 16, 16, 16};
-  SDL_Rect tileRect = {x + game->scrollX, y + game->scrollY, game->map.tileSize, game->map.tileSize};
+  SDL_Rect tileRect = {x + game->scrollX, y + game->scrollY, game->current_map->tileSize, game->current_map->tileSize};
   SDL_RenderCopy(game->renderer, texture, &srcRect, &tileRect);
 };
 
@@ -516,45 +545,45 @@ void doRender(Game *game) {
   int dialogueCount = 0;
 
 
-  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++) {
-    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
-      if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
-        renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.width].tileId, game->indoorTexture);
+  for (int y = -game->scrollY/game->current_map->tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
+    for (int x = -game->scrollX/game->current_map->tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+      if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
+        renderTile(game, x * game->current_map->tileSize, y * game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture);
       }
     }
   }
 
-  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    if (game->map.dynamic_objects[i].type == MAN) {
-      renderMan(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
-    } else if (game->map.dynamic_objects[i].type == JAR) {
-        if (game->map.dynamic_objects[i].isLifted) {
+  for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+    if (game->current_map->dynamic_objects[i].type == MAN) {
+      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->current_map->dynamic_objects[i].type == JAR) {
+        if (game->current_map->dynamic_objects[i].isLifted) {
           game->mainCharacter->isLifting = 0;
-          game->map.dynamic_objects[i].x = game->mainCharacter->x;
-          game->map.dynamic_objects[i].y = game->mainCharacter->y - game->mainCharacter->h;
+          game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
+          game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->mainCharacter->h;
         }
-        renderJar(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
-    } else if (game->map.dynamic_objects[i].type == BED) {
-      renderBed(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
-    } else if (game->map.dynamic_objects[i].type == CRATE) {
-      renderCrate(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
-    } else if (game->map.dynamic_objects[i].type == DOOR) {
-      renderDoor(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
-    } else if (game->map.dynamic_objects[i].type == EVENT) {
-      renderMan(&game->map.dynamic_objects[i], game->map.dynamic_objects[i].x+game->scrollX, game->map.dynamic_objects[i].y+game->scrollY, game->renderer);
+        renderJar(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->current_map->dynamic_objects[i].type == BED) {
+      renderBed(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->current_map->dynamic_objects[i].type == CRATE) {
+      renderCrate(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->current_map->dynamic_objects[i].type == DOOR) {
+      renderDoor(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+    } else if (game->current_map->dynamic_objects[i].type == EVENT) {
+      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
     }
   }
 
-  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++) {
-    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
-      if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height && game->map.tiles[x+y*game->map.width].tileState == IS_ABOVE) {
-        renderTile(game, x * game->map.tileSize, y * game->map.tileSize, game->map.tiles[x + y * game->map.width].tileId, game->indoorTexture);
+  for (int y = -game->scrollY/game->current_map->tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
+    for (int x = -game->scrollX/game->current_map->tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+      if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height && game->current_map->tiles[x+y*game->current_map->width].tileState == IS_ABOVE) {
+        renderTile(game, x * game->current_map->tileSize, y * game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture);
       }
     }
   }
 
-  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    char* currentDialog = game->map.dynamic_objects[i].currentDialog;
+  for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+    char* currentDialog = game->current_map->dynamic_objects[i].currentDialog;
     if (currentDialog != NULL) {
       dialogueCount++;
       renderDialogBox(game->renderer, dialogueCount);
@@ -625,7 +654,11 @@ void loadGame(Game *game) {
   game->inventory.items[1] = 2;
   *game->inventory_menu = load_inventory_menu();
   game->quests = load_quests("quests.dat", &game->quests_count);
-  loadMap(game, "map_04.lvl", -1);
+  char bufferPtr[10] = "No Name";
+  for (int i = 0; i < 2; i++ ) {
+    strcpy(game->maps[i].name, bufferPtr);
+  }
+  loadMap(game, "map_01.lvl", 186, 0);
 };
 
 void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
@@ -676,101 +709,121 @@ void detectTileCollision(Game *game, DynamicObject *active_dynamic_object, Tile 
 }
 
 void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
-  for (int y = -game->scrollY/game->map.tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->map.tileSize; y++)
-    for (int x = -game->scrollX/game->map.tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->map.tileSize; x++) {
-    int tileIndex = x + y * game->map.width;
+  for (int y = -game->scrollY/game->current_map->tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->current_map->tileSize; y++)
+    for (int x = -game->scrollX/game->current_map->tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+    int tileIndex = x + y * game->current_map->width;
     if (tileIndex < 0) continue;
 
 
-    for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-      float objectX = game->map.dynamic_objects[i].x;
-      float objectY = game->map.dynamic_objects[i].y;
-      float objectW = game->map.dynamic_objects[i].w;
-      float objectH = game->map.dynamic_objects[i].h;
-      int doIndexX = (objectX + objectW/2)/game->map.tileSize;
-      int doIndexY = (objectY + objectH/2)/game->map.tileSize;
-      int previousTile = game->map.dynamic_objects[i].currentTile;
-      game->map.dynamic_objects[i].currentTile = doIndexX + doIndexY * game->map.width;
+    int *previousMainTile = NULL;
+    for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+      float objectX = game->current_map->dynamic_objects[i].x;
+      float objectY = game->current_map->dynamic_objects[i].y;
+      float objectW = game->current_map->dynamic_objects[i].w;
+      float objectH = game->current_map->dynamic_objects[i].h;
+      int doIndexX = (objectX + objectW/2)/game->current_map->tileSize;
+      int doIndexY = (objectY + objectH/2)/game->current_map->tileSize;
+      int previousTile = game->current_map->dynamic_objects[i].currentTile;
+      if (game->current_map->dynamic_objects[i].isMain) {
+        previousMainTile = &previousTile;
+        /* printf("previousMainTile  %d\n", *previousMainTile); */
+      }
+      game->current_map->dynamic_objects[i].currentTile = doIndexX + doIndexY * game->current_map->width;
+      if (game->current_map->dynamic_objects[i].isMain) {
+        /* printf("game current tile %d\n", game->current_map->dynamic_objects[i].currentTile); */
+      }
       fflush(stdout);
 
       // Handle resetting dynamic object ids when movement occurs
       // Need to avoid this when an object is static i.e. door, event
-      if (previousTile != game->map.dynamic_objects[i].currentTile) {
-        if (game->map.dynamic_objects[i].id == 0) {
-          printf("game current tile %d\n", game->map.dynamic_objects[i].currentTile);
+      if (previousTile != game->current_map->dynamic_objects[i].currentTile) {
+        if (game->current_map->dynamic_objects[i].isMain) {
+          /* printf("game current tile %d\n", game->current_map->dynamic_objects[i].currentTile); */
+          /* printf("game starting tile %d\n", game->current_map->dynamic_objects[i].startingTile); */
+          /* printf("previousMainTile later on  %d\n", *previousMainTile); */
         }
-        if (game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_type != DOOR && game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_type != EVENT) {
-          game->map.tiles[game->map.dynamic_objects[i].currentTile].dynamic_object_id = game->map.dynamic_objects[i].id;
+        if (game->current_map->tiles[game->current_map->dynamic_objects[i].currentTile].dynamic_object_type != DOOR && game->current_map->tiles[game->current_map->dynamic_objects[i].currentTile].dynamic_object_type != EVENT) {
+          game->current_map->tiles[game->current_map->dynamic_objects[i].currentTile].dynamic_object_id = game->current_map->dynamic_objects[i].id;
         }
-        if (game->map.tiles[previousTile].dynamic_object_type != DOOR && game->map.tiles[previousTile].dynamic_object_type != EVENT) {
-          game->map.tiles[previousTile].dynamic_object_id = 0;
+        if (game->current_map->tiles[previousTile].dynamic_object_type != DOOR && game->current_map->tiles[previousTile].dynamic_object_type != EVENT) {
+          game->current_map->tiles[previousTile].dynamic_object_id = 0;
         } 
       } 
 
-      if (x >= 0 && x < game->map.width && y>= 0 && y < game->map.height) {
-        int tileIsSolid = game->map.tiles[tileIndex].tileState == IS_SOLID;
-        int tileHasObject = game->map.tiles[tileIndex].dynamic_object_id;
-        int tileHasEvent = game->map.tiles[tileIndex].dynamic_object_type == EVENT;
-        if (game->status != IS_CUTSCENE && tileHasEvent && tileIndex == game->mainCharacter->currentTile) { 
-          DynamicObject *event = getDynamicObjectFromMap(&game->map, game->map.tiles[tileIndex].dynamic_object_id);
-          printf("Sup %d \n", event->state);
-          printf("quest id %d \n", event->quest);
+      if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
+        int tileIsSolid = game->current_map->tiles[tileIndex].tileState == IS_SOLID;
+        int tileHasObject = game->current_map->tiles[tileIndex].dynamic_object_id;
+        int tileHasEvent = game->current_map->tiles[tileIndex].dynamic_object_type == EVENT;
+        fflush(stdout);
+        if (tileHasEvent) {
+          /* printf("current tile %d\n", game->mainCharacter->currentTile); */
+          /* printf("previousMainTile  %d\n", *previousMainTile); */
+          /* printf("tileIndex %d\n", tileIndex); */
+        }
+        if (game->status != IS_CUTSCENE && tileHasEvent && tileIndex == game->mainCharacter->currentTile && previousMainTile > 0 && *previousMainTile != game->mainCharacter->currentTile) { 
+          game->mainCharacter->currentTile = 0;
+          printf("my dude %d\n", game->mainCharacter->id);
+          printf("current tile %d\n", game->mainCharacter->currentTile);
+          printf("previousMainTile  %d\n", *previousMainTile);
+          printf("tileIndex %d\n", tileIndex);
+          DynamicObject *event = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[tileIndex].dynamic_object_id);
+          printf("Sup %d \n", event->id);
           fflush(stdout);
           triggerEvent(game, event);
           return;
         }
 
-        int isNotSelf = game->map.tiles[tileIndex].dynamic_object_id != active_dynamic_object->id;
+        int isNotSelf = game->current_map->tiles[tileIndex].dynamic_object_id != active_dynamic_object->id;
 
-        if (game->map.dynamic_objects[i].isMovable && !game->mainCharacter->isPushing)  {
-          game->map.dynamic_objects[i].isMoving = 0;
-          game->map.dynamic_objects[i].moveUp = 0;
-          game->map.dynamic_objects[i].moveLeft = 0;
-          game->map.dynamic_objects[i].moveRight = 0;
-          game->map.dynamic_objects[i].moveDown = 0;
+        if (game->current_map->dynamic_objects[i].isMovable && !game->mainCharacter->isPushing)  {
+          game->current_map->dynamic_objects[i].isMoving = 0;
+          game->current_map->dynamic_objects[i].moveUp = 0;
+          game->current_map->dynamic_objects[i].moveLeft = 0;
+          game->current_map->dynamic_objects[i].moveRight = 0;
+          game->current_map->dynamic_objects[i].moveDown = 0;
         }
 
         if (tileIsSolid) {
-          detectTileCollision(game, active_dynamic_object, &game->map.tiles[tileIndex]);
+          detectTileCollision(game, active_dynamic_object, &game->current_map->tiles[tileIndex]);
         }
 
-        if (game->status == IS_ACTIVE && (game->map.dynamic_objects[i].isPassable == 0)) {
-          detectObjectCollision(game, active_dynamic_object, &game->map.dynamic_objects[i]);
+        if (game->status == IS_ACTIVE && (game->current_map->dynamic_objects[i].isPassable == 0)) {
+          detectObjectCollision(game, active_dynamic_object, &game->current_map->dynamic_objects[i]);
         }
 
         if (tileHasObject && isNotSelf) {
 
-          int tileIsAboveObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile - game->map.width && active_dynamic_object->direction == UP; 
-          int tileIsBelowObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile + game->map.width && active_dynamic_object->direction == DOWN;
-          int tileIsToLeftOfObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile - 1 && active_dynamic_object->direction == LEFT;
-          int tileIsToRightOfObject = game->map.dynamic_objects[i].currentTile == active_dynamic_object->currentTile + 1 && active_dynamic_object->direction == RIGHT;
+          int tileIsAboveObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - game->current_map->width && active_dynamic_object->direction == UP; 
+          int tileIsBelowObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + game->current_map->width && active_dynamic_object->direction == DOWN;
+          int tileIsToLeftOfObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - 1 && active_dynamic_object->direction == LEFT;
+          int tileIsToRightOfObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + 1 && active_dynamic_object->direction == RIGHT;
 
-          if (game->map.dynamic_objects[i].isLiftable && active_dynamic_object->isLifting)  {
+          if (game->current_map->dynamic_objects[i].isLiftable && active_dynamic_object->isLifting)  {
             if (tileIsBelowObject) {
-              game->map.dynamic_objects[i].isLifted = 1;
+              game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             }
             if (tileIsAboveObject) {
-              game->map.dynamic_objects[i].isLifted = 1;
+              game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             } 
             if (tileIsToLeftOfObject) {
-              game->map.dynamic_objects[i].isLifted = 1;
+              game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             }
             if (tileIsToRightOfObject) {
-              game->map.dynamic_objects[i].isLifted = 1;
+              game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
             } 
-            game->map.dynamic_objects[i].isPassable = 1;
+            game->current_map->dynamic_objects[i].isPassable = 1;
           }
 
-          if (game->map.dynamic_objects[i].isMovable && active_dynamic_object->isPushing)  {
-            game->map.dynamic_objects[i].isMoving = active_dynamic_object->isPushing ? 1 : 0;
-            game->map.dynamic_objects[i].moveLeft = tileIsToLeftOfObject ? 1 : 0;
-            game->map.dynamic_objects[i].moveUp = tileIsAboveObject ? 1 : 0;
-            game->map.dynamic_objects[i].moveRight = tileIsToRightOfObject ? 1 : 0;
-            game->map.dynamic_objects[i].moveDown = tileIsBelowObject ? 1 : 0;
+          if (game->current_map->dynamic_objects[i].isMovable && active_dynamic_object->isPushing)  {
+            game->current_map->dynamic_objects[i].isMoving = active_dynamic_object->isPushing ? 1 : 0;
+            game->current_map->dynamic_objects[i].moveLeft = tileIsToLeftOfObject ? 1 : 0;
+            game->current_map->dynamic_objects[i].moveUp = tileIsAboveObject ? 1 : 0;
+            game->current_map->dynamic_objects[i].moveRight = tileIsToRightOfObject ? 1 : 0;
+            game->current_map->dynamic_objects[i].moveDown = tileIsBelowObject ? 1 : 0;
           } 
 
         }
@@ -792,26 +845,26 @@ int getDirection(Game *game) {
 // we can throw. Or something like that. For now we just drop the object in
 // the adjacent tile. 
 void triggerDrop(Game *game) {
-  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    if (game->map.dynamic_objects[i].isLifted) {
-      game->map.dynamic_objects[i].isLifted = 0;
-      game->map.dynamic_objects[i].isPassable = 0;
+  for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+    if (game->current_map->dynamic_objects[i].isLifted) {
+      game->current_map->dynamic_objects[i].isLifted = 0;
+      game->current_map->dynamic_objects[i].isPassable = 0;
       game->mainCharacter->has_object = 0;
       if (game->mainCharacter->direction == UP) {
-        game->map.dynamic_objects[i].x = game->mainCharacter->x;
-        game->map.dynamic_objects[i].y = game->mainCharacter->y - game->map.tiles[0].h;
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->maps[i].tiles[0].h;
       }
       if (game->mainCharacter->direction == DOWN) {
-        game->map.dynamic_objects[i].x = game->mainCharacter->x;
-        game->map.dynamic_objects[i].y = game->mainCharacter->y + game->map.tiles[0].h;
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y + game->maps[i].tiles[0].h;
       }
       if (game->mainCharacter->direction == RIGHT) {
-        game->map.dynamic_objects[i].x = game->mainCharacter->x + game->map.tiles[0].w;
-        game->map.dynamic_objects[i].y = game->mainCharacter->y;
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x + game->maps[i].tiles[0].w;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y;
       }
       if (game->mainCharacter->direction == LEFT) {
-        game->map.dynamic_objects[i].x = game->mainCharacter->x - game->map.tiles[0].w;
-        game->map.dynamic_objects[i].y = game->mainCharacter->y; 
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x - game->maps[i].tiles[0].w;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y; 
       }
     }
   }
@@ -823,14 +876,14 @@ void triggerDrop(Game *game) {
 // you try to interact with object
 void handleInteraction(Game *game) { 
   DynamicObject *townsperson = NULL;
-  if (game->mainCharacter->direction == UP && game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - game->map.width].dynamic_object_id);
-  } else if (game->mainCharacter->direction == LEFT && game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
-  } else if (game->mainCharacter->direction == DOWN && game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + game->map.width].dynamic_object_id);
-  } else if (game->mainCharacter->direction == RIGHT && game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(&game->map, game->map.tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
+  if (game->mainCharacter->direction == UP && game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width].dynamic_object_id);
+  } else if (game->mainCharacter->direction == LEFT && game->current_map->tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
+  } else if (game->mainCharacter->direction == DOWN && game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width].dynamic_object_id);
+  } else if (game->mainCharacter->direction == RIGHT && game->current_map->tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
   } else {
     game->status = IS_ACTIVE;
     return;
@@ -862,15 +915,15 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
 
         if (quest->type == SWITCH && quest->state == IN_PROGRESS) {
           // @TODO - Create a lookup quest information function of some kind
-          for (int i = 0; i < game->map.dynamic_objects_count; i++) {
+          for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
             // @TODO Add the switch location
             /* printf("this should work %d\n", quest->target_id); */
             /* fflush(stdout); */
-            if (quest->target_id == game->map.dynamic_objects[i].id) {
-              /* printf("game current tile %d", game->map.dynamic_objects[i].currentTile); */
+            if (quest->target_id == game->current_map->dynamic_objects[i].id) {
+              /* printf("game current tile %d", game->current_map->dynamic_objects[i].currentTile); */
               /* printf("game target tile %d", quest->target_tile); */
               fflush(stdout);
-              if (game->map.dynamic_objects[i].currentTile == quest->target_tile) {
+              if (game->current_map->dynamic_objects[i].currentTile == quest->target_tile) {
                 completed_quest = 1;
                 quest->state = COMPLETED;
                 dynamic_object->state = QUEST_COMPLETED;
@@ -878,8 +931,8 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
             }
           }
         } else if (quest->type == TALK && quest->state == IN_PROGRESS) {
-          for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-            if (game->map.dynamic_objects[i].id == quest->target_id && game->map.dynamic_objects[i].state != DEFAULT) {
+          for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+            if (game->current_map->dynamic_objects[i].id == quest->target_id && game->current_map->dynamic_objects[i].state != DEFAULT) {
               completed_quest = 1;
               quest->state = COMPLETED;
               dynamic_object->state = QUEST_COMPLETED;
@@ -929,12 +982,16 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
       TaskType task_type = dynamic_object->interactions[dynamic_object->state].tasks[i].type;
 
       char tile_id[3];
+      int map_id;
       char filename[12]; // e.g. map_01.lvl
       char *token;
 
       if (task_type == LOAD_MAP) {
         token = strtok(dynamic_object->interactions[dynamic_object->state].tasks[i].data, ".");
         snprintf(filename, sizeof filename, "map_%.2s.lvl", token);
+        map_id = atoi(token) - 1;
+        printf("what is MAP ID %d \n", map_id);
+        fflush(stdout);
         while (token != NULL) {
           token = strtok(NULL, ".");
           for (int i = 0; i < 3; i++) {
@@ -942,7 +999,7 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
               tile_id[i] = token[i];
             }
           }
-          printf("what is it %s", filename);
+          /* printf("what is it %s", filename); */
           fflush(stdout);
         }
       }
@@ -952,28 +1009,28 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           enqueue(&dynamic_object->task_queue, (void*)&speak, dynamic_object->interactions[dynamic_object->state].tasks[i].data, (void*)&game->dismissDialog, 0);
           break;
         case WALK_LEFT:
-          enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
           break;
         case WALK_RIGHT:
-          enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
           break;
         case WALK_UP:
-          enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
           break;
         case WALK_DOWN:
-          enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
           break;
         case RUN_LEFT:
-          enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
           break;
         case RUN_RIGHT:
-          enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
           break;
         case RUN_UP:
-          enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
           break;
         case RUN_DOWN:
-          enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->map.tileSize, NULL);
+          enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
           break;
         case REMOVE:
           enqueue(&dynamic_object->task_queue, (void*)&removeObject, NULL, NULL, NULL);
@@ -985,7 +1042,10 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), &game->inventory, NULL);
           break;
         case LOAD_MAP:
-          loadMap(game, filename, atoi(tile_id));
+          printf("Loading map \n");
+          fflush(stdout);
+          game->status = IS_CUTSCENE;
+          loadMap(game, filename, atoi(tile_id), map_id);
           break;
         default:
           break;
@@ -994,8 +1054,8 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
   }
 
 
-  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    if (dynamic_object->id == game->map.dynamic_objects[i].id && dynamic_object->interactions[dynamic_object->state].task_count) {
+  for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+    if (dynamic_object->id == game->current_map->dynamic_objects[i].id && dynamic_object->interactions[dynamic_object->state].task_count) {
       game->status = IS_CUTSCENE;
 
       if (!completed_quest && dynamic_object->state == QUEST_ACTIVE) {
@@ -1052,13 +1112,13 @@ void process(Game *game) {
   /* printf("hello %d\n", game->status); */
   /* fflush(stdout); */
 
-  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    DynamicObject *dynamic_object = &game->map.dynamic_objects[i];
+  for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+    DynamicObject *dynamic_object = &game->current_map->dynamic_objects[i];
     Queue *task_queue = &dynamic_object->task_queue;
     int has_task = task_queue->size > 0;
 
     if (fmod(game->time, 180) == 0) {
-      process_default_behavior(dynamic_object, &game->map);
+      process_default_behavior(dynamic_object, game->current_map);
     }
     
     task_queue->prev_size = task_queue->size;
@@ -1082,9 +1142,9 @@ void process(Game *game) {
     game->status = IS_ACTIVE;
   }
 
-  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    if (game->status == IS_ACTIVE || !game->map.dynamic_objects[i].isMain) {
-      handlePhysics(&game->map.dynamic_objects[i], &game->map.tiles[game->map.dynamic_objects[i].currentTile], &game->dt, game);
+  for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+    if (game->status == IS_ACTIVE || !game->current_map->dynamic_objects[i].isMain) {
+      handlePhysics(&game->current_map->dynamic_objects[i], &game->current_map->tiles[game->current_map->dynamic_objects[i].currentTile], &game->dt, game);
     }
   }
 
@@ -1095,63 +1155,65 @@ void process(Game *game) {
     game->mainCharacter->x = 0;
   }
 
-  if (game->mainCharacter->x > game->map.width * game->map.tileSize - game->mainCharacter->w) {
-    game->mainCharacter->x = game->map.width * game->map.tileSize - game->mainCharacter->w;
+  if (game->mainCharacter->x > game->current_map->width * game->current_map->tileSize - game->mainCharacter->w) {
+    game->mainCharacter->x = game->current_map->width * game->current_map->tileSize - game->mainCharacter->w;
   }
 
   if (game->mainCharacter->y < 0) {
     game->mainCharacter->y = 0;
   }
 
-  if (game->mainCharacter->y > game->map.height * game->map.tileSize - game->mainCharacter->h) {
-    game->mainCharacter->y = game->map.height * game->map.tileSize - game->mainCharacter->h;
+  if (game->mainCharacter->y > game->current_map->height * game->current_map->tileSize - game->mainCharacter->h) {
+    game->mainCharacter->y = game->current_map->height * game->current_map->tileSize - game->mainCharacter->h;
   }
 
   if(game->scrollX > 0) {
     game->scrollX = 0;
   }
-  if(game->scrollX < -game->map.width * game->map.tileSize+WINDOW_WIDTH) {
-    game->scrollX = -game->map.width * game->map.tileSize+WINDOW_WIDTH;
+  if(game->scrollX < -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH) {
+    game->scrollX = -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH;
   }
 
   if(game->scrollY > 0) {
     game->scrollY = 0;
   }
 
-  if(game->scrollY < -game->map.height * game->map.tileSize+WINDOW_HEIGHT) {
-    game->scrollY = -game->map.height * game->map.tileSize+WINDOW_HEIGHT;
+  if(game->scrollY < -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT) {
+    game->scrollY = -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT;
   }
 
 
   // handle animation
   // 60 FPS / 8 animations 
-    for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-      if (game->map.dynamic_objects[i].type == MAN) {
+    for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+      if (game->current_map->dynamic_objects[i].type == MAN) {
         if (fmod(game->time, 7.5) == 0) {
-        game->map.dynamic_objects[i].sprite = (game->map.dynamic_objects[i].sprite + 1) % 8;
-        if (game->map.dynamic_objects[i].dx != 0 || game->map.dynamic_objects[i].dy != 0) { 
-          game->map.dynamic_objects[i].angle = getAngle(game);
-          game->map.dynamic_objects[i].direction = getDirection(game);
+        game->current_map->dynamic_objects[i].sprite = (game->current_map->dynamic_objects[i].sprite + 1) % 8;
+        if (game->current_map->dynamic_objects[i].dx != 0 || game->current_map->dynamic_objects[i].dy != 0) { 
+          game->current_map->dynamic_objects[i].angle = getAngle(game);
+          game->current_map->dynamic_objects[i].direction = getDirection(game);
         }
-        game->map.dynamic_objects[i].status = game->map.dynamic_objects[i].dx != 0 || game->map.dynamic_objects[i].dy != 0 ? IS_RUNNING : IS_IDLE;
+        game->current_map->dynamic_objects[i].status = game->current_map->dynamic_objects[i].dx != 0 || game->current_map->dynamic_objects[i].dy != 0 ? IS_RUNNING : IS_IDLE;
         }
       } 
-      handleObjectCollisions(game, &game->map.dynamic_objects[i]);
+      handleObjectCollisions(game, &game->current_map->dynamic_objects[i]);
     }
 };
 
 void shutdownGame(Game *game) {
   SDL_DestroyTexture(game->terrainTexture);
   SDL_DestroyTexture(game->indoorTexture);
-  for (int i = 0; i < game->map.dynamic_objects_count; i++) {
-    SDL_DestroyTexture(game->map.dynamic_objects[i].idleTexture);
-    SDL_DestroyTexture(game->map.dynamic_objects[i].runningTexture);
-    SDL_DestroyTexture(game->map.dynamic_objects[i].crateTexture);
-    SDL_DestroyTexture(game->map.dynamic_objects[i].jarTexture);
-    SDL_DestroyTexture(game->map.dynamic_objects[i].hatTexture);
-    SDL_DestroyTexture(game->map.dynamic_objects[i].doorTexture);
-    SDL_DestroyTexture(game->map.dynamic_objects[i].bedTexture);
-    free(game->map.dynamic_objects[i].task_queue.items);
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < game->maps[i].dynamic_objects_count; i++) {
+      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].idleTexture);
+      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].runningTexture);
+      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].crateTexture);
+      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].jarTexture);
+      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].hatTexture);
+      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].doorTexture);
+      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].bedTexture);
+      free(game->maps[i].dynamic_objects[j].task_queue.items);
+    }
   }
   for (int i = 0; i < game->items_count; i++) {
     free(game->items[i].name);

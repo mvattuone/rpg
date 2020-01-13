@@ -33,7 +33,8 @@ typedef struct {
 typedef struct {
   SDL_Window *window;
   DynamicObject *mainCharacter;
-  Map map;
+  Map maps[2];
+  Map* current_map;
   TTF_Font *font;
   float scrollX;
   float scrollY;

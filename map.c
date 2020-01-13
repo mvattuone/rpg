@@ -65,7 +65,7 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
     // Move to next line
     fgetc(mapData);
     fgets(map.name, sizeof(map.name), mapData);
-    printf("what is map name %s\n", map.name);
+    /* printf("what is map name %s\n", map.name); */
     if (map.dynamic_objects_count > MAX_DYNAMIC_OBJECTS) {
       printf("More dynamic objects than allowed. Either increase MAX_DYNAMIC_OBJECTS or remove dynamic objects. Max Object Size is %d and current count is %d\n", MAX_DYNAMIC_OBJECTS, map.dynamic_objects_count);
       exit(1);
@@ -136,15 +136,21 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
         }
 
         if (dynamic_objects[dynamic_objects_count]->type == BED) {
-          int starting_tile = dynamic_objects[dynamic_objects_count]->startingTile;
-          dynamic_objects[dynamic_objects_count]->x = ((starting_tile % map.width)) * tileSize;
-          dynamic_objects[dynamic_objects_count]->y = ceil((starting_tile - (map.width * 2))/map.width) * tileSize; 
+          int tile = dynamic_objects[dynamic_objects_count]->startingTile;
+          dynamic_objects[dynamic_objects_count]->x = ((tile % map.width)) * tileSize;
+          dynamic_objects[dynamic_objects_count]->y = ceil((tile - (map.width * 2))/map.width) * tileSize; 
         } else if (dynamic_objects[dynamic_objects_count]->isMain && starting_tile > -1) {
-          dynamic_objects[dynamic_objects_count]->x = (starting_tile % map.width) - 1 * tileSize;
-          dynamic_objects[dynamic_objects_count]->y = ceil((starting_tile - (map.width * 2))/map.width) * tileSize; 
+          dynamic_objects[dynamic_objects_count]->x = (starting_tile % map.width) * tileSize;
+          dynamic_objects[dynamic_objects_count]->y = floor(starting_tile/map.width) * tileSize; 
+          dynamic_objects[dynamic_objects_count]->currentTile = starting_tile;
+          dynamic_objects[dynamic_objects_count]->startingTile = starting_tile;
+          printf("What is my current tile %d\n", dynamic_objects[dynamic_objects_count]->currentTile);
+          printf("What is my starting tile %d\n", dynamic_objects[dynamic_objects_count]->currentTile);
+          fflush(stdout);
         } else {
+          printf("HELLO %d", dynamic_objects[i]->startingTile);
           dynamic_objects[i]->x = dynamic_objects[i]->startingTile % map.width * tileSize;
-          dynamic_objects[i]->y = ceil(dynamic_objects[i]->startingTile/map.width) * tileSize; 
+          dynamic_objects[i]->y = floor(dynamic_objects[i]->startingTile/map.width) * tileSize; 
         }
         dynamic_objects[i]->startingX = dynamic_objects[i]->x;
         dynamic_objects[i]->startingY = dynamic_objects[i]->y;
@@ -296,10 +302,10 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
     map.dynamic_objects_count = dynamic_objects_count;
 
     for (int i = 0; i < map.dynamic_objects_count; i++) {
-      printf("type is %d\n", dynamic_objects[i]->type);
+      /* printf("type is %d\n", dynamic_objects[i]->type); */
       fflush(stdout);
       map.dynamic_objects[i] = *dynamic_objects[i];
-      printf("on the map the type is %d\n", map.dynamic_objects[i].type);
+      /* printf("on the map the type is %d\n", map.dynamic_objects[i].type); */
       fflush(stdout);
       map.dynamic_objects_count = dynamic_objects_count;
 
@@ -311,5 +317,7 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
   }
 
   fclose(mapData);
+  /* printf("what is map name %s\n", map.name); */
+  fflush(stdout);
   return map;
 };

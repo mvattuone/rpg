@@ -1,99 +1,143 @@
-12 24 5
+12 19 11
+Crew Quarters
 001 091 091 091 571 091 091 571 091 091 091 411
 001 251 251 251 571 251 251 571 251 251 251 571
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
-001 020 020 020 020 020 020 020 020 020 020 001
+001 020 020 020 571 020 020 571 020 020 020 571
+001 020 020 020 571 020 020 571 020 020 020 571
+001 092 092 092 091 020 020 091 091 091 090 571
+001 020 251 251 251 020 020 251 251 020 251 571
+571 020 020 020 020 020 020 020 020 020 020 571
+571 020 020 020 020 020 020 020 020 020 020 571
+571 020 020 020 020 020 020 020 020 020 020 571
+571 020 020 020 020 020 020 020 020 020 020 571
+571 020 020 020 020 020 020 002 002 002 002 571
+571 020 020 020 020 020 020 001 001 001 001 001
+571 092 092 092 572 020 020 001 001 001 001 001
+571 251 020 251 571 020 020 001 001 001 001 001
+571 020 020 020 571 020 020 001 001 001 001 001
+571 020 020 020 571 020 020 001 001 001 001 001
+571 020 020 020 571 020 020 001 001 001 001 001
+091 092 092 092 091 020 020 091 091 091 091 091
+251 251 251 251 251 020 020 251 251 251 251 251
 
 #000
-037;
+215;
 0;
 0;
 0;
 0;
+*0
 #001
+081;
+0;
+0;
+0;
+0;
+*0
+-Overslept again?;
+*1
+-Ah man, you'd better hurry.;
+-Wait, doesn't that mean I overslept too?;
+-Shit!;
+<<5;
+vv11;
+x;
+#002
 041;
 0;
-1;
-1;
+0;
+3;
 0;
 *0
--Hey there, could you get an espresso martini?;
--You work here, don't you?;
+-Hey Foo... Captain sounded pretty angry on the radio.;
 *1
+-I was up during anchor watch. I should probably go back to sleep.;
+-Can you move that box for me?;
 *2
 *3
--I am still waiting for that martini...;
+-Just move the box over real quick.;
 *4
--Chop chop.;
+-Pleeeeeease.;
 *5
--Thank you very much!;
+-Thanks for moving the box! Here's an espresso martini.;
+%1;
 *6
--Love me an espresso martini.;
-#002
-114;
-0;
-0;
-0;
-2;
-*0
--I just ate a lot of oysters and boooy am I full.;
-*1
--Have you seen my dog?;
-*2
--Have you seen my dog?;
-*3
--As soon as I find my dog I am getting on the tender and going home.;
-*4
--As soon as I find my dog I am getting on the tender and going home.;
-*5
--What, why is he over there? I guess I'll go get him. Thank you for that.;
-*6
--Thanks again.;
+-That box looks great.;
 #003
-025;
-0;
+013;
+3;
 0;
 0;
 0;
 *0
--Are they STILL putting out the water toys?;
--I should go complain to the captain.;
+-As much as you want it to be, now is really not the time to go back to bed.;
 *1
--Are they STILL putting out the water toys?;
--I should go complain to the captain.;
+-As much as you want it to be, now is really not the time to go back to bed.;
 *2
--Are they STILL putting out the water toys?;
--I should go complain to the captain.;
+-As much as you want it to be, now is really not the time to go back to bed.;
 #004
-091;
+037;
+5;
 0;
+4;
+0;
+*0
+-You had better get over to the Captain! Your radio's been going off for at least half an hour!;
+*1
+*2
+*3
+*4
+*5
+-The quest is over!;
+#005
+100;
+1;
 0;
 0;
 0;
 *0
--Nobody move until I've had my coffee!!!!;
--But you, you can have this bag of cheerios.;
-%2;
+#006
+061;
+4;
+0;
+0;
+0;
+*0
+#007
+069;
+4;
+0;
+0;
+0;
+*0
+#008
+158;
+4;
+0;
+0;
+0;
+*0
+#009
+221;
+5;
+0;
+0;
+0;
+*0
+@02.208;
 *1
--Nobody move until I've had my coffee!!!!;
+@02.208;
 *2
--Nobody move until I've had my coffee!!!!;
+@02.208;
+#010
+222;
+5;
+0;
+0;
+0;
+*0
+@02.209;
+*1
+@02.209;
+*2
+@02.209;
