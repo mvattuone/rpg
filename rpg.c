@@ -558,7 +558,6 @@ void doRender(Game *game) {
       renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == JAR) {
         if (game->current_map->dynamic_objects[i].isLifted) {
-          game->mainCharacter->isLifting = 0;
           game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
           game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->mainCharacter->h;
         }
@@ -600,6 +599,7 @@ void doRender(Game *game) {
     renderPauseState(game->renderer, game->font);
   }
 
+  game->mainCharacter->isLifting = 0;
   SDL_RenderPresent(game->renderer);
 };
 
@@ -802,20 +802,23 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
             if (tileIsBelowObject) {
               game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
+              game->current_map->dynamic_objects[i].isPassable = 1;
             }
             if (tileIsAboveObject) {
               game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
+              game->current_map->dynamic_objects[i].isPassable = 1;
             } 
             if (tileIsToLeftOfObject) {
               game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
+              game->current_map->dynamic_objects[i].isPassable = 1;
             }
             if (tileIsToRightOfObject) {
               game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
+              game->current_map->dynamic_objects[i].isPassable = 1;
             } 
-            game->current_map->dynamic_objects[i].isPassable = 1;
           }
 
           if (game->current_map->dynamic_objects[i].isMovable && active_dynamic_object->isPushing)  {
@@ -825,8 +828,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
             game->current_map->dynamic_objects[i].moveRight = tileIsToRightOfObject ? 1 : 0;
             game->current_map->dynamic_objects[i].moveDown = tileIsBelowObject ? 1 : 0;
           } 
-
-        }
+        } 
       }
     }
   }
@@ -852,18 +854,18 @@ void triggerDrop(Game *game) {
       game->mainCharacter->has_object = 0;
       if (game->mainCharacter->direction == UP) {
         game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
-        game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->maps[i].tiles[0].h;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->current_map->tiles[0].h;
       }
       if (game->mainCharacter->direction == DOWN) {
         game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
-        game->current_map->dynamic_objects[i].y = game->mainCharacter->y + game->maps[i].tiles[0].h;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y + game->current_map->tiles[0].h;
       }
       if (game->mainCharacter->direction == RIGHT) {
-        game->current_map->dynamic_objects[i].x = game->mainCharacter->x + game->maps[i].tiles[0].w;
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x + game->current_map->tiles[0].w;
         game->current_map->dynamic_objects[i].y = game->mainCharacter->y;
       }
       if (game->mainCharacter->direction == LEFT) {
-        game->current_map->dynamic_objects[i].x = game->mainCharacter->x - game->maps[i].tiles[0].w;
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x - game->current_map->tiles[0].w;
         game->current_map->dynamic_objects[i].y = game->mainCharacter->y; 
       }
     }
