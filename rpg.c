@@ -35,7 +35,7 @@ DynamicArray removeFromInventory(DynamicObject *dynamic_object, Game *game, int 
 }
 
 
-void loadMap(Game *game, char* fileName, int startingTile, int map_id) {
+void loadMap(Game *game, char* fileName, int map_id, int startingTile) {
   printf("what is map id %d\n", map_id);
   printf("what is map name %s\n", game->maps[map_id].name);
   int map_loaded = 0;
@@ -80,12 +80,6 @@ void loadMap(Game *game, char* fileName, int startingTile, int map_id) {
     }
     if (game->current_map->dynamic_objects[i].isMain) {
       game->mainCharacter = &game->current_map->dynamic_objects[i];
-      // @TODO Make a function like setDynamicObjectPosition
-      // I guess it can be void?
-      game->current_map->dynamic_objects[i].x = (startingTile % game->current_map->width) * game->current_map->tileSize;
-      game->current_map->dynamic_objects[i].y = floor(startingTile/game->current_map->width) * game->current_map->tileSize; 
-      game->current_map->dynamic_objects[i].startingTile = startingTile;
-      game->current_map->dynamic_objects[i].currentTile = game->mainCharacter->startingTile;
     }
   }
 }
@@ -127,10 +121,10 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_01.lvl", -1, 0);
+            loadMap(game, "map_01.lvl", 0, -1);
             break;
           case SDL_SCANCODE_O:
-            loadMap(game, "map_02.lvl", -1, 1);
+            loadMap(game, "map_02.lvl", 1, -1);
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -658,7 +652,7 @@ void loadGame(Game *game) {
   for (int i = 0; i < 2; i++ ) {
     strcpy(game->maps[i].name, bufferPtr);
   }
-  loadMap(game, "map_01.lvl", 186, 0);
+  loadMap(game, "map_01.lvl", 0, -1);
 };
 
 void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
@@ -1047,7 +1041,7 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           printf("Loading map \n");
           fflush(stdout);
           game->status = IS_CUTSCENE;
-          loadMap(game, filename, atoi(tile_id), map_id);
+          loadMap(game, filename, map_id, atoi(tile_id));
           break;
         default:
           break;

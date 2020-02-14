@@ -118,15 +118,20 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
           dynamic_objects[i]->isMain = 0;
         } 
 
-        char startingTile[3];
-        int o = 0;
-        while ((e = fgetc(mapData)) && e != ';') {
-          if (!isspace(e) && e != '\n') {
-            startingTile[o] = e;
-            o++;
+        if (starting_tile > 0) {
+          dynamic_objects[i]->startingTile = starting_tile; 
+        } else {
+          char s[3];
+          int o = 0;
+          while ((e = fgetc(mapData)) && e != ';') {
+            if (!isspace(e) && e != '\n') {
+              s[o] = e;
+              o++;
+            }
           }
+          dynamic_objects[i]->startingTile = atoi(s);
         }
-        dynamic_objects[i]->startingTile = atoi(startingTile);
+
         dynamic_objects[i]->currentTile = dynamic_objects[i]->startingTile;
 
         while ((e = fgetc(mapData)) && e != ';') {
@@ -134,27 +139,21 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
             dynamic_objects[i]->type = e - '0';
           }
         }
+        
+        ObjectType type = dynamic_objects[i]->type;
 
-        if (dynamic_objects[dynamic_objects_count]->type == BED) {
+        if (type == BED) {
           int tile = dynamic_objects[dynamic_objects_count]->startingTile;
           dynamic_objects[dynamic_objects_count]->x = ((tile % map.width)) * tileSize;
           dynamic_objects[dynamic_objects_count]->y = ceil((tile - (map.width * 2))/map.width) * tileSize; 
-        } else if (dynamic_objects[dynamic_objects_count]->isMain && starting_tile > -1) {
-          dynamic_objects[dynamic_objects_count]->x = (starting_tile % map.width) * tileSize;
-          dynamic_objects[dynamic_objects_count]->y = floor(starting_tile/map.width) * tileSize; 
-          dynamic_objects[dynamic_objects_count]->currentTile = starting_tile;
-          dynamic_objects[dynamic_objects_count]->startingTile = starting_tile;
-          printf("What is my current tile %d\n", dynamic_objects[dynamic_objects_count]->currentTile);
-          printf("What is my starting tile %d\n", dynamic_objects[dynamic_objects_count]->currentTile);
-          fflush(stdout);
         } else {
-          printf("HELLO %d", dynamic_objects[i]->startingTile);
-          dynamic_objects[i]->x = dynamic_objects[i]->startingTile % map.width * tileSize;
-          dynamic_objects[i]->y = floor(dynamic_objects[i]->startingTile/map.width) * tileSize; 
-        }
+          dynamic_objects[dynamic_objects_count]->x = (dynamic_objects[i]->startingTile % map.width) * tileSize;
+          dynamic_objects[dynamic_objects_count]->y = floor(dynamic_objects[i]->startingTile/map.width) * tileSize; 
+        } 
+
         dynamic_objects[i]->startingX = dynamic_objects[i]->x;
         dynamic_objects[i]->startingY = dynamic_objects[i]->y;
-        ObjectType type = dynamic_objects[i]->type;
+
         if (type == BED) {
           // Even though the current tile is in the upper right quadrant, we want
           // the bottom tiles to be interactable.
