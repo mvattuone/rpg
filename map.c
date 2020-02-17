@@ -118,8 +118,11 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
           dynamic_objects[i]->isMain = 0;
         } 
 
-        if (starting_tile > 0) {
+        if (starting_tile > 0 && dynamic_objects[i]->isMain) {
           dynamic_objects[i]->startingTile = starting_tile; 
+          while ((e = fgetc(mapData)) && e != ';') {
+            continue;
+          }
         } else {
           char s[3];
           int o = 0;
@@ -144,7 +147,7 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
 
         if (type == BED) {
           int tile = dynamic_objects[dynamic_objects_count]->startingTile;
-          dynamic_objects[dynamic_objects_count]->x = ((tile % map.width)) * tileSize;
+          dynamic_objects[dynamic_objects_count]->x = (tile % map.width) * tileSize;
           dynamic_objects[dynamic_objects_count]->y = ceil((tile - (map.width * 2))/map.width) * tileSize; 
         } else {
           dynamic_objects[dynamic_objects_count]->x = (dynamic_objects[i]->startingTile % map.width) * tileSize;
@@ -279,6 +282,9 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
               if (l == dynamic_objects[i]->interactions[interactionIndex].task_count) {
                 for (int b = 0; b < MAX_TASK_SIZE; b++) {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[l].data[b] = data[b];
+                  if (dynamic_objects[i]->type == EVENT) {
+                    /* printf("data is %s\n", dynamic_objects[i]->interactions[interactionIndex].tasks[l].data); */
+                  }
                 }
               }
             }

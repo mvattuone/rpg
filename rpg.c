@@ -38,45 +38,69 @@ DynamicArray removeFromInventory(DynamicObject *dynamic_object, Game *game, int 
 void loadMap(Game *game, char* fileName, int map_id, int startingTile) {
   printf("what is map id %d\n", map_id);
   printf("what is map name %s\n", game->maps[map_id].name);
-  int map_loaded = 0;
 
   if (game->mainCharacter != NULL) {
     removeObject(game->mainCharacter);
+  } else {
+    printf("Not removing main character since it does not exist");
+    fflush(stdout);
   }
 
-  if (strcmp(game->maps[map_id].name, "No Name")) {
+  
+  if (strcmp(game->maps[map_id].name, "No Name") != 0) {
     printf("map %d exists, setting \n", map_id);
-    fflush(stdout);
+    /* printf("startingTile argument passed is %d", startingTile); */
     game->current_map = &game->maps[map_id];
-    map_loaded = 1;
+    for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+      if (game->current_map->dynamic_objects[i].isMain) {
+        game->mainCharacter = &game->current_map->dynamic_objects[i];
+        if (startingTile < 0) {
+          game->mainCharacter->currentTile = game->mainCharacter->startingTile;
+          game->mainCharacter->x = (game->mainCharacter->startingTile % game->current_map->width) * game->current_map->tileSize;
+          game->mainCharacter->y = ceil((game->mainCharacter->startingTile - (game->current_map->width * 2))/game->current_map->width) * game->current_map->tileSize; 
+        } else {
+          game->mainCharacter->currentTile = startingTile;
+          game->mainCharacter->x = (startingTile % game->current_map->width) * game->current_map->tileSize;
+          game->mainCharacter->y = ceil((startingTile/game->current_map->width)) * game->current_map->tileSize; 
+        }
+      }
+      if (game->current_map->dynamic_objects[i].type == EVENT) {
+        for (int j = 0; j < 3; j++) {
+          for (int k = 0; k < 1; k++) {
+          printf("data for event %d is %s\n", game->current_map->dynamic_objects[i].id, game->current_map->dynamic_objects[i].interactions[j].tasks[k].data);
+          fflush(stdout);
+          }
+        }
+      }
+    }
+    return;
   }
 
   printf("Map %d was not loaded, initializing...\n", map_id);
   fflush(stdout);
-  if (!map_loaded) {
-    game->maps[map_id] = initializeMap(fileName, 32, startingTile);
-    game->current_map = &game->maps[map_id];
-  }
+  game->maps[map_id] = initializeMap(fileName, 32, startingTile);
+  game->current_map = &game->maps[map_id];
+  printf("current map name is %s \n", game->current_map->name);
+  fflush(stdout);
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
-    if (!map_loaded) {
-      ObjectType type = game->current_map->dynamic_objects[i].type;
-      // @TODO It would be cool if we reset _certain_ parameters regardless
-      // of whether we have loaded the map or not. We could do that here.
-      // And move the other state that should not reset ever elsewhere.
-      if (type == MAN) {
-        HatType hat = game->current_map->dynamic_objects[i].equipment.hat;
-        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, hat);
-      } else if (type == CRATE) {
-        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE, -1);
-      } else if (type == JAR) {
-        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR, -1);
-      } else if (type == BED) {
-        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED, -1);
-      } else if (type == EVENT) {
-        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
-      } else if (type == DOOR) {
-        game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
-      }
+    ObjectType type = game->current_map->dynamic_objects[i].type;
+    /* printf("what is the type here %d", game->current_map->dynamic_objects[i].type); */
+    // @TODO It would be cool if we reset _certain_ parameters regardless
+    // of whether we have loaded the map or not. We could do that here.
+    // And move the other state that should not reset ever elsewhere.
+    if (type == MAN) {
+      HatType hat = game->current_map->dynamic_objects[i].equipment.hat;
+      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, hat);
+    } else if (type == CRATE) {
+      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE, -1);
+    } else if (type == JAR) {
+      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR, -1);
+    } else if (type == BED) {
+      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED, -1);
+    } else if (type == EVENT) {
+      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
+    } else if (type == DOOR) {
+      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
     }
     if (game->current_map->dynamic_objects[i].isMain) {
       game->mainCharacter = &game->current_map->dynamic_objects[i];
@@ -405,6 +429,7 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt, G
   /*   printf("what is dy %f \n", dynamic_object->dy); */
   /*   printf("what is x %f \n", dynamic_object->x); */
   /*   printf("what is y %f \n", dynamic_object->y); */
+  /* printf("what is currentTile %d \n", dynamic_object->currentTile); */
   /*   fflush(stdout); */
   /* } */
 
@@ -576,6 +601,7 @@ void doRender(Game *game) {
   }
 
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
+
     char* currentDialog = game->current_map->dynamic_objects[i].currentDialog;
     if (currentDialog != NULL) {
       dialogueCount++;
@@ -720,13 +746,8 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
       int previousTile = game->current_map->dynamic_objects[i].currentTile;
       if (game->current_map->dynamic_objects[i].isMain) {
         previousMainTile = &previousTile;
-        /* printf("previousMainTile  %d\n", *previousMainTile); */
       }
       game->current_map->dynamic_objects[i].currentTile = doIndexX + doIndexY * game->current_map->width;
-      if (game->current_map->dynamic_objects[i].isMain) {
-        /* printf("game current tile %d\n", game->current_map->dynamic_objects[i].currentTile); */
-      }
-      fflush(stdout);
 
       // Handle resetting dynamic object ids when movement occurs
       // Need to avoid this when an object is static i.e. door, event
@@ -756,12 +777,12 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
         }
         if (game->status != IS_CUTSCENE && tileHasEvent && tileIndex == game->mainCharacter->currentTile && previousMainTile > 0 && *previousMainTile != game->mainCharacter->currentTile) { 
           game->mainCharacter->currentTile = 0;
-          printf("my dude %d\n", game->mainCharacter->id);
-          printf("current tile %d\n", game->mainCharacter->currentTile);
-          printf("previousMainTile  %d\n", *previousMainTile);
-          printf("tileIndex %d\n", tileIndex);
+          /* printf("my dude %d\n", game->mainCharacter->id); */
+          /* printf("current tile %d\n", game->mainCharacter->currentTile); */
+          /* printf("previousMainTile  %d\n", *previousMainTile); */
+          /* printf("tileIndex %d\n", tileIndex); */
           DynamicObject *event = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[tileIndex].dynamic_object_id);
-          printf("Sup %d \n", event->id);
+          /* printf("Sup %d \n", event->id); */
           fflush(stdout);
           triggerEvent(game, event);
           return;
@@ -983,11 +1004,13 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
       char *token;
 
       if (task_type == LOAD_MAP) {
-        token = strtok(dynamic_object->interactions[dynamic_object->state].tasks[i].data, ".");
+        printf("data is %s\n", dynamic_object->interactions[dynamic_object->state].tasks[i].data);
+        fflush(stdout);
+        char* tempstr = calloc(strlen(dynamic_object->interactions[dynamic_object->state].tasks[i].data)+1, sizeof(char));
+        strcpy(tempstr, dynamic_object->interactions[dynamic_object->state].tasks[i].data);
+        token = strtok(tempstr, ".");
         snprintf(filename, sizeof filename, "map_%.2s.lvl", token);
         map_id = atoi(token) - 1;
-        printf("what is MAP ID %d \n", map_id);
-        fflush(stdout);
         while (token != NULL) {
           token = strtok(NULL, ".");
           for (int i = 0; i < 3; i++) {
@@ -995,8 +1018,6 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
               tile_id[i] = token[i];
             }
           }
-          /* printf("what is it %s", filename); */
-          fflush(stdout);
         }
       }
 
@@ -1038,9 +1059,6 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), &game->inventory, NULL);
           break;
         case LOAD_MAP:
-          printf("Loading map \n");
-          fflush(stdout);
-          game->status = IS_CUTSCENE;
           loadMap(game, filename, map_id, atoi(tile_id));
           break;
         default:
@@ -1105,9 +1123,6 @@ void process(Game *game) {
   int task_running = 0;
   int no_tasks_left = 1;
 
-  /* printf("hello %d\n", game->status); */
-  /* fflush(stdout); */
-
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
     DynamicObject *dynamic_object = &game->current_map->dynamic_objects[i];
     Queue *task_queue = &dynamic_object->task_queue;
@@ -1134,7 +1149,13 @@ void process(Game *game) {
     }
   }
 
+  /* if (no_tasks_left == 1) { */
+  /*   puts("hi"); */
+  /* } else { */
+  /*   puts("bye"); */
+  /* } */
   if (no_tasks_left && (game->status == IS_CUTSCENE)) {
+    puts("No tasks are left, make active");
     game->status = IS_ACTIVE;
   }
 
