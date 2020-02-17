@@ -1090,14 +1090,16 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
 void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
   if (dynamic_object->default_behavior == WALKING && dynamic_object->task_queue.size == 0 && !dynamic_object->isMain) {
       int randomNumber = rand() % 4;
+      printf("%d\n", randomNumber);
+      fflush(stdout);
 
-      if (randomNumber == 0) {
+      if (randomNumber == 0 && map->tiles[dynamic_object->currentTile - map->width].tileState != IS_SOLID) {
         enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)1, (void*)&map->tileSize, NULL);
-      } else if (randomNumber == 1) {
+      } else if (randomNumber == 1 && map->tiles[dynamic_object->currentTile + 1].tileState != IS_SOLID) {
         enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)1, (void*)&map->tileSize, NULL);
-      } else if (randomNumber == 2) {
+      } else if (randomNumber == 2 && map->tiles[dynamic_object->currentTile + map->width].tileState != IS_SOLID) {
         enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)1, (void*)&map->tileSize, NULL);
-      } else if (randomNumber == 4) {
+      } else if (randomNumber == 3 && map->tiles[dynamic_object->currentTile - 1].tileState != IS_SOLID) {
         enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)1, (void*)&map->tileSize, NULL);
       }
     }
@@ -1149,12 +1151,12 @@ void process(Game *game) {
     }
   }
 
-  /* if (no_tasks_left == 1) { */
-  /*   puts("hi"); */
-  /* } else { */
-  /*   puts("bye"); */
-  /* } */
-  if (no_tasks_left && (game->status == IS_CUTSCENE)) {
+  if (no_tasks_left == 1) {
+    puts("hi");
+  } else {
+    puts("bye");
+  }
+  if (no_tasks_left == 1 && game->status == IS_CUTSCENE) {
     puts("No tasks are left, make active");
     game->status = IS_ACTIVE;
   }
