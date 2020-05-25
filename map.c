@@ -46,8 +46,9 @@ DynamicObject* getDynamicObjectFromMap(Map *map, int id) {
   }
 
   printf("Could not find dynamic object with id %d\n", id);
-  SDL_Quit();
-  exit(1);
+  return NULL;
+  /* SDL_Quit(); */
+  /* exit(1); */
 }
 
 Map initializeMap(char* fileName, int tileSize, int starting_tile, DynamicObject *mainCharacter) {

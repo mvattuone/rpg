@@ -817,27 +817,17 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           int tileIsToLeftOfObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - 1 && active_dynamic_object->direction == LEFT;
           int tileIsToRightOfObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + 1 && active_dynamic_object->direction == RIGHT;
 
+          int tileIsAboveAndToLeftOfObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - game->current_map->width - 1 && active_dynamic_object->direction == UPLEFT;
+          int tileIsBelowAndToLeftOfObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + game->current_map->width - 1 && active_dynamic_object->direction == DOWNLEFT;
+          int tileIsAboveAndToRightOfObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - game->current_map->width + 1 && active_dynamic_object->direction == UPRIGHT;
+          int tileIsBelowAndToRightOfObject = game->current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + game->current_map->width + 1 && active_dynamic_object->direction == DOWNRIGHT;
+
           if (game->current_map->dynamic_objects[i].isLiftable && active_dynamic_object->isLifting)  {
-            if (tileIsBelowObject) {
+            if (tileIsAboveObject || tileIsBelowObject || tileIsToLeftOfObject || tileIsToRightOfObject || tileIsAboveAndToLeftOfObject || tileIsBelowAndToLeftOfObject || tileIsAboveAndToRightOfObject || tileIsBelowAndToRightOfObject) {
               game->current_map->dynamic_objects[i].isLifted = 1;
               active_dynamic_object->has_object = 1;
               game->current_map->dynamic_objects[i].isPassable = 1;
             }
-            if (tileIsAboveObject) {
-              game->current_map->dynamic_objects[i].isLifted = 1;
-              active_dynamic_object->has_object = 1;
-              game->current_map->dynamic_objects[i].isPassable = 1;
-            } 
-            if (tileIsToLeftOfObject) {
-              game->current_map->dynamic_objects[i].isLifted = 1;
-              active_dynamic_object->has_object = 1;
-              game->current_map->dynamic_objects[i].isPassable = 1;
-            }
-            if (tileIsToRightOfObject) {
-              game->current_map->dynamic_objects[i].isLifted = 1;
-              active_dynamic_object->has_object = 1;
-              game->current_map->dynamic_objects[i].isPassable = 1;
-            } 
           }
 
           if (game->current_map->dynamic_objects[i].isMovable && active_dynamic_object->isPushing)  {
@@ -887,11 +877,37 @@ void triggerDrop(Game *game) {
         game->current_map->dynamic_objects[i].x = game->mainCharacter->x - game->current_map->tiles[0].w;
         game->current_map->dynamic_objects[i].y = game->mainCharacter->y; 
       }
+      if (game->mainCharacter->direction == UPRIGHT) {
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->current_map->tiles[0].h + game->current_map->tileSize;
+      }
+      if (game->mainCharacter->direction == DOWNRIGHT) {
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y + game->current_map->tiles[0].h + game->current_map->tileSize;
+      }
+      if (game->mainCharacter->direction == UPLEFT) {
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->current_map->tiles[0].h - game->current_map->tileSize;
+      }
+      if (game->mainCharacter->direction == DOWNLEFT) {
+        game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
+        game->current_map->dynamic_objects[i].y = game->mainCharacter->y + game->current_map->tiles[0].h - game->current_map->tileSize;
+      }
     }
   }
 
   return;
 }
+
+void toggleDoorStatus(DynamicObject *door) {
+  if (door->direction == UP) {
+    door->direction = DOWNRIGHT; 
+    door->isPassable = 1;
+  } else {
+    door->direction = UP; 
+    door->isPassable= 0;
+  }
+};
 
 // This is more like the function that gets called when
 // you try to interact with object
@@ -905,25 +921,26 @@ void handleInteraction(Game *game) {
     townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width].dynamic_object_id);
   } else if (game->mainCharacter->direction == RIGHT && game->current_map->tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
     townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
+  } else if (game->mainCharacter->direction == UPLEFT && game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width - 1].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width - 1].dynamic_object_id);
+  } else if (game->mainCharacter->direction == UPRIGHT && game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width + 1].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width + 1].dynamic_object_id);
+  } else if (game->mainCharacter->direction == DOWNLEFT && game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width - 1].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width - 1].dynamic_object_id);
+  } else if (game->mainCharacter->direction == DOWNRIGHT && game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width + 1].dynamic_object_id) {
+    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width + 1].dynamic_object_id);
   } else {
     game->status = IS_ACTIVE;
     return;
   }
 
-  if (townsperson->type == DOOR) {
-    if (townsperson->direction == UP) {
-      puts("ok");
-      townsperson->direction = DOWNRIGHT; 
-      townsperson->isPassable = 1;
-    } else {
-      puts("ok 2");
-      townsperson->direction = UP; 
-      townsperson->isPassable= 0;
+  if (townsperson != NULL) {
+    if (townsperson->type == DOOR) {
+      toggleDoorStatus(townsperson);
+      return;
     }
-    return;
+    triggerEvent(game, townsperson);
   }
-
-  triggerEvent(game, townsperson);
 }
 
 void triggerEvent(Game *game, DynamicObject *dynamic_object) {
