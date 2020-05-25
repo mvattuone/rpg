@@ -35,12 +35,13 @@ DynamicArray removeFromInventory(DynamicObject *dynamic_object, Game *game, int 
 }
 
 
-void loadMap(Game *game, char* fileName, int map_id, int startingTile) {
+void loadMap(Game *game, char* fileName, int map_id, int startingTile, DynamicObject *mainCharacter) {
+  game->status = IS_LOADING;
   printf("what is map id %d\n", map_id);
   printf("what is map name %s\n", game->maps[map_id].name);
 
   if (game->mainCharacter != NULL) {
-    removeObject(game->mainCharacter);
+    game->mainCharacter = NULL;
   } else {
     printf("Not removing main character since it does not exist");
     fflush(stdout);
@@ -53,6 +54,10 @@ void loadMap(Game *game, char* fileName, int map_id, int startingTile) {
     game->current_map = &game->maps[map_id];
     for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
       if (game->current_map->dynamic_objects[i].isMain) {
+        if (mainCharacter != NULL) {
+          game->current_map->dynamic_objects[i] = *mainCharacter;
+        }
+
         game->mainCharacter = &game->current_map->dynamic_objects[i];
         if (startingTile < 0) {
           game->mainCharacter->currentTile = game->mainCharacter->startingTile;
@@ -73,12 +78,13 @@ void loadMap(Game *game, char* fileName, int map_id, int startingTile) {
         }
       }
     }
+    game->status = IS_ACTIVE;
     return;
   }
 
   printf("Map %d was not loaded, initializing...\n", map_id);
   fflush(stdout);
-  game->maps[map_id] = initializeMap(fileName, 32, startingTile);
+  game->maps[map_id] = initializeMap(fileName, 32, startingTile, mainCharacter);
   game->current_map = &game->maps[map_id];
   printf("current map name is %s \n", game->current_map->name);
   fflush(stdout);
@@ -106,6 +112,7 @@ void loadMap(Game *game, char* fileName, int map_id, int startingTile) {
       game->mainCharacter = &game->current_map->dynamic_objects[i];
     }
   }
+  game->status = IS_ACTIVE;
 }
 
 // @TODO Need to make paused a separate setting 
@@ -145,10 +152,7 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_01.lvl", 0, -1);
-            break;
-          case SDL_SCANCODE_O:
-            loadMap(game, "map_02.lvl", 1, -1);
+            loadMap(game, "map_01.lvl", 0, -1, NULL);
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -678,7 +682,7 @@ void loadGame(Game *game) {
   for (int i = 0; i < 2; i++ ) {
     strcpy(game->maps[i].name, bufferPtr);
   }
-  loadMap(game, "map_01.lvl", 0, -1);
+  loadMap(game, "map_01.lvl", 0, -1, NULL);
 };
 
 void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
@@ -695,8 +699,8 @@ void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *t
       active_dynamic_object->dy = 0;
     } 
   }
-  
-  if (mainX + mainW > target->x && mainX<target->x+target->w) {
+
+  if (mainX + mainW / 2 > target->x && mainX<target->x+target->w) {
     if (mainY + mainH > target->y && mainY < target->y && mainDy > 0) {
       active_dynamic_object->y = target->y-mainH;
       if (!game->mainCharacter->isPushing) {
@@ -767,7 +771,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
 
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
         int tileIsSolid = game->current_map->tiles[tileIndex].tileState == IS_SOLID;
-        int tileHasObject = game->current_map->tiles[tileIndex].dynamic_object_id;
+        int tileHasObject = game->current_map->tiles[tileIndex].dynamic_object_id >= 0;
         int tileHasEvent = game->current_map->tiles[tileIndex].dynamic_object_type == EVENT;
         fflush(stdout);
         if (tileHasEvent) {
@@ -798,7 +802,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           game->current_map->dynamic_objects[i].moveDown = 0;
         }
 
-        if (tileIsSolid) {
+        if (tileIsSolid && !tileHasObject) {
           detectTileCollision(game, active_dynamic_object, &game->current_map->tiles[tileIndex]);
         }
 
@@ -908,9 +912,11 @@ void handleInteraction(Game *game) {
 
   if (townsperson->type == DOOR) {
     if (townsperson->direction == UP) {
+      puts("ok");
       townsperson->direction = DOWNRIGHT; 
       townsperson->isPassable = 1;
     } else {
+      puts("ok 2");
       townsperson->direction = UP; 
       townsperson->isPassable= 0;
     }
@@ -1059,7 +1065,7 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), &game->inventory, NULL);
           break;
         case LOAD_MAP:
-          loadMap(game, filename, map_id, atoi(tile_id));
+          loadMap(game, filename, map_id, atoi(tile_id), game->mainCharacter);
           break;
         default:
           break;
@@ -1152,9 +1158,9 @@ void process(Game *game) {
   }
 
   if (no_tasks_left == 1) {
-    puts("hi");
+    /* puts("hi"); */
   } else {
-    puts("bye");
+    /* puts("bye"); */
   }
   if (no_tasks_left == 1 && game->status == IS_CUTSCENE) {
     puts("No tasks are left, make active");
@@ -1293,7 +1299,7 @@ int main(int argc, char *argv[]) {
   while (!done) {
     done = handleEvents(&game);
 
-    if (game.status != IS_PAUSED) {
+    if (game.status != IS_PAUSED && game.status != IS_LOADING) {
       process(&game);
     }
 

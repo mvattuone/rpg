@@ -50,7 +50,7 @@ DynamicObject* getDynamicObjectFromMap(Map *map, int id) {
   exit(1);
 }
 
-Map initializeMap(char* fileName, int tileSize, int starting_tile) {
+Map initializeMap(char* fileName, int tileSize, int starting_tile, DynamicObject *mainCharacter) {
   Map map;
   strncpy(map.name, fileName, 12);
   map.tileSize = tileSize;
@@ -86,7 +86,7 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
         tiles[count]->h = tileSize;
         tiles[count]->x = (count % map.width) * tileSize;
         tiles[count]->y = floor(count/map.width) * tileSize;
-        tiles[count]->dynamic_object_id = 0;
+        tiles[count]->dynamic_object_id = -1;
         tiles[count]->tileState = fgetc(mapData) - '0'; 
         tiles[count]->cof = getCofForTile(c);
         tiles[count]->maxSpeed = getMaxSpeedForTile(c);
@@ -113,6 +113,9 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile) {
         int i = atoi(doId);
         dynamic_objects[i]->id = atoi(doId);
         if (dynamic_objects[i]->id == 0) {
+          if (mainCharacter != NULL) {
+            *dynamic_objects[i] = *mainCharacter;
+          }
           dynamic_objects[i]->isMain = 1;        
         } else {
           dynamic_objects[i]->isMain = 0;
