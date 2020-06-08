@@ -2,6 +2,9 @@
 #include "physics.h"
 #include "utils.h"
 
+#ifndef DYNAMIC_OBJECT_H
+#define DYNAMIC_OBJECT_H
+
 #define MAX_TASK_SIZE 250
 #define MAX_TASKS 10
 #define MAX_INTERACTIONS 10
@@ -182,3 +185,5 @@ int runUp(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
 int runDown(DynamicObject *dynamic_object, int tileDistance, int* tileSize);
 int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t duration);
 int removeObject(DynamicObject *dynamic_object);
+
+#endif

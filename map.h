@@ -1,6 +1,11 @@
 #include "dynamic_object.h"
+
+#ifndef MAP_H
+#define MAP_H
+
 #define MAX_TILE_SIZE 5000
 #define MAX_DYNAMIC_OBJECTS 12
+
 
 typedef enum {
   IS_WALKABLE,
@@ -32,3 +37,4 @@ typedef struct {
 DynamicObject * getDynamicObjectFromMap(Map *map, int id);
 Map initializeMap(char* fileName, int tileSize, int startingTile, DynamicObject *mainCharacter); 
 
+#endif

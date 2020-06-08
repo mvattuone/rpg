@@ -6,114 +6,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
 #include "rpg.h"
+#include "game.h"
 #include "physics.h"
-
-int addToInventory(DynamicObject *dynamic_object, int inventory_id, DynamicArray *inventory) {
-  if (&inventory->size > &inventory->capacity) {
-    inventory->items = realloc(inventory->items, (sizeof(inventory->items) * sizeof(Item)) + sizeof(Item));
-    inventory->capacity = sizeof(inventory->items) + sizeof(Item);
-  }
-
-  inventory->items[inventory->size] = inventory_id;
-  inventory->size++; 
-  return 0;
-}
-
-DynamicArray removeFromInventory(DynamicObject *dynamic_object, Game *game, int inventory_id) {
-  DynamicArray new_inventory; 
-  new_inventory.items = malloc((sizeof(game->inventory.items) * sizeof(Item)) - sizeof(Item));
-  new_inventory.capacity = (sizeof(new_inventory.items) * sizeof(Item)) - sizeof(Item);
-  new_inventory.size = game->inventory.size - 1;
-  for (int i = 0; i < game->inventory.size; i++) {
-    if (game->inventory.items[i] != inventory_id) {
-      new_inventory.items[i] = game->inventory.items[i];
-    }
-  }
-
-  free(game->inventory.items);
-  return new_inventory;
-}
-
-
-void loadMap(Game *game, char* fileName, int map_id, int startingTile, DynamicObject *mainCharacter) {
-  game->status = IS_LOADING;
-  printf("what is map id %d\n", map_id);
-  printf("what is map name %s\n", game->maps[map_id].name);
-
-  if (game->mainCharacter != NULL) {
-    game->mainCharacter = NULL;
-  } else {
-    printf("Not removing main character since it does not exist");
-    fflush(stdout);
-  }
-
-  
-  if (strcmp(game->maps[map_id].name, "No Name") != 0) {
-    printf("map %d exists, setting \n", map_id);
-    /* printf("startingTile argument passed is %d", startingTile); */
-    game->current_map = &game->maps[map_id];
-    for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
-      if (game->current_map->dynamic_objects[i].isMain) {
-        if (mainCharacter != NULL) {
-          game->current_map->dynamic_objects[i] = *mainCharacter;
-        }
-
-        game->mainCharacter = &game->current_map->dynamic_objects[i];
-        if (startingTile < 0) {
-          game->mainCharacter->currentTile = game->mainCharacter->startingTile;
-          game->mainCharacter->x = (game->mainCharacter->startingTile % game->current_map->width) * game->current_map->tileSize;
-          game->mainCharacter->y = ceil((game->mainCharacter->startingTile - (game->current_map->width * 2))/game->current_map->width) * game->current_map->tileSize; 
-        } else {
-          game->mainCharacter->currentTile = startingTile;
-          game->mainCharacter->x = (startingTile % game->current_map->width) * game->current_map->tileSize;
-          game->mainCharacter->y = ceil((startingTile/game->current_map->width)) * game->current_map->tileSize; 
-        }
-      }
-      if (game->current_map->dynamic_objects[i].type == EVENT) {
-        for (int j = 0; j < 3; j++) {
-          for (int k = 0; k < 1; k++) {
-          printf("data for event %d is %s\n", game->current_map->dynamic_objects[i].id, game->current_map->dynamic_objects[i].interactions[j].tasks[k].data);
-          fflush(stdout);
-          }
-        }
-      }
-    }
-    game->status = IS_ACTIVE;
-    return;
-  }
-
-  printf("Map %d was not loaded, initializing...\n", map_id);
-  fflush(stdout);
-  game->maps[map_id] = initializeMap(fileName, 32, startingTile, mainCharacter);
-  game->current_map = &game->maps[map_id];
-  printf("current map name is %s \n", game->current_map->name);
-  fflush(stdout);
-  for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
-    ObjectType type = game->current_map->dynamic_objects[i].type;
-    /* printf("what is the type here %d", game->current_map->dynamic_objects[i].type); */
-    // @TODO It would be cool if we reset _certain_ parameters regardless
-    // of whether we have loaded the map or not. We could do that here.
-    // And move the other state that should not reset ever elsewhere.
-    if (type == MAN) {
-      HatType hat = game->current_map->dynamic_objects[i].equipment.hat;
-      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, hat);
-    } else if (type == CRATE) {
-      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE, -1);
-    } else if (type == JAR) {
-      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR, -1);
-    } else if (type == BED) {
-      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED, -1);
-    } else if (type == EVENT) {
-      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
-    } else if (type == DOOR) {
-      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
-    }
-    if (game->current_map->dynamic_objects[i].isMain) {
-      game->mainCharacter = &game->current_map->dynamic_objects[i];
-    }
-  }
-  game->status = IS_ACTIVE;
-}
 
 // @TODO Need to make paused a separate setting 
 // Because we want it override "game states"
@@ -461,107 +355,6 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt, G
   return 0;
 }
 
-
-void renderCrate(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
-  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
-  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
-  SDL_RenderCopy(renderer, dynamic_object->crateTexture, &srcRect, &destRect);
-}
-
-void renderBed(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
-  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
-  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
-  SDL_RenderCopy(renderer, dynamic_object->bedTexture, &srcRect, &destRect);
-}
-
-void renderDoor(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
-  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
-  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
-  SDL_RenderCopy(renderer, dynamic_object->doorTexture, &srcRect, &destRect);
-}
-
-void renderJar(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
-  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
-  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
-  SDL_RenderCopy(renderer, dynamic_object->jarTexture, &srcRect, &destRect);
-}
-
-int getHatDirection(Direction direction) {
-  switch (direction) {
-    case UP:
-      return 0;
-      break;
-    case LEFT:
-      return 1;
-      break;
-    case DOWN:
-      return 2;
-      break;
-    case RIGHT:
-      return 3;
-      break;
-    default:
-      break;
-  }
-
-  return -1;
-};
-
-void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer) {
-  SDL_Rect srcRect = { dynamic_object->sprite * dynamic_object->w, dynamic_object->h * dynamic_object->direction, dynamic_object->w, dynamic_object->h};
-  SDL_Rect destRect = {x, y, dynamic_object->w, dynamic_object->h};
-  dynamic_object->status == IS_RUNNING
-    ? SDL_RenderCopy(renderer, dynamic_object->runningTexture, &srcRect, &destRect)
-    : SDL_RenderCopy(renderer, dynamic_object->idleTexture, &srcRect, &destRect);
-  if (dynamic_object->hatTexture != NULL) {
-    int hat_direction = getHatDirection(dynamic_object->direction);
-    SDL_Rect srcRect = { hat_direction * 64, 0, 64, 64};
-    SDL_Rect destRect = {x - 10, y - 10, dynamic_object->w * 2, dynamic_object->h * 2};
-    SDL_RenderCopy(renderer, dynamic_object->hatTexture, &srcRect, &destRect);
-  }
-}
-
-void renderMenu(Game *game, TTF_Font *font) {
-  SDL_Rect MenuRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-  SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 50);
-  SDL_RenderFillRect(game->renderer, &MenuRect); 
-  SDL_Color text_color = { 255, 255, 255 }; 
-  int item_position_index = 0;
-  if (game->inventory.size <= 0) {
-    renderText(game->renderer, font, "No items", text_color, 80, 40, NULL);
-  } else {
-    for (int i = 0; i < game->inventory.size; i++) {
-      for (int j = 0; j < game->items_count; j++) {
-        if (game->inventory.items[i] == game->items[j].id) {
-          char *name = game->items[j].name;
-          if (game->inventory_menu->state == ITEM_SELECTED && game->inventory_menu->selected_item_index == i) {
-            SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(font, name, text_color, WINDOW_WIDTH - 50);
-            SDL_Rect SelectedItemRect = {80, (i + 1) * 40, surface->w, surface->h};
-            SDL_SetRenderDrawColor(game->renderer, 90, 110, 140, 100);
-            SDL_RenderFillRect(game->renderer, &SelectedItemRect); 
-          }
-          renderText(game->renderer, font, name, text_color, 80, (i + 1) * 40, NULL);
-          renderCursor(game->renderer, 60, (game->inventory_menu->active_item_index + 1) * 40, 20, 20);
-          if (game->inventory_menu->show_description && i == game->inventory_menu->active_item_index) {
-            renderText(game->renderer, font, game->items[j].description, text_color, 80, WINDOW_HEIGHT - 100, NULL);
-          }
-          item_position_index++;
-        }
-      }
-    }
-  }
-}
-
- void renderTile(Game *game, int x, int y, char tileId, SDL_Texture *texture) {
-  int tileRow;
-  int tileColumn;
-  tileRow = tileId % 16;
-  tileColumn = tileId / 16;
-  SDL_Rect srcRect = {tileRow * 16, tileColumn * 16, 16, 16};
-  SDL_Rect tileRect = {x + game->scrollX, y + game->scrollY, game->current_map->tileSize, game->current_map->tileSize};
-  SDL_RenderCopy(game->renderer, texture, &srcRect, &tileRect);
-};
-
 void doRender(Game *game) {
   SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
   SDL_RenderClear(game->renderer);
@@ -571,7 +364,7 @@ void doRender(Game *game) {
   for (int y = -game->scrollY/game->current_map->tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
     for (int x = -game->scrollX/game->current_map->tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
-        renderTile(game, x * game->current_map->tileSize, y * game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture);
+        renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->scrollX, game->scrollY, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
       }
     }
   }
@@ -599,7 +392,7 @@ void doRender(Game *game) {
   for (int y = -game->scrollY/game->current_map->tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
     for (int x = -game->scrollX/game->current_map->tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height && game->current_map->tiles[x+y*game->current_map->width].tileState == IS_ABOVE) {
-        renderTile(game, x * game->current_map->tileSize, y * game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture);
+        renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->scrollX, game->scrollY, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
       }
     }
   }
@@ -616,7 +409,7 @@ void doRender(Game *game) {
   }
 
   if (game->status == IS_MENU) {
-    renderMenu(game, game->font);
+    renderMenu(game->inventory_menu, game->items, game->inventory, game->font, game->renderer, game->items_count);
   }
 
   if (game->status == IS_PAUSED) {
@@ -625,64 +418,6 @@ void doRender(Game *game) {
 
   game->mainCharacter->isLifting = 0;
   SDL_RenderPresent(game->renderer);
-};
-
-
-TTF_Font* initializeFont(char* fileName, int fontSize) {
-  TTF_Font *font = TTF_OpenFont(fileName, fontSize);
-  if (font == NULL) {
-    printf("Could not find font");
-    SDL_Quit();
-    exit(1);
-  }
-
-  return font;
-}
-
-// @TODO Pass items in this way?
-// Might be good if we have different 
-// inventories per character...
-Menu load_inventory_menu() {
-  Menu inventory_menu = {
-   0 
-  } ;
-  inventory_menu.show_description = 0;
-  inventory_menu.type = INVENTORY;
-  inventory_menu.active_item_index = 0;
-  inventory_menu.selected_item_index = -1;
-  inventory_menu.cursor = initializeMenuCursor();
-  return inventory_menu;
-}
-
-void loadGame(Game *game) {
-  game->dt = 1.0f/60.0f;
-  game->font = initializeFont("fonts/slkscr.ttf", 24);
-  game->scrollX = 0;
-  game->scrollY = 0;
-  game->dismissDialog = 0;
-  game->active_quests.size = 0; 
-  game->active_quests.capacity = sizeof(Quest); 
-  game->active_quests.items = malloc(sizeof(Quest)); 
-  // @NOTE - once we have a better sense of our art,
-  // this all will likely be condensed into a single tileset.
-  // or sets grouped by location type (e.g. snowy, desert)
-  game->terrainTexture = createTexture(game->renderer, "images/terrain.png");
-  game->indoorTexture = createTexture(game->renderer, "images/indoor.png");
-  game->status = IS_ACTIVE;
-  game->items = load_items("items.dat", &game->items_count);
-  game->inventory.size = 4;
-  game->inventory.capacity = sizeof(Item) * game->inventory.size; 
-  game->inventory.items = malloc(sizeof(Item) * game->inventory.size); 
-  memset(game->inventory.items, -1, sizeof(Item) * game->inventory.size);
-  game->inventory.items[0] = 1;
-  game->inventory.items[1] = 2;
-  *game->inventory_menu = load_inventory_menu();
-  game->quests = load_quests("quests.dat", &game->quests_count);
-  char bufferPtr[10] = "No Name";
-  for (int i = 0; i < 2; i++ ) {
-    strcpy(game->maps[i].name, bufferPtr);
-  }
-  loadMap(game, "map_01.lvl", 0, -1, NULL);
 };
 
 void detectCollision(Game *game, DynamicObject *active_dynamic_object, Target *target) {
@@ -843,15 +578,6 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
   }
 };
 
-float getAngle(Game *game) {
-  float angle = atan2(game->mainCharacter->dy, game->mainCharacter->dx) * (180 / M_PI); 
-  return angle > 0 ? angle : angle + 360;
-};
-
-int getDirection(Game *game) { 
-  return (int)fabs(floor((game->mainCharacter->angle < 270 ? game->mainCharacter->angle + 90 : game->mainCharacter->angle - 270)/45));
-};
-
 // Eventually we want to have certain things that we drop and things that 
 // we can throw. Or something like that. For now we just drop the object in
 // the adjacent tile. 
@@ -912,34 +638,34 @@ void toggleDoorStatus(DynamicObject *door) {
 // This is more like the function that gets called when
 // you try to interact with object
 void handleInteraction(Game *game) { 
-  DynamicObject *townsperson = NULL;
+  DynamicObject *dynamic_object = NULL;
   if (game->mainCharacter->direction == UP && game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width].dynamic_object_id);
+    dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width].dynamic_object_id);
   } else if (game->mainCharacter->direction == LEFT && game->current_map->tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
+    dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - 1].dynamic_object_id);
   } else if (game->mainCharacter->direction == DOWN && game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width].dynamic_object_id);
+    dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width].dynamic_object_id);
   } else if (game->mainCharacter->direction == RIGHT && game->current_map->tiles[game->mainCharacter->currentTile + 1].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
+    dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
   } else if (game->mainCharacter->direction == UPLEFT && game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width - 1].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width - 1].dynamic_object_id);
+    dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width - 1].dynamic_object_id);
   } else if (game->mainCharacter->direction == UPRIGHT && game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width + 1].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width + 1].dynamic_object_id);
+    dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width + 1].dynamic_object_id);
   } else if (game->mainCharacter->direction == DOWNLEFT && game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width - 1].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width - 1].dynamic_object_id);
+    dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width - 1].dynamic_object_id);
   } else if (game->mainCharacter->direction == DOWNRIGHT && game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width + 1].dynamic_object_id) {
-    townsperson = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width + 1].dynamic_object_id);
+    dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width + 1].dynamic_object_id);
   } else {
     game->status = IS_ACTIVE;
     return;
   }
 
-  if (townsperson != NULL) {
-    if (townsperson->type == DOOR) {
-      toggleDoorStatus(townsperson);
+  if (dynamic_object != NULL) {
+    if (dynamic_object->type == DOOR) {
+      toggleDoorStatus(dynamic_object);
       return;
     }
-    triggerEvent(game, townsperson);
+    triggerEvent(game, dynamic_object);
   }
 }
 
@@ -1228,52 +954,19 @@ void process(Game *game) {
   // handle animation
   // 60 FPS / 8 animations 
     for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
-      if (game->current_map->dynamic_objects[i].type == MAN) {
+      DynamicObject *current_object = &game->current_map->dynamic_objects[i];
+      if (current_object->type == MAN) {
         if (fmod(game->time, 7.5) == 0) {
-        game->current_map->dynamic_objects[i].sprite = (game->current_map->dynamic_objects[i].sprite + 1) % 8;
-        if (game->current_map->dynamic_objects[i].dx != 0 || game->current_map->dynamic_objects[i].dy != 0) { 
-          game->current_map->dynamic_objects[i].angle = getAngle(game);
-          game->current_map->dynamic_objects[i].direction = getDirection(game);
+        current_object->sprite = (current_object->sprite + 1) % 8;
+        if (current_object->dx != 0 || current_object->dy != 0) { 
+          current_object->angle = getAngleFromCoordinates(current_object->dx, current_object->dy);
+          current_object->direction = getDirectionFromAngle(current_object->angle);
         }
-        game->current_map->dynamic_objects[i].status = game->current_map->dynamic_objects[i].dx != 0 || game->current_map->dynamic_objects[i].dy != 0 ? IS_RUNNING : IS_IDLE;
+        current_object->status = current_object->dx != 0 || current_object->dy != 0 ? IS_RUNNING : IS_IDLE;
         }
       } 
-      handleObjectCollisions(game, &game->current_map->dynamic_objects[i]);
+      handleObjectCollisions(game, current_object);
     }
-};
-
-void shutdownGame(Game *game) {
-  SDL_DestroyTexture(game->terrainTexture);
-  SDL_DestroyTexture(game->indoorTexture);
-  for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < game->maps[i].dynamic_objects_count; i++) {
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].idleTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].runningTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].crateTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].jarTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].hatTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].doorTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].bedTexture);
-      free(game->maps[i].dynamic_objects[j].task_queue.items);
-    }
-  }
-  for (int i = 0; i < game->items_count; i++) {
-    free(game->items[i].name);
-    free(game->items[i].description);
-    if (game->inventory.items) {
-      free(game->inventory.items);
-    }
-  }
-  if (game->active_quests.items) {
-    free(game->active_quests.items);
-  }
-  free(game->quests);
-  free(game->items);
-  TTF_CloseFont(game->font);
-  SDL_DestroyWindow(game->window); 
-
-  TTF_Quit();
-  SDL_Quit(); 
 };
 
 int main(int argc, char *argv[]) {

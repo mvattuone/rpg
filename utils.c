@@ -38,3 +38,12 @@ void swap_ints(int *array, int a, int b) {
   array[a] = array[b];
   array[b] = temp;
 }
+
+int getDirectionFromAngle(float angle) { 
+  return (int)fabs(floor((angle < 270 ? angle + 90 : angle - 270)/45));
+};
+
+float getAngleFromCoordinates(float dx, float dy) {
+  float angle = atan2(dy, dx) * (180 / M_PI); 
+  return angle > 0 ? angle : angle + 360;
+};

@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "map.h"
+#include "dynamic_object.h"
+#include "game.h"
 
 // We'll probably want to have the various tiles
 // and their properties stored somewhere. Like a JSON file.
@@ -330,3 +331,5 @@ Map initializeMap(char* fileName, int tileSize, int starting_tile, DynamicObject
   fflush(stdout);
   return map;
 };
+
+

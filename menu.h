@@ -1,5 +1,8 @@
 #include <SDL2/SDL.h>
 
+#ifndef MENU_H
+#define MENU_H
+
 typedef enum {
   INVENTORY
 } MenuType;
@@ -35,3 +38,5 @@ typedef struct {
 } Menu;
 
 Cursor initializeMenuCursor();
+
+#endif

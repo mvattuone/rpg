@@ -1,3 +1,6 @@
+#ifndef QUEST_H
+#define QUEST_H
+
 typedef enum {
   IN_PROGRESS,
   COMPLETED,
@@ -29,3 +32,5 @@ typedef struct {
 
 void add_quest(ActiveQuests *quests, int assignee_id, Quest *quest);
 Quest* load_quests(char* file_name, int *quests_count); 
+
+#endif
