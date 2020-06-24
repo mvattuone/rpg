@@ -9,7 +9,6 @@
 #include "item.h"
 #include "quest.h"
 #define IS_ACTIVE 1
-#define IS_PAUSED 2
 #define IS_LOADING 3
 #define IS_CUTSCENE 4
 #define IS_MENU 5
@@ -27,6 +26,7 @@ typedef struct {
   Quest *quests;
   ActiveQuests active_quests;
   Item *items;
+  int is_paused;
   int items_count;
   int quests_count;
   int active_quest_count;

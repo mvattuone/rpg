@@ -9,13 +9,11 @@
 #include "game.h"
 #include "physics.h"
 
-// @TODO Need to make paused a separate setting 
-// Because we want it override "game states"
 void togglePauseState(Game *game) {
-  if (game->status == IS_PAUSED) {
-    game->status = IS_ACTIVE;
+  if (!game->is_paused) {
+    game->is_paused = 1;
   } else {
-    game->status = IS_PAUSED;
+    game->is_paused =  0;
   }
 }
 
@@ -412,7 +410,7 @@ void doRender(Game *game) {
     renderMenu(game->inventory_menu, game->items, game->inventory, game->font, game->renderer, game->items_count);
   }
 
-  if (game->status == IS_PAUSED) {
+  if (game->is_paused) {
     renderPauseState(game->renderer, game->font);
   }
 
@@ -1009,7 +1007,7 @@ int main(int argc, char *argv[]) {
   while (!done) {
     done = handleEvents(&game);
 
-    if (game.status != IS_PAUSED && game.status != IS_LOADING) {
+    if (!game.is_paused && game.status != IS_LOADING) {
       process(&game);
     }
 
