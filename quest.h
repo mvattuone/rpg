@@ -31,6 +31,6 @@ typedef struct {
 } ActiveQuests;
 
 void add_quest(ActiveQuests *quests, int assignee_id, Quest *quest);
-Quest* load_quests(char* file_name, int *quests_count); 
+Quest* load_quests(char* file_path, int *quests_count); 
 
 #endif

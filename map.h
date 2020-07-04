@@ -35,6 +35,6 @@ typedef struct {
 } Map;
 
 DynamicObject * getDynamicObjectFromMap(Map *map, int id);
-Map initializeMap(char* fileName, int tileSize, int startingTile, DynamicObject *mainCharacter); 
+Map initializeMap(char* filePath, int tileSize, int startingTile, DynamicObject *mainCharacter); 
 
 #endif

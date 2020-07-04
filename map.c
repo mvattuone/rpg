@@ -52,12 +52,14 @@ DynamicObject* getDynamicObjectFromMap(Map *map, int id) {
   /* exit(1); */
 }
 
-Map initializeMap(char* fileName, int tileSize, int starting_tile, DynamicObject *mainCharacter) {
+Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject *mainCharacter) {
   Map map;
+  char* fileName;
+  fileName = strrchr(filePath, '/');
   strncpy(map.name, fileName, 12);
   map.tileSize = tileSize;
 
-  FILE *mapData = fopen(fileName, "r");
+  FILE *mapData = fopen(filePath, "r");
 
   if (mapData == NULL) {
     printf("Map could not be loaded.");

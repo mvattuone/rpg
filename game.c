@@ -18,7 +18,7 @@ void loadGame(Game *game) {
   game->terrainTexture = createTexture(game->renderer, "images/terrain.png");
   game->indoorTexture = createTexture(game->renderer, "images/indoor.png");
   game->status = IS_ACTIVE;
-  game->items = load_items("items.dat", &game->items_count);
+  game->items = load_items("data/items.dat", &game->items_count);
   game->inventory.size = 4;
   game->inventory.capacity = sizeof(Item) * game->inventory.size; 
   game->inventory.items = malloc(sizeof(Item) * game->inventory.size); 
@@ -26,15 +26,15 @@ void loadGame(Game *game) {
   game->inventory.items[0] = 1;
   game->inventory.items[1] = 2;
   *game->inventory_menu = load_inventory_menu();
-  game->quests = load_quests("quests.dat", &game->quests_count);
+  game->quests = load_quests("data/quests.dat", &game->quests_count);
   char bufferPtr[10] = "No Name";
   for (int i = 0; i < 2; i++ ) {
     strcpy(game->maps[i].name, bufferPtr);
   }
-  loadMap(game, "map_01.lvl", 0, -1, NULL);
+  loadMap(game, "maps/map_01.lvl", 0, -1, NULL);
 };
 
-void loadMap(Game *game, char* fileName, int map_id, int startingTile, DynamicObject *mainCharacter) {
+void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicObject *mainCharacter) {
   game->status = IS_LOADING;
   printf("what is map id %d\n", map_id);
   printf("what is map name %s\n", game->maps[map_id].name);
@@ -83,7 +83,7 @@ void loadMap(Game *game, char* fileName, int map_id, int startingTile, DynamicOb
 
   printf("Map %d was not loaded, initializing...\n", map_id);
   fflush(stdout);
-  game->maps[map_id] = initializeMap(fileName, 32, startingTile, mainCharacter);
+  game->maps[map_id] = initializeMap(filePath, 32, startingTile, mainCharacter);
   game->current_map = &game->maps[map_id];
   printf("current map name is %s \n", game->current_map->name);
   fflush(stdout);

@@ -44,7 +44,7 @@ int handleEvents(Game *game) {
             togglePauseState(game);
             break;
           case SDL_SCANCODE_P:
-            loadMap(game, "map_01.lvl", 0, -1, NULL);
+            loadMap(game, "maps/map_01.lvl", 0, -1, NULL);
             break;
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
@@ -56,6 +56,7 @@ int handleEvents(Game *game) {
               game->inventory_menu->show_description = game->inventory_menu->show_description ? 0 : 1;
             }
             break;
+          case SDL_SCANCODE_RETURN:
           case SDL_SCANCODE_A:
             if (game->status == IS_MENU) {
               MenuState menu_state = game->inventory_menu->state;
@@ -747,7 +748,7 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
 
       char tile_id[3];
       int map_id;
-      char filename[12]; // e.g. map_01.lvl
+      char filename[20]; // e.g. maps/map_01.lvl
       char *token;
 
       if (task_type == LOAD_MAP) {
@@ -756,7 +757,7 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
         char* tempstr = calloc(strlen(dynamic_object->interactions[dynamic_object->state].tasks[i].data)+1, sizeof(char));
         strcpy(tempstr, dynamic_object->interactions[dynamic_object->state].tasks[i].data);
         token = strtok(tempstr, ".");
-        snprintf(filename, sizeof filename, "map_%.2s.lvl", token);
+        snprintf(filename, sizeof filename, "maps/map_%.2s.lvl", token);
         map_id = atoi(token) - 1;
         while (token != NULL) {
           token = strtok(NULL, ".");

@@ -42,7 +42,7 @@ typedef struct {
 } Game;
 
 void loadGame(Game *game); 
-void loadMap(Game *game, char* fileName, int map_id, int startingTile, DynamicObject *mainCharacter); 
+void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicObject *mainCharacter); 
 void shutdownGame(Game *game);
 
 #endif

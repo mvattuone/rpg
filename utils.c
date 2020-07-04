@@ -47,3 +47,13 @@ float getAngleFromCoordinates(float dx, float dy) {
   float angle = atan2(dy, dx) * (180 / M_PI); 
   return angle > 0 ? angle : angle + 360;
 };
+
+FILE* load_file(char* file_path) {
+  FILE *fp;
+  fp = fopen(file_path, "r");
+  if (fp == NULL) {
+    printf("Could not open file");
+    exit(1);
+  }
+  return fp;
+}

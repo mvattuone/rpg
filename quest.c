@@ -2,6 +2,14 @@
 #include <string.h>
 #include <stdio.h>
 #include "quest.h"
+#include "utils.h"
+
+#define QUEST_ID '*'
+#define QUEST_TYPE '#'
+#define QUEST_TARGET_ID '@'
+#define QUEST_NAME '$'
+#define QUEST_TARGET_TILE '&'
+#define QUEST_DESCRIPTION '%'
 
 void add_quest(ActiveQuests *quests, int assignee_id, Quest *quest) {
   if (&quests->size > &quests->capacity) {
@@ -15,51 +23,44 @@ void add_quest(ActiveQuests *quests, int assignee_id, Quest *quest) {
     quests->size++;
 };
 
-Quest* load_quests(char* file_name, int *quests_count) {
+Quest* load_quests(char* file_path, int *quests_count) {
   FILE *fp;
   char buffer[1024];
   int i = 1;
   Quest *quests = malloc(sizeof(Quest));
 
-  fp = fopen(file_name, "r");
-  if (fp == NULL) {
-    printf("Could not open file");
-    exit(1);
-  }
+  fp = load_file(file_path);
 
   while (fgets(buffer, 1024, fp) != NULL) {
-    if (buffer[0] == '*') {
+    char dataLineSymbol = buffer[0];
+    if (dataLineSymbol == QUEST_ID) {
       quests = realloc(quests , sizeof(quests) + sizeof(buffer) * 2);
       quests[i].id = i;
-    } else if (buffer[0] == '#') {
-      char *bufferPtr = buffer;
-      bufferPtr++;
-      bufferPtr[strlen(bufferPtr) - 1] = 0;
+      continue;
+    } 
+    
+    char *bufferPtr = buffer;
+    bufferPtr++;
+    bufferPtr[strlen(bufferPtr) - 1] = 0;
+
+    if (dataLineSymbol == QUEST_TYPE) {
       quests[i].type = atoi(bufferPtr);
-    } else if (buffer[0] == '@') {
-      char *bufferPtr = buffer;
-      bufferPtr++;
-      bufferPtr[strlen(bufferPtr) - 1] = 0;
+    } else if (dataLineSymbol == QUEST_TARGET_ID) {
       quests[i].target_id = atoi(bufferPtr);
-    } else if (buffer[0] == '$') {
-      char *bufferPtr = buffer;
-      bufferPtr++;
-      bufferPtr[strlen(bufferPtr) - 1] = 0;
+      continue;
+    } else if (dataLineSymbol == QUEST_NAME) {
       quests[i].name = malloc(sizeof(buffer));
       strcpy(quests[i].name, bufferPtr);
-    } else if (buffer[0] == '&') {
-      char *bufferPtr = buffer;
-      bufferPtr++;
-      bufferPtr[strlen(bufferPtr) - 1] = 0;
+      continue;
+    } else if (dataLineSymbol == QUEST_TARGET_TILE) {
       quests[i].target_tile = atoi(bufferPtr);
-    } else if (buffer[0] == '%') {
-      char *bufferPtr = buffer;
-      bufferPtr++;
-      bufferPtr[strlen(bufferPtr) - 1] = 0;
+      continue;
+    } else if (dataLineSymbol == QUEST_DESCRIPTION) {
       quests[i].description = malloc(sizeof(buffer));
       strcpy(quests[i].description, bufferPtr);
       *quests_count = i + 1;
       i++;
+      continue;
     }
   }   
 

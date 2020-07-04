@@ -18,5 +18,6 @@ int hasCollision(float x1, float y1, float x2, float y2, float w1, float h1, flo
 void swap_ints(int *array, int a, int b); 
 float getAngleFromCoordinates(float dx, float dy);
 int getDirectionFromAngle(float angle); 
+FILE* load_file(char* file_path);
 
 #endif

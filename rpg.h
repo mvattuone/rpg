@@ -12,6 +12,7 @@
 #include "quest.h"
 #include "inventory.h"
 
+#define OK 1
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 typedef struct {
