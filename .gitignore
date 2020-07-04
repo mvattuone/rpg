@@ -5,3 +5,4 @@ rpg.o*
 rpg
 *.log
 rpg.cxx
+compile_commands.json
