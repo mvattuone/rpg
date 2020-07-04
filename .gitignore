@@ -4,3 +4,4 @@ rpg.o*
 *.dSYM
 rpg
 *.log
+rpg.cxx
