@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "dynamic_object.h"
+#include "camera.h"
 #include "item.h"
 #include "menu.h"
 #include "utils.h"
@@ -27,4 +28,4 @@ void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *render
 
 void renderMenu(Menu *inventory_menu, Item *items, DynamicArray inventory, TTF_Font *font, SDL_Renderer *renderer, int items_count);
 
-void renderTile(int x, int y, int scrollX, int scrollY, int tileSize, char tileId, SDL_Texture *texture, SDL_Renderer *renderer);
+void renderTile(int x, int y, Camera camera, int tileSize, char tileId, SDL_Texture *texture, SDL_Renderer *renderer);

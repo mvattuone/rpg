@@ -359,39 +359,50 @@ void doRender(Game *game) {
   SDL_RenderClear(game->renderer);
   int dialogueCount = 0;
 
+  
+  if (fmod(game->time, 7.5) == 0) {
+    printf("mainX is %f\n", game->mainCharacter->x);
+    printf("mainY is %f\n", game->mainCharacter->y);
+    printf("camera->x is %f\n", game->camera.x);
+    printf("scrollY is %f\n", game->camera.y);
+  }
 
-  for (int y = -game->scrollY/game->current_map->tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
-    for (int x = -game->scrollX/game->current_map->tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+  SDL_Rect cameraRect = { game->camera.x, game->camera.y, game->current_map->tileSize, game->current_map->tileSize};
+  SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
+  SDL_RenderFillRect(game->renderer, &cameraRect);
+
+  for (int y = -game->camera.y/game->current_map->tileSize; y < (-game->camera.y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
+    for (int x = -game->camera.x/game->current_map->tileSize; x < (-game->camera.x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
-        renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->scrollX, game->scrollY, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
+        renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
       }
     }
   }
 
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
     if (game->current_map->dynamic_objects[i].type == MAN) {
-      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == JAR) {
         if (game->current_map->dynamic_objects[i].isLifted) {
           game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
           game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->mainCharacter->h;
         }
-        renderJar(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+        renderJar(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == BED) {
-      renderBed(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+      renderBed(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == CRATE) {
-      renderCrate(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+      renderCrate(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == DOOR) {
-      renderDoor(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+      renderDoor(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == EVENT) {
-      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->scrollX, game->current_map->dynamic_objects[i].y+game->scrollY, game->renderer);
+      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
     }
   }
 
-  for (int y = -game->scrollY/game->current_map->tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
-    for (int x = -game->scrollX/game->current_map->tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+  for (int y = -game->camera.y/game->current_map->tileSize; y < (-game->camera.y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
+    for (int x = -game->camera.x/game->current_map->tileSize; x < (-game->camera.x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height && game->current_map->tiles[x+y*game->current_map->width].tileState == IS_ABOVE) {
-        renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->scrollX, game->scrollY, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
+        renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
       }
     }
   }
@@ -406,6 +417,7 @@ void doRender(Game *game) {
       renderText(game->renderer, game->font, currentDialog, color, 25, WINDOW_HEIGHT - (180 * dialogueCount), NULL);
     }
   }
+
 
   if (game->status == IS_MENU) {
     renderMenu(game->inventory_menu, game->items, game->inventory, game->font, game->renderer, game->items_count);
@@ -467,8 +479,8 @@ void detectTileCollision(Game *game, DynamicObject *active_dynamic_object, Tile 
 }
 
 void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
-  for (int y = -game->scrollY/game->current_map->tileSize; y < (-game->scrollY + WINDOW_HEIGHT)/ game->current_map->tileSize; y++)
-    for (int x = -game->scrollX/game->current_map->tileSize; x < (-game->scrollX + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+  for (int y = -game->camera.y/game->current_map->tileSize; y < (-game->camera.y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++)
+    for (int x = -game->camera.x/game->current_map->tileSize; x < (-game->camera.x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
     int tileIndex = x + y * game->current_map->width;
     if (tileIndex < 0) continue;
 
@@ -915,8 +927,8 @@ void process(Game *game) {
     }
   }
 
-  game->scrollX = -game->mainCharacter->x+WINDOW_WIDTH/2;
-  game->scrollY = -game->mainCharacter->y+WINDOW_HEIGHT/2;
+  game->camera.x = (WINDOW_WIDTH / 2) - game->mainCharacter->x;
+  game->camera.y = (WINDOW_HEIGHT / 2) - game->mainCharacter->y;
 
   if (game->mainCharacter->x < 0) {
     game->mainCharacter->x = 0;
@@ -934,19 +946,19 @@ void process(Game *game) {
     game->mainCharacter->y = game->current_map->height * game->current_map->tileSize - game->mainCharacter->h;
   }
 
-  if(game->scrollX > 0) {
-    game->scrollX = 0;
+  if(game->camera.x > 0) {
+    game->camera.x = 0;
   }
-  if(game->scrollX < -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH) {
-    game->scrollX = -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH;
-  }
-
-  if(game->scrollY > 0) {
-    game->scrollY = 0;
+  if(game->camera.x < -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH) {
+    game->camera.x = -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH;
   }
 
-  if(game->scrollY < -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT) {
-    game->scrollY = -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT;
+  if(game->camera.y > 0) {
+    game->camera.y = 0;
+  }
+
+  if(game->camera.y < -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT) {
+    game->camera.y = -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT;
   }
 
 
@@ -988,6 +1000,7 @@ int main(int argc, char *argv[]) {
       WINDOW_HEIGHT,                               
       SDL_WINDOW_SHOWN
       );
+
 
   if (game.window == NULL) {
     fprintf(stderr, "could not create window: %s\n", SDL_GetError());

@@ -4,6 +4,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
 #include "font.h"
+#include "camera.h"
 #include "map.h"
 #include "menu.h"
 #include "item.h"
@@ -20,8 +21,7 @@ typedef struct {
   Map maps[2];
   Map* current_map;
   TTF_Font *font;
-  float scrollX;
-  float scrollY;
+  Camera camera;
   SDL_Renderer *renderer;
   Quest *quests;
   ActiveQuests active_quests;

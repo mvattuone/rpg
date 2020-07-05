@@ -4,6 +4,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define GET_VARIABLE_NAME(Variable) (#Variable)
+
 typedef struct {
   int capacity;
   int size; 

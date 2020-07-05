@@ -6,8 +6,10 @@
 void loadGame(Game *game) {
   game->dt = 1.0f/60.0f;
   game->font = initializeFont("fonts/slkscr.ttf", 24);
-  game->scrollX = 0;
-  game->scrollY = 0;
+  game->camera.x = 0;
+  game->camera.y = 0;
+  game->camera.width = 0;
+  game->camera.height = 0;
   game->dismissDialog = 0;
   game->active_quests.size = 0; 
   game->active_quests.capacity = sizeof(Quest); 
