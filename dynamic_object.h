@@ -105,7 +105,7 @@ typedef struct {
   HatType hat;
 } Equipment;
 
-typedef struct {
+typedef struct DynamicObject {
   int id;
   Interaction interactions[MAX_INTERACTIONS];
   int interactions_count;

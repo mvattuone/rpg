@@ -133,6 +133,6 @@ void renderTile(int x, int y, Camera camera, int tileSize, char tileId, SDL_Text
  int tileRow = tileId % 16;
  int tileColumn = tileId / 16;
  SDL_Rect srcRect = {tileRow * 16, tileColumn * 16, 16, 16};
- SDL_Rect tileRect = {x + camera.x, y + camera.y, tileSize, tileSize};
+ SDL_Rect tileRect = {x + camera.base->x, y + camera.base->y, tileSize, tileSize};
  SDL_RenderCopy(renderer, texture, &srcRect, &tileRect);
 };

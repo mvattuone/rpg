@@ -8,6 +8,7 @@
 #include "rpg.h"
 #include "game.h"
 #include "physics.h"
+#include "camera.h"
 
 void togglePauseState(Game *game) {
   if (!game->is_paused) {
@@ -46,6 +47,11 @@ int handleEvents(Game *game) {
           case SDL_SCANCODE_P:
             loadMap(game, "maps/map_01.lvl", 0, -1, NULL);
             break;
+          case SDL_SCANCODE_M: {
+            DynamicObject *target = getDynamicObjectFromMap(game->current_map, 11);
+            set_current_target(game->current_map, &game->camera, target, game->time);
+            break;
+          }
           case SDL_SCANCODE_S:
             if (game->status == IS_ACTIVE || game->status == IS_MENU) {
               toggleMenu(game);
@@ -363,16 +369,12 @@ void doRender(Game *game) {
   if (fmod(game->time, 7.5) == 0) {
     printf("mainX is %f\n", game->mainCharacter->x);
     printf("mainY is %f\n", game->mainCharacter->y);
-    printf("camera->x is %f\n", game->camera.x);
-    printf("scrollY is %f\n", game->camera.y);
+    printf("camera->x is %f\n", game->camera.base->x);
+    printf("scrollY is %f\n", game->camera.base->y);
   }
 
-  SDL_Rect cameraRect = { game->camera.x, game->camera.y, game->current_map->tileSize, game->current_map->tileSize};
-  SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
-  SDL_RenderFillRect(game->renderer, &cameraRect);
-
-  for (int y = -game->camera.y/game->current_map->tileSize; y < (-game->camera.y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
-    for (int x = -game->camera.x/game->current_map->tileSize; x < (-game->camera.x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+  for (int y = -game->camera.base->y/game->current_map->tileSize; y < (-game->camera.base->y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
+    for (int x = -game->camera.base->x/game->current_map->tileSize; x < (-game->camera.base->x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
         renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
       }
@@ -381,26 +383,26 @@ void doRender(Game *game) {
 
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
     if (game->current_map->dynamic_objects[i].type == MAN) {
-      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
+      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == JAR) {
         if (game->current_map->dynamic_objects[i].isLifted) {
           game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
           game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->mainCharacter->h;
         }
-        renderJar(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
+        renderJar(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == BED) {
-      renderBed(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
+      renderBed(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == CRATE) {
-      renderCrate(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
+      renderCrate(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == DOOR) {
-      renderDoor(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
+      renderDoor(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == EVENT) {
-      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.x, game->current_map->dynamic_objects[i].y+game->camera.y, game->renderer);
+      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
     }
   }
 
-  for (int y = -game->camera.y/game->current_map->tileSize; y < (-game->camera.y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
-    for (int x = -game->camera.x/game->current_map->tileSize; x < (-game->camera.x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+  for (int y = -game->camera.base->y/game->current_map->tileSize; y < (-game->camera.base->y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
+    for (int x = -game->camera.base->x/game->current_map->tileSize; x < (-game->camera.base->x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height && game->current_map->tiles[x+y*game->current_map->width].tileState == IS_ABOVE) {
         renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
       }
@@ -479,8 +481,8 @@ void detectTileCollision(Game *game, DynamicObject *active_dynamic_object, Tile 
 }
 
 void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
-  for (int y = -game->camera.y/game->current_map->tileSize; y < (-game->camera.y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++)
-    for (int x = -game->camera.x/game->current_map->tileSize; x < (-game->camera.x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+  for (int y = -game->camera.base->y/game->current_map->tileSize; y < (-game->camera.base->y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++)
+    for (int x = -game->camera.base->x/game->current_map->tileSize; x < (-game->camera.base->x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
     int tileIndex = x + y * game->current_map->width;
     if (tileIndex < 0) continue;
 
@@ -519,7 +521,6 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
         int tileIsSolid = game->current_map->tiles[tileIndex].tileState == IS_SOLID;
         int tileHasObject = game->current_map->tiles[tileIndex].dynamic_object_id >= 0;
         int tileHasEvent = game->current_map->tiles[tileIndex].dynamic_object_type == EVENT;
-        fflush(stdout);
         if (tileHasEvent) {
           /* printf("current tile %d\n", game->mainCharacter->currentTile); */
           /* printf("previousMainTile  %d\n", *previousMainTile); */
@@ -533,7 +534,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           /* printf("tileIndex %d\n", tileIndex); */
           DynamicObject *event = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[tileIndex].dynamic_object_id);
           /* printf("Sup %d \n", event->id); */
-          fflush(stdout);
+          /* fflush(stdout); */
           triggerEvent(game, event);
           return;
         }
@@ -764,8 +765,8 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
       char *token;
 
       if (task_type == LOAD_MAP) {
-        printf("data is %s\n", dynamic_object->interactions[dynamic_object->state].tasks[i].data);
-        fflush(stdout);
+        /* printf("data is %s\n", dynamic_object->interactions[dynamic_object->state].tasks[i].data); */
+        /* fflush(stdout); */
         char* tempstr = calloc(strlen(dynamic_object->interactions[dynamic_object->state].tasks[i].data)+1, sizeof(char));
         strcpy(tempstr, dynamic_object->interactions[dynamic_object->state].tasks[i].data);
         token = strtok(tempstr, ".");
@@ -850,8 +851,6 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
 void process_default_behavior(DynamicObject *dynamic_object, Map *map) {
   if (dynamic_object->default_behavior == WALKING && dynamic_object->task_queue.size == 0 && !dynamic_object->isMain) {
       int randomNumber = rand() % 4;
-      printf("%d\n", randomNumber);
-      fflush(stdout);
 
       if (randomNumber == 0 && map->tiles[dynamic_object->currentTile - map->width].tileState != IS_SOLID) {
         enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)1, (void*)&map->tileSize, NULL);
@@ -927,38 +926,44 @@ void process(Game *game) {
     }
   }
 
-  game->camera.x = (WINDOW_WIDTH / 2) - game->mainCharacter->x;
-  game->camera.y = (WINDOW_HEIGHT / 2) - game->mainCharacter->y;
+  handlePhysics(game->camera.base, &game->current_map->tiles[game->camera.base->currentTile], &game->dt, game);
 
-  if (game->mainCharacter->x < 0) {
-    game->mainCharacter->x = 0;
-  }
+  if (game->camera.current_target != NULL) {
 
-  if (game->mainCharacter->x > game->current_map->width * game->current_map->tileSize - game->mainCharacter->w) {
-    game->mainCharacter->x = game->current_map->width * game->current_map->tileSize - game->mainCharacter->w;
-  }
+    game->camera.base->x = (WINDOW_WIDTH / 2) - game->camera.current_target->x;
+    game->camera.base->y = (WINDOW_HEIGHT / 2) - game->camera.current_target->y;
 
-  if (game->mainCharacter->y < 0) {
-    game->mainCharacter->y = 0;
-  }
+    if (game->camera.current_target->x < 0) {
+      game->camera.current_target->x = 0;
+    }
 
-  if (game->mainCharacter->y > game->current_map->height * game->current_map->tileSize - game->mainCharacter->h) {
-    game->mainCharacter->y = game->current_map->height * game->current_map->tileSize - game->mainCharacter->h;
-  }
+    if (game->camera.current_target->x > game->current_map->width * game->current_map->tileSize - game->camera.current_target->w) {
+      game->camera.current_target->x = game->current_map->width * game->current_map->tileSize - game->camera.current_target->w;
+    }
 
-  if(game->camera.x > 0) {
-    game->camera.x = 0;
-  }
-  if(game->camera.x < -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH) {
-    game->camera.x = -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH;
-  }
+    if (game->camera.current_target->y < 0) {
+      game->camera.current_target->y = 0;
+    }
 
-  if(game->camera.y > 0) {
-    game->camera.y = 0;
-  }
+    if (game->camera.current_target->y > game->current_map->height * game->current_map->tileSize - game->camera.current_target->h) {
+      game->camera.current_target->y = game->current_map->height * game->current_map->tileSize - game->camera.current_target->h;
+    }
 
-  if(game->camera.y < -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT) {
-    game->camera.y = -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT;
+    if(game->camera.base->x > 0) {
+      game->camera.base->x = 0;
+    }
+    if(game->camera.base->x < -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH) {
+      game->camera.base->x = -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH;
+    }
+
+    if(game->camera.base->y > 0) {
+      game->camera.base->y = 0;
+    }
+
+    if(game->camera.base->y < -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT) {
+      game->camera.base->y = -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT;
+    }
+    
   }
 
 

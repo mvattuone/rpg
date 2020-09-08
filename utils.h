@@ -7,11 +7,15 @@
 #define GET_VARIABLE_NAME(Variable) (#Variable)
 
 typedef struct {
+  float x;
+  float y;
+} Coordinates;
+
+typedef struct {
   int capacity;
   int size; 
   int* items;
 } DynamicArray;
-
 
 time_t toSeconds(time_t time);
 SDL_Surface* createSurface(char* filename); 

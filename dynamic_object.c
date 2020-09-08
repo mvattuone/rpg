@@ -1,5 +1,8 @@
+#include <math.h>
 #include <SDL2/SDL_image.h>
 #include "dynamic_object.h"
+#include "map.h"
+#include "rpg.h"
 
 int walkLeft(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
   if (fabs(dynamic_object->totalMovedX) >= (tileDistance * *(int*)tileSize)/2) {
@@ -306,3 +309,4 @@ DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *d
 
   return *dynamic_object;
 }
+

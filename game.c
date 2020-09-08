@@ -6,10 +6,17 @@
 void loadGame(Game *game) {
   game->dt = 1.0f/60.0f;
   game->font = initializeFont("fonts/slkscr.ttf", 24);
-  game->camera.x = 0;
-  game->camera.y = 0;
-  game->camera.width = 0;
-  game->camera.height = 0;
+  game->camera.base= malloc(sizeof(DynamicObject));
+  game->camera.current_target = game->mainCharacter;
+  game->camera.base->id = 9;
+  game->camera.base->x = 0;
+  game->camera.base->y = 0;
+  game->camera.base->moveLeft = 0;
+  game->camera.base->moveRight = 0;
+  game->camera.base->moveUp = 0;
+  game->camera.base->moveDown = 0;
+  game->camera.base->totalMovedX = 0;
+  game->camera.base->totalMovedY = 0;
   game->dismissDialog = 0;
   game->active_quests.size = 0; 
   game->active_quests.capacity = sizeof(Quest); 
@@ -34,6 +41,7 @@ void loadGame(Game *game) {
     strcpy(game->maps[i].name, bufferPtr);
   }
   loadMap(game, "maps/map_01.lvl", 0, -1, NULL);
+  game->camera.current_target = game->mainCharacter;
 };
 
 void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicObject *mainCharacter) {
@@ -43,6 +51,7 @@ void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicOb
 
   if (game->mainCharacter != NULL) {
     game->mainCharacter = NULL;
+    game->camera.current_target = NULL;
   } else {
     printf("Not removing main character since it does not exist");
     fflush(stdout);
@@ -80,6 +89,7 @@ void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicOb
       }
     }
     game->status = IS_ACTIVE;
+    game->camera.current_target = game->mainCharacter;
     return;
   }
 
@@ -114,6 +124,7 @@ void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicOb
     }
   }
   game->status = IS_ACTIVE;
+  game->camera.current_target = game->mainCharacter;
 }
 
 void shutdownGame(Game *game) {
