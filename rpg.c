@@ -1088,15 +1088,8 @@ void process(Game *game) {
       game->camera.current_target->y = game->current_map->height * game->current_map->tileSize - game->camera.current_target->h;
     }
 
-    if(game->camera.base->x > 0) {
-      game->camera.base->x = 0;
-    }
     if(game->camera.base->x < -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH) {
       game->camera.base->x = -game->current_map->width * game->current_map->tileSize+WINDOW_WIDTH;
-    }
-
-    if(game->camera.base->y > 0) {
-      game->camera.base->y = 0;
     }
 
     if(game->camera.base->y < -game->current_map->height * game->current_map->tileSize+WINDOW_HEIGHT) {
