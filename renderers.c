@@ -30,11 +30,13 @@ void renderText(SDL_Renderer *renderer, TTF_Font *font, char* text, SDL_Color co
   if (surface == NULL) {
     surface = TTF_RenderText_Blended_Wrapped(font, text, color, WINDOW_WIDTH - 50);
   }
-  SDL_Rect textRect = {x, y, surface->w, surface->h};
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-  SDL_RenderCopy(renderer, texture, NULL, &textRect);
-  SDL_FreeSurface(surface);
-  SDL_DestroyTexture(texture);
+  if (surface != NULL) {
+    SDL_Rect textRect = {x, y, surface->w, surface->h};
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_RenderCopy(renderer, texture, NULL, &textRect);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+  }
 }
 
 void renderCursor(SDL_Renderer *renderer, int x, int y, int w, int h) {

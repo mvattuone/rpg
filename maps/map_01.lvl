@@ -82,7 +82,9 @@ x;
 4;
 0;
 *0
--You had better get over to the Captain! Your radio's been going off for at least half an hour!;
+$000-You had better get over to the Captain! Your radio's been going off for at least half an hour!;
+$000vv10;
+$000-Fart!;
 *1
 *2
 *3

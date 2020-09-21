@@ -366,16 +366,17 @@ void doRender(Game *game) {
   int dialogueCount = 0;
 
   
-  if (fmod(game->time, 7.5) == 0) {
-    printf("mainX is %f\n", game->mainCharacter->x);
-    printf("mainY is %f\n", game->mainCharacter->y);
-    printf("camera->x is %f\n", game->camera.base->x);
-    printf("scrollY is %f\n", game->camera.base->y);
-  }
+  /* if (fmod(game->time, 7.5) == 0) { */
+  /*   printf("mainX is %f\n", game->mainCharacter->x); */
+  /*   printf("mainY is %f\n", game->mainCharacter->y); */
+  /*   printf("camera->x is %f\n", game->camera.base->x); */
+  /*   printf("scrollY is %f\n", game->camera.base->y); */
+  /* } */
 
   for (int y = -game->camera.base->y/game->current_map->tileSize; y < (-game->camera.base->y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
     for (int x = -game->camera.base->x/game->current_map->tileSize; x < (-game->camera.base->x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
+        fflush(stdout);
         renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
       }
     }
@@ -681,6 +682,138 @@ void handleInteraction(Game *game) {
   }
 }
 
+void handleExternalEvent(Game *game, char* data) {
+  game->status = IS_CUTSCENE;
+  char doId[4];
+  for (int p = 0; p < 3; p++) {
+    doId[p] = data[p]; 
+  }
+  doId[3] = '\0';
+  printf("Look at the id %d\n", atoi(doId));
+  printf("Look at the data %s\n", data);
+  fflush(stdout);
+  TaskType task_type;
+  int r = 3;
+  char e = data[r];
+  printf("what is it %c", e);
+  fflush(stdout);
+  
+  if ( e == '-') {
+    r++;
+    task_type = SPEAK;
+  } else if ( e == '<') {
+    r++;
+    e = data[r];
+    if (e == '<') {
+      r++;
+      task_type = RUN_LEFT;
+    } else {
+      e = data[r];
+      task_type = WALK_LEFT;
+    }
+  } else if ( e == '>') {
+    r++;
+    e = data[r];
+    if (e == '>') {
+      r++;
+      task_type = RUN_RIGHT;
+    } else {
+      e = data[r];
+      task_type = WALK_RIGHT;
+    }
+  } else if ( e == 'v') {
+    r++;
+    e = data[r];
+    if (e == 'v') {
+      r++;
+      task_type = RUN_DOWN;
+    } else {
+      printf("oh ok");
+      e = data[r];
+      task_type= WALK_DOWN;
+    }
+  } else if ( e == '^') {
+    r++;
+    e = data[r];
+    if (e == '^') {
+      r++;
+      task_type= RUN_UP;
+    } else {
+      e = data[r];
+      task_type= WALK_UP;
+    }
+  } else if ( e == 'x') {
+    r++;
+    task_type= REMOVE;
+  } else if ( e == '%') {
+    r++;
+    task_type= ADD_ITEM;
+  } else if ( e == '@') {
+    r++;
+    task_type= LOAD_MAP;
+  } else if ( e == '#') {
+    r++;
+    task_type= REMOVE_ITEM;
+  } 
+
+  char *newData = malloc(MAX_TASK_SIZE); 
+  int px = 0;
+  while (data[r] !=  '\0') {
+    newData[px] = data[r];
+    r++;
+    px++;
+  }
+
+
+  DynamicObject *dynamic_object = getDynamicObjectFromMap(game->current_map, atoi(doId));
+
+  printf("What is new data %s\n", newData);
+  fflush(stdout);
+
+  switch (task_type) {
+    case SPEAK:
+      printf("hmmm %s", newData);
+      fflush(stdout);
+      enqueue(&dynamic_object->task_queue, (void*)&speak, (void*)newData, (void*)&game->dismissDialog, 0);
+      break;
+    case WALK_LEFT:
+      enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case WALK_RIGHT:
+      enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case WALK_UP:
+      enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case WALK_DOWN:
+      enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case RUN_LEFT:
+      enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case RUN_RIGHT:
+      enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case RUN_UP:
+      enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case RUN_DOWN:
+      enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case REMOVE:
+      enqueue(&dynamic_object->task_queue, (void*)&removeObject, NULL, NULL, NULL);
+      break;
+    case ADD_ITEM:
+      enqueue(&dynamic_object->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(newData), &game->inventory, NULL);
+      break;
+    case REMOVE_ITEM:
+      enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(newData), &game->inventory, NULL);
+      break;
+    default:
+      break;
+  }
+}
+
 void triggerEvent(Game *game, DynamicObject *dynamic_object) {
   
 
@@ -707,7 +840,7 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
                 dynamic_object->state = QUEST_COMPLETED;
               }
             }
-          }
+           }
         } else if (quest->type == TALK && quest->state == IN_PROGRESS) {
           for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
             if (game->current_map->dynamic_objects[i].id == quest->target_id && game->current_map->dynamic_objects[i].state != DEFAULT) {
@@ -765,8 +898,6 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
       char *token;
 
       if (task_type == LOAD_MAP) {
-        /* printf("data is %s\n", dynamic_object->interactions[dynamic_object->state].tasks[i].data); */
-        /* fflush(stdout); */
         char* tempstr = calloc(strlen(dynamic_object->interactions[dynamic_object->state].tasks[i].data)+1, sizeof(char));
         strcpy(tempstr, dynamic_object->interactions[dynamic_object->state].tasks[i].data);
         token = strtok(tempstr, ".");
@@ -821,6 +952,9 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           break;
         case LOAD_MAP:
           loadMap(game, filename, map_id, atoi(tile_id), game->mainCharacter);
+          break;
+        case EXTERNAL_COMMAND:
+          handleExternalEvent(game, dynamic_object->interactions[dynamic_object->state].tasks[i].data);
           break;
         default:
           break;
@@ -887,7 +1021,7 @@ void process(Game *game) {
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
     DynamicObject *dynamic_object = &game->current_map->dynamic_objects[i];
     Queue *task_queue = &dynamic_object->task_queue;
-    int has_task = task_queue->size > 0;
+    int has_task = game->current_map->dynamic_objects[i].task_queue.size > 0;
 
     if (fmod(game->time, 180) == 0) {
       process_default_behavior(dynamic_object, game->current_map);
@@ -896,7 +1030,12 @@ void process(Game *game) {
     task_queue->prev_size = task_queue->size;
 
     if (has_task) {
-      task_running = process_queue(dynamic_object, task_queue); 
+      if (game->status == IS_CUTSCENE && !task_running) {
+        task_running = process_queue(dynamic_object, task_queue); 
+      } else {
+        task_running = process_queue(dynamic_object, task_queue); 
+      }
+      printf("is task running %d\n", task_running);
       no_tasks_left = 0;
     }
 
@@ -921,7 +1060,7 @@ void process(Game *game) {
   }
 
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
-    if (game->status == IS_ACTIVE || !game->current_map->dynamic_objects[i].isMain) {
+    if (game->status == IS_ACTIVE || !game->current_map->dynamic_objects[i].isMain || game->current_map->dynamic_objects[i].id != game->camera.base->id) {
       handlePhysics(&game->current_map->dynamic_objects[i], &game->current_map->tiles[game->current_map->dynamic_objects[i].currentTile], &game->dt, game);
     }
   }

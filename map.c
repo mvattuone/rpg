@@ -234,7 +234,7 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
           dynamic_objects[i]->interactions[interactions_count].task_count = 0;
           char data[MAX_TASK_SIZE];
 
-          while ((e = fgetc(mapData)) && (e == '-' || e == '<' || e == '>' || e == '^' || e == 'v' || e == 'x' || e == '%' || e == '@')) {
+          while ((e = fgetc(mapData)) && (e == '-' || e == '<' || e == '>' || e == '^' || e == 'v' || e == 'x' || e == '%' || e == '@' || e == '$' )) {
             if ( e == '-') {
               dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = SPEAK;
             } else if ( e == '<') {
@@ -277,6 +277,8 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
               dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = LOAD_MAP;
             } else if ( e == '#') {
               dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = REMOVE_ITEM;
+            } else if ( e == '$') {
+              dynamic_objects[i]->interactions[interactionIndex].tasks[dynamic_objects[i]->interactions[interactions_count].task_count].type = EXTERNAL_COMMAND;
             }
 
             int j = 0;
@@ -284,7 +286,7 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
               data[j] = e; 
               j++;
             }
-            data[j+1]='\0';
+            data[j] = '\0';
             for (int l = 0; l < MAX_TASKS; l++) {
               if (l == dynamic_objects[i]->interactions[interactionIndex].task_count) {
                 for (int b = 0; b < MAX_TASK_SIZE; b++) {
@@ -314,11 +316,7 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
     map.dynamic_objects_count = dynamic_objects_count;
 
     for (int i = 0; i < map.dynamic_objects_count; i++) {
-      /* printf("type is %d\n", dynamic_objects[i]->type); */
-      fflush(stdout);
       map.dynamic_objects[i] = *dynamic_objects[i];
-      /* printf("on the map the type is %d\n", map.dynamic_objects[i].type); */
-      fflush(stdout);
       map.dynamic_objects_count = dynamic_objects_count;
 
       free(dynamic_objects[i]);
@@ -329,8 +327,6 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
   }
 
   fclose(mapData);
-  /* printf("what is map name %s\n", map.name); */
-  fflush(stdout);
   return map;
 };
 

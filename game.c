@@ -17,6 +17,7 @@ void loadGame(Game *game) {
   game->camera.base->moveDown = 0;
   game->camera.base->totalMovedX = 0;
   game->camera.base->totalMovedY = 0;
+  game->camera.base->currentTile = 0 + 0 * game->current_map->width;
   game->dismissDialog = 0;
   game->active_quests.size = 0; 
   game->active_quests.capacity = sizeof(Quest); 

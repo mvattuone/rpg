@@ -6,7 +6,7 @@
 #define DYNAMIC_OBJECT_H
 
 #define MAX_TASK_SIZE 250
-#define MAX_TASKS 10
+#define MAX_TASKS 15
 #define MAX_INTERACTIONS 10
 
 typedef int (*generic_function)(void*, void*, void*, void*);
@@ -88,7 +88,8 @@ typedef enum {
   REMOVE,
   ADD_ITEM,
   LOAD_MAP,
-  REMOVE_ITEM
+  REMOVE_ITEM,
+  EXTERNAL_COMMAND
 } TaskType;
 
 typedef struct {

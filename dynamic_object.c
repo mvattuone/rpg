@@ -141,6 +141,10 @@ int runDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
 }
 
 int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t duration) {
+  if (text != NULL) {
+    printf("text is %s\n", text);
+  }
+  fflush(stdout);
   time_t timer = SDL_GetTicks() / 1000;
   time_t passedDuration = duration && timer - dynamic_object->task_queue.timer;
   if (*dismissDialog || passedDuration) {
@@ -149,7 +153,9 @@ int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t 
     *dismissDialog = 0;
     return 0;
   } else {
-    dynamic_object->currentDialog = text;
+    if (dynamic_object->currentDialog == NULL) {
+      dynamic_object->currentDialog = text;
+    }
     *dismissDialog = 0;
     return 1;
   }
@@ -165,6 +171,7 @@ int removeObject(DynamicObject *dynamic_object) {
 int process_queue(DynamicObject *dynamic_object, Queue *queue) {
   int running;
   if (!queue->is_enqueuing) {
+    printf("processing queue\n");
     QueueItem queue_item = queue->items[0];
     running = queue_item.action(dynamic_object, queue_item.arg1, queue_item.arg2, queue_item.arg3);
   } else {
@@ -181,9 +188,9 @@ void enqueue(Queue *queue, generic_function action, void* arg1, void* arg2, void
    }
    queue->size++;
    queue->items[queue->size - 1].action = action;
-   queue->items[queue->size - 1].arg1= arg1;
-   queue->items[queue->size - 1].arg2= arg2;
-   queue->items[queue->size - 1].arg3= arg3;
+   queue->items[queue->size - 1].arg1 = arg1;
+   queue->items[queue->size - 1].arg2 = arg2;
+   queue->items[queue->size - 1].arg3 = arg3;
    queue->is_enqueuing = 0;
 }
 
@@ -207,7 +214,7 @@ Queue dequeue(Queue *queue)
     new_queue.prev_size = queue->size;
     new_queue.is_enqueuing = 0;
 
-    free(queue->items);
+    /* free(queue->items); */
     return new_queue;
 }
 
@@ -305,6 +312,11 @@ DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *d
     dynamic_object->w = doorSurface->w / 6;
     dynamic_object->h = doorSurface->h / 4;
     SDL_FreeSurface(doorSurface);
+  }
+
+  if (type == EVENT) {
+    dynamic_object->h = 32;
+    dynamic_object->w = 32;
   }
 
   return *dynamic_object;
