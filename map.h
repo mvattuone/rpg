@@ -4,7 +4,7 @@
 #define MAP_H
 
 #define MAX_TILE_SIZE 5000
-#define MAX_DYNAMIC_OBJECTS 12
+#define MAX_DYNAMIC_OBJECTS 13
 
 
 typedef enum {

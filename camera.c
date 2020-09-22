@@ -8,10 +8,7 @@ void set_current_target(Map *map, Camera *camera, DynamicObject *target, time_t 
     puts("selected the same target");  
     return;
   }
-  printf("ok what is current target id %d\n", camera->current_target->id);
   camera->current_target = target;
-  printf("now what is current target id %d\n", camera->current_target->id);
-  fflush(stdout);
   return;
 }
 

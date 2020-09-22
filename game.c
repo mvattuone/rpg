@@ -6,18 +6,7 @@
 void loadGame(Game *game) {
   game->dt = 1.0f/60.0f;
   game->font = initializeFont("fonts/slkscr.ttf", 24);
-  game->camera.base= malloc(sizeof(DynamicObject));
-  game->camera.current_target = game->mainCharacter;
-  game->camera.base->id = 9;
-  game->camera.base->x = 0;
-  game->camera.base->y = 0;
-  game->camera.base->moveLeft = 0;
-  game->camera.base->moveRight = 0;
-  game->camera.base->moveUp = 0;
-  game->camera.base->moveDown = 0;
-  game->camera.base->totalMovedX = 0;
-  game->camera.base->totalMovedY = 0;
-  game->camera.base->currentTile = 0 + 0 * game->current_map->width;
+
   game->dismissDialog = 0;
   game->active_quests.size = 0; 
   game->active_quests.capacity = sizeof(Quest); 
@@ -80,13 +69,14 @@ void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicOb
           game->mainCharacter->y = ceil((startingTile/game->current_map->width)) * game->current_map->tileSize; 
         }
       }
-      if (game->current_map->dynamic_objects[i].type == EVENT) {
-        for (int j = 0; j < 3; j++) {
-          for (int k = 0; k < 1; k++) {
-          printf("data for event %d is %s\n", game->current_map->dynamic_objects[i].id, game->current_map->dynamic_objects[i].interactions[j].tasks[k].data);
-          fflush(stdout);
-          }
-        }
+
+      if (game->current_map->dynamic_objects[i].isCamera) {
+        game->camera.base = &game->current_map->dynamic_objects[i];
+        game->camera.base->currentTile = game->camera.base->startingTile;
+        game->camera.base->x = (startingTile % game->current_map->width) * game->current_map->tileSize;
+        game->camera.base->y = ceil((startingTile/game->current_map->width)) * game->current_map->tileSize; 
+        game->camera.base->w = 32;
+        game->camera.base->h = 32;
       }
     }
     game->status = IS_ACTIVE;
@@ -122,6 +112,9 @@ void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicOb
     }
     if (game->current_map->dynamic_objects[i].isMain) {
       game->mainCharacter = &game->current_map->dynamic_objects[i];
+    }
+    if (game->current_map->dynamic_objects[i].isCamera) {
+      game->camera.base = &game->current_map->dynamic_objects[i];
     }
   }
   game->status = IS_ACTIVE;

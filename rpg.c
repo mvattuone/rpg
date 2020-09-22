@@ -361,6 +361,7 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt, G
 }
 
 void doRender(Game *game) {
+  if (game->renderer == NULL) return;
   SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
   SDL_RenderClear(game->renderer);
   int dialogueCount = 0;
@@ -398,7 +399,7 @@ void doRender(Game *game) {
     } else if (game->current_map->dynamic_objects[i].type == DOOR) {
       renderDoor(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
     } else if (game->current_map->dynamic_objects[i].type == EVENT) {
-      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
+      //  should make some simple render rectangle for debug
     }
   }
 
@@ -550,11 +551,14 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           game->current_map->dynamic_objects[i].moveDown = 0;
         }
 
-        if (tileIsSolid && !tileHasObject) {
+        if (tileIsSolid && !tileHasObject && !active_dynamic_object->isCamera) {
+          if (active_dynamic_object->isCamera) {
+            printf("detecting collision with %d", active_dynamic_object->id);
+          }
           detectTileCollision(game, active_dynamic_object, &game->current_map->tiles[tileIndex]);
         }
 
-        if (game->status == IS_ACTIVE && (game->current_map->dynamic_objects[i].isPassable == 0)) {
+        if (game->status == IS_ACTIVE && (game->current_map->dynamic_objects[i].isPassable == 0 || active_dynamic_object->isCamera)) {
           detectObjectCollision(game, active_dynamic_object, &game->current_map->dynamic_objects[i]);
         }
 
@@ -684,6 +688,7 @@ void handleInteraction(Game *game) {
 
 void handleExternalEvent(Game *game, char* data) {
   game->status = IS_CUTSCENE;
+  game->camera.current_target = NULL;
   char doId[4];
   for (int p = 0; p < 3; p++) {
     doId[p] = data[p]; 
@@ -812,6 +817,8 @@ void handleExternalEvent(Game *game, char* data) {
     default:
       break;
   }
+
+  free(newData);
 }
 
 void triggerEvent(Game *game, DynamicObject *dynamic_object) {
@@ -1057,6 +1064,7 @@ void process(Game *game) {
   if (no_tasks_left == 1 && game->status == IS_CUTSCENE) {
     puts("No tasks are left, make active");
     game->status = IS_ACTIVE;
+    game->camera.current_target = game->mainCharacter;
   }
 
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
@@ -1067,7 +1075,7 @@ void process(Game *game) {
 
   handlePhysics(game->camera.base, &game->current_map->tiles[game->camera.base->currentTile], &game->dt, game);
 
-  if (game->camera.current_target != NULL) {
+  if (game->camera.current_target != NULL && !game->camera.base->isMoving) {
 
     game->camera.base->x = (WINDOW_WIDTH / 2) - game->camera.current_target->x;
     game->camera.base->y = (WINDOW_HEIGHT / 2) - game->camera.current_target->y;

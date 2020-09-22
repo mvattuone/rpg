@@ -117,6 +117,11 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
         int i = atoi(doId);
         dynamic_objects[i]->id = atoi(doId);
         if (dynamic_objects[i]->id == 0) {
+          dynamic_objects[i]->isCamera  = 1;        
+        } else {
+          dynamic_objects[i]->isCamera = 0;
+        } 
+        if (dynamic_objects[i]->id == 1) {
           if (mainCharacter != NULL) {
             *dynamic_objects[i] = *mainCharacter;
           }

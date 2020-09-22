@@ -21,13 +21,20 @@ Crew Quarters
 251 251 251 251 251 020 020 251 251 251 251 251
 
 #000
-037;
+000;
 0;
 0;
 0;
 0;
 *0
 #001
+037;
+0;
+0;
+0;
+0;
+*0
+#002
 081;
 0;
 0;
@@ -42,7 +49,7 @@ Crew Quarters
 <<5;
 vv11;
 x;
-#002
+#003
 041;
 0;
 1;
@@ -63,7 +70,7 @@ x;
 %1;
 *6
 -That box looks great.;
-#003
+#004
 013;
 3;
 0;
@@ -75,51 +82,54 @@ x;
 -As much as you want it to be, now is really not the time to go back to bed.;
 *2
 -As much as you want it to be, now is really not the time to go back to bed.;
-#004
+#005
 037;
 5;
 0;
 4;
 0;
 *0
-$000-You had better get over to the Captain! Your radio's been going off for at least half an hour!;
-$000vv10;
-$000-Fart!;
+-You had better get over to the Captain! Your radio's been going off for at least half an hour!;
+$000>>10;
+$000vv15;
+$000<<10;
+$000^12;
+-Fart!;
 *1
 *2
 *3
 *4
 *5
 -The quest is over!;
-#005
+#006
 100;
 1;
 0;
 0;
 0;
 *0
-#006
+#007
 062;
 4;
 0;
 0;
 0;
 *0
-#007
+#008
 069;
 4;
 0;
 0;
 0;
 *0
-#008
+#009
 157;
 4;
 0;
 0;
 0;
 *0
-#009
+#010
 221;
 5;
 0;
@@ -131,7 +141,7 @@ $000-Fart!;
 @02.044;
 *2
 @02.044;
-#010
+#011
 222;
 5;
 0;
@@ -143,7 +153,7 @@ $000-Fart!;
 @02.045;
 *2
 @02.045;
-#011
+#012
 185;
 2;
 0;

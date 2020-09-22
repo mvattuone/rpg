@@ -148,6 +148,7 @@ typedef struct DynamicObject {
   float runThrust;
   int quest;
   int isMain;
+  int isCamera;
   int currentTile;
   int triggerDialog;
   Equipment equipment;

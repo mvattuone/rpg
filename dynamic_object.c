@@ -123,6 +123,7 @@ int runUp(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
 }
 
 int runDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
+  printf("i am trying to do this");
   if (fabs(dynamic_object->totalMovedY) >= (tileDistance * *(int*)tileSize)/2) {
     dynamic_object->isMoving = 0;
     dynamic_object->isRunning = 0;
