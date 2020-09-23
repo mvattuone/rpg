@@ -14,7 +14,8 @@ typedef enum {
 } TileState;
 
 typedef struct {
-  char tileId;
+  int tileId;
+  int tileIndex;
   TileState tileState;
   float cof;
   float maxSpeed;

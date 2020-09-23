@@ -320,6 +320,11 @@ DynamicObject initialize_dynamic_object(SDL_Renderer *renderer, DynamicObject *d
     dynamic_object->w = 32;
   }
 
+  if (type == CAMERA) {
+    dynamic_object->h = 32;
+    dynamic_object->w = 32;
+  }
+
   return *dynamic_object;
 }
 

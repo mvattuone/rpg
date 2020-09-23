@@ -131,7 +131,7 @@ void renderMenu(Menu *inventory_menu, Item *items, DynamicArray inventory, TTF_F
   }
 }
 
-void renderTile(int x, int y, Camera camera, int tileSize, char tileId, SDL_Texture *texture, SDL_Renderer *renderer) {
+void renderTile(int x, int y, Camera camera, int tileSize, int tileId, SDL_Texture *texture, SDL_Renderer *renderer) {
  int tileRow = tileId % 16;
  int tileColumn = tileId / 16;
  SDL_Rect srcRect = {tileRow * 16, tileColumn * 16, 16, 16};

@@ -39,7 +39,8 @@ typedef enum {
   JAR,
   BED,
   DOOR,
-  EVENT
+  EVENT,
+  CAMERA
 } ObjectType;
 
 typedef enum {

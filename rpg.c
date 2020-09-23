@@ -361,7 +361,6 @@ int handlePhysics(DynamicObject *dynamic_object, Tile *currentTile, float *dt, G
 }
 
 void doRender(Game *game) {
-  if (game->renderer == NULL) return;
   SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
   SDL_RenderClear(game->renderer);
   int dialogueCount = 0;
@@ -374,42 +373,54 @@ void doRender(Game *game) {
   /*   printf("scrollY is %f\n", game->camera.base->y); */
   /* } */
 
+
   for (int y = -game->camera.base->y/game->current_map->tileSize; y < (-game->camera.base->y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
     for (int x = -game->camera.base->x/game->current_map->tileSize; x < (-game->camera.base->x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
+      Tile *activeTile = &game->current_map->tiles[x+y*game->current_map->width];
       if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
-        fflush(stdout);
-        renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
+        if (activeTile->tileState != IS_ABOVE) {
+          renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, activeTile->tileId, game->indoorTexture, game->renderer);
+        }
       }
     }
   }
 
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
-    if (game->current_map->dynamic_objects[i].type == MAN) {
-      renderMan(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
-    } else if (game->current_map->dynamic_objects[i].type == JAR) {
-        if (game->current_map->dynamic_objects[i].isLifted) {
-          game->current_map->dynamic_objects[i].x = game->mainCharacter->x;
-          game->current_map->dynamic_objects[i].y = game->mainCharacter->y - game->mainCharacter->h;
+    
+    DynamicObject *active_dynamic_object = &game->current_map->dynamic_objects[i];
+
+    fflush(stdout);
+    if (active_dynamic_object->type == MAN) {
+      renderMan(active_dynamic_object, active_dynamic_object->x+game->camera.base->x, active_dynamic_object->y+game->camera.base->y, game->renderer);
+    } else if (active_dynamic_object->type == JAR) {
+        if (active_dynamic_object->isLifted) {
+          active_dynamic_object->x = game->mainCharacter->x;
+          active_dynamic_object->y = game->mainCharacter->y - game->mainCharacter->h;
         }
-        renderJar(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
-    } else if (game->current_map->dynamic_objects[i].type == BED) {
-      renderBed(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
-    } else if (game->current_map->dynamic_objects[i].type == CRATE) {
-      renderCrate(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
-    } else if (game->current_map->dynamic_objects[i].type == DOOR) {
-      renderDoor(&game->current_map->dynamic_objects[i], game->current_map->dynamic_objects[i].x+game->camera.base->x, game->current_map->dynamic_objects[i].y+game->camera.base->y, game->renderer);
-    } else if (game->current_map->dynamic_objects[i].type == EVENT) {
+        renderJar(active_dynamic_object, active_dynamic_object->x+game->camera.base->x, active_dynamic_object->y+game->camera.base->y, game->renderer);
+    } else if (active_dynamic_object->type == BED) {
+      renderBed(active_dynamic_object, active_dynamic_object->x+game->camera.base->x, active_dynamic_object->y+game->camera.base->y, game->renderer);
+    } else if (active_dynamic_object->type == CRATE) {
+      renderCrate(active_dynamic_object, active_dynamic_object->x+game->camera.base->x, active_dynamic_object->y+game->camera.base->y, game->renderer);
+    } else if (active_dynamic_object->type == DOOR) {
+      renderDoor(active_dynamic_object, active_dynamic_object->x+game->camera.base->x, active_dynamic_object->y+game->camera.base->y, game->renderer);
+    } else if (active_dynamic_object->type == EVENT || active_dynamic_object->type == CAMERA) {
       //  should make some simple render rectangle for debug
     }
   }
 
   for (int y = -game->camera.base->y/game->current_map->tileSize; y < (-game->camera.base->y + WINDOW_HEIGHT)/ game->current_map->tileSize; y++) {
     for (int x = -game->camera.base->x/game->current_map->tileSize; x < (-game->camera.base->x + WINDOW_WIDTH)/ game->current_map->tileSize; x++) {
-      if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height && game->current_map->tiles[x+y*game->current_map->width].tileState == IS_ABOVE) {
-        renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, game->current_map->tiles[x + y * game->current_map->width].tileId, game->indoorTexture, game->renderer);
+      Tile *activeTile = &game->current_map->tiles[x+y*game->current_map->width];
+      if (x >= 0 && x < game->current_map->width && y>= 0 && y < game->current_map->height) {
+
+        if (activeTile->tileState == IS_ABOVE) {
+          renderTile(x * game->current_map->tileSize, y * game->current_map->tileSize, game->camera, game->current_map->tileSize, activeTile->tileId, game->indoorTexture, game->renderer);
+        }
       }
     }
   }
+
 
   for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
 
@@ -421,7 +432,6 @@ void doRender(Game *game) {
       renderText(game->renderer, game->font, currentDialog, color, 25, WINDOW_HEIGHT - (180 * dialogueCount), NULL);
     }
   }
-
 
   if (game->status == IS_MENU) {
     renderMenu(game->inventory_menu, game->items, game->inventory, game->font, game->renderer, game->items_count);
@@ -686,6 +696,76 @@ void handleInteraction(Game *game) {
   }
 }
 
+void dispatchEvent(DynamicObject *dynamic_object, TaskType task_type, void* data, Game *game) {
+  char tile_id[3];
+  int map_id;
+  char filename[20]; // e.g. maps/map_01.lvl
+  char *token;
+
+  if (task_type == LOAD_MAP) {
+    char* tempstr = calloc(strlen(data)+1, sizeof(char));
+    strcpy(tempstr, data);
+    token = strtok(tempstr, ".");
+    snprintf(filename, sizeof filename, "maps/map_%.2s.lvl", token);
+    map_id = atoi(token) - 1;
+    while (token != NULL) {
+      token = strtok(NULL, ".");
+      for (int i = 0; i < 3; i++) {
+        if (token != NULL) {
+          tile_id[i] = token[i];
+        }
+      }
+    }
+  }
+
+  switch (task_type) {
+    case SPEAK:
+      enqueue(&dynamic_object->task_queue, (void*)&speak, data, (void*)&game->dismissDialog, 0);
+      break;
+    case WALK_LEFT:
+      enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(data), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case WALK_RIGHT:
+      enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)(size_t)atoi(data), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case WALK_UP:
+      enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)(size_t)atoi(data), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case WALK_DOWN:
+      enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)(size_t)atoi(data), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case RUN_LEFT:
+      enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)(size_t)atoi(data), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case RUN_RIGHT:
+      enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)(size_t)atoi(data), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case RUN_UP:
+      enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)(size_t)atoi(data), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case RUN_DOWN:
+      enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)(size_t)atoi(data), (void*)&game->current_map->tileSize, NULL);
+      break;
+    case REMOVE:
+      enqueue(&dynamic_object->task_queue, (void*)&removeObject, NULL, NULL, NULL);
+      break;
+    case ADD_ITEM:
+      enqueue(&dynamic_object->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(data), &game->inventory, NULL);
+      break;
+    case REMOVE_ITEM:
+      enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(data), &game->inventory, NULL);
+      break;
+    case LOAD_MAP:
+      loadMap(game, filename, map_id, atoi(tile_id), game->mainCharacter);
+      break;
+    case EXTERNAL_COMMAND:
+      handleExternalEvent(game, data);
+      break;
+    default:
+      break;
+  }
+}
+
 void handleExternalEvent(Game *game, char* data) {
   game->status = IS_CUTSCENE;
   game->camera.current_target = NULL;
@@ -771,59 +851,13 @@ void handleExternalEvent(Game *game, char* data) {
 
 
   DynamicObject *dynamic_object = getDynamicObjectFromMap(game->current_map, atoi(doId));
-
-  printf("What is new data %s\n", newData);
-  fflush(stdout);
-
-  switch (task_type) {
-    case SPEAK:
-      printf("hmmm %s", newData);
-      fflush(stdout);
-      enqueue(&dynamic_object->task_queue, (void*)&speak, (void*)newData, (void*)&game->dismissDialog, 0);
-      break;
-    case WALK_LEFT:
-      enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
-      break;
-    case WALK_RIGHT:
-      enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
-      break;
-    case WALK_UP:
-      enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
-      break;
-    case WALK_DOWN:
-      enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
-      break;
-    case RUN_LEFT:
-      enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
-      break;
-    case RUN_RIGHT:
-      enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
-      break;
-    case RUN_UP:
-      enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
-      break;
-    case RUN_DOWN:
-      enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)(size_t)atoi(newData), (void*)&game->current_map->tileSize, NULL);
-      break;
-    case REMOVE:
-      enqueue(&dynamic_object->task_queue, (void*)&removeObject, NULL, NULL, NULL);
-      break;
-    case ADD_ITEM:
-      enqueue(&dynamic_object->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(newData), &game->inventory, NULL);
-      break;
-    case REMOVE_ITEM:
-      enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(newData), &game->inventory, NULL);
-      break;
-    default:
-      break;
-  }
+  dispatchEvent(dynamic_object, task_type, newData, game);
 
   free(newData);
 }
 
-void triggerEvent(Game *game, DynamicObject *dynamic_object) {
-  
 
+void triggerEvent(Game *game, DynamicObject *dynamic_object) {
   int quest_active = 0;
   int completed_quest = 0;
   if (dynamic_object->quest != 0) {
@@ -898,74 +932,7 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
     }
     for (int i = 0; i < dynamic_object->interactions[dynamic_object->state].task_count; i++) {
       TaskType task_type = dynamic_object->interactions[dynamic_object->state].tasks[i].type;
-
-      char tile_id[3];
-      int map_id;
-      char filename[20]; // e.g. maps/map_01.lvl
-      char *token;
-
-      if (task_type == LOAD_MAP) {
-        char* tempstr = calloc(strlen(dynamic_object->interactions[dynamic_object->state].tasks[i].data)+1, sizeof(char));
-        strcpy(tempstr, dynamic_object->interactions[dynamic_object->state].tasks[i].data);
-        token = strtok(tempstr, ".");
-        snprintf(filename, sizeof filename, "maps/map_%.2s.lvl", token);
-        map_id = atoi(token) - 1;
-        while (token != NULL) {
-          token = strtok(NULL, ".");
-          for (int i = 0; i < 3; i++) {
-            if (token != NULL) {
-              tile_id[i] = token[i];
-            }
-          }
-        }
-      }
-
-      switch (task_type) {
-        case SPEAK:
-          enqueue(&dynamic_object->task_queue, (void*)&speak, dynamic_object->interactions[dynamic_object->state].tasks[i].data, (void*)&game->dismissDialog, 0);
-          break;
-        case WALK_LEFT:
-          enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
-          break;
-        case WALK_RIGHT:
-          enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
-          break;
-        case WALK_UP:
-          enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
-          break;
-        case WALK_DOWN:
-          enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
-          break;
-        case RUN_LEFT:
-          enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
-          break;
-        case RUN_RIGHT:
-          enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
-          break;
-        case RUN_UP:
-          enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
-          break;
-        case RUN_DOWN:
-          enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), (void*)&game->current_map->tileSize, NULL);
-          break;
-        case REMOVE:
-          enqueue(&dynamic_object->task_queue, (void*)&removeObject, NULL, NULL, NULL);
-          break;
-        case ADD_ITEM:
-          enqueue(&dynamic_object->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), &game->inventory, NULL);
-          break;
-        case REMOVE_ITEM:
-          enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(dynamic_object->interactions[dynamic_object->state].tasks[i].data), &game->inventory, NULL);
-          break;
-        case LOAD_MAP:
-          loadMap(game, filename, map_id, atoi(tile_id), game->mainCharacter);
-          break;
-        case EXTERNAL_COMMAND:
-          handleExternalEvent(game, dynamic_object->interactions[dynamic_object->state].tasks[i].data);
-          break;
-        default:
-          break;
-      }
+      dispatchEvent(dynamic_object, task_type, dynamic_object->interactions[dynamic_object->state].tasks[i].data, game);
     }
   }
 

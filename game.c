@@ -109,6 +109,8 @@ void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicOb
       game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
     } else if (type == DOOR) {
       game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
+    } else if (type == CAMERA) {
+      game->current_map->dynamic_objects[i] = initialize_dynamic_object(game->renderer, &game->current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CAMERA, -1);
     }
     if (game->current_map->dynamic_objects[i].isMain) {
       game->mainCharacter = &game->current_map->dynamic_objects[i];

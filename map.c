@@ -85,7 +85,9 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
         tempId[1] = fgetc(mapData);
         tempId[2] = '\0';
         tiles[count] = malloc(sizeof(Tile));
+        tiles[count]->tileIndex = count;
         tiles[count]->tileId = atoi(tempId);
+        printf("tempId for %d is %d\n",count, tiles[count]->tileId);
         tiles[count]->w = tileSize;
         tiles[count]->h = tileSize;
         tiles[count]->x = (count % map.width) * tileSize;
@@ -198,6 +200,10 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
           dynamic_objects[dynamic_objects_count]->isPassable = 1;
           dynamic_objects[dynamic_objects_count]->isMovable = 0;
           dynamic_objects[dynamic_objects_count]->isLiftable = 0;
+        } else if (type == CAMERA) {
+          dynamic_objects[dynamic_objects_count]->isPassable = 1;
+          dynamic_objects[dynamic_objects_count]->isMovable = 0;
+          dynamic_objects[dynamic_objects_count]->isLiftable = 0;
         } else {
           dynamic_objects[dynamic_objects_count]->isPassable = 0;
           dynamic_objects[dynamic_objects_count]->isMovable = 0;
@@ -296,9 +302,6 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
               if (l == dynamic_objects[i]->interactions[interactionIndex].task_count) {
                 for (int b = 0; b < MAX_TASK_SIZE; b++) {
                   dynamic_objects[i]->interactions[interactionIndex].tasks[l].data[b] = data[b];
-                  if (dynamic_objects[i]->type == EVENT) {
-                    /* printf("data is %s\n", dynamic_objects[i]->interactions[interactionIndex].tasks[l].data); */
-                  }
                 }
               }
             }
