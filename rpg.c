@@ -1004,11 +1004,10 @@ void process(Game *game) {
     task_queue->prev_size = task_queue->size;
 
     if (has_task) {
-      if (game->status == IS_CUTSCENE && !task_running) {
+      if (game->status != IS_CUTSCENE || (game->status == IS_CUTSCENE && !task_running)) {
         task_running = process_queue(dynamic_object, task_queue); 
-      } else {
-        task_running = process_queue(dynamic_object, task_queue); 
-      }
+      } 
+      
       printf("is task running %d\n", task_running);
       no_tasks_left = 0;
     }
