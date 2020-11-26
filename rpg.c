@@ -109,14 +109,28 @@ int handleEvents(Game *game) {
           default:
             break;
         }
+      case SDL_WINDOWEVENT:
+        switch (event.window.event) {
+            case SDL_WINDOWEVENT_CLOSE:   // exit game
+                shutdownGame(game);
+                break;
+            default:
+                break;
+        }
+        break;
       default:
         break;
     }
   }
 
+  const Uint8 *state = SDL_GetKeyboardState(NULL);
+
+  if (state[SDL_SCANCODE_Q] && (state[SDL_SCANCODE_LGUI] || state[SDL_SCANCODE_RGUI])) {
+    shutdownGame(game);
+  }
+
   if (game->status == IS_ACTIVE) {
     SDL_PumpEvents();
-    const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_UP] || state[SDL_SCANCODE_DOWN]) {
       game->mainCharacter->isMoving = 1;
       if (state[SDL_SCANCODE_A]) {

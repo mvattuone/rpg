@@ -124,18 +124,11 @@ void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicOb
 }
 
 void shutdownGame(Game *game) {
-  SDL_DestroyTexture(game->terrainTexture);
-  SDL_DestroyTexture(game->indoorTexture);
   for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < game->maps[i].dynamic_objects_count; i++) {
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].idleTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].runningTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].crateTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].jarTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].hatTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].doorTexture);
-      SDL_DestroyTexture(game->maps[i].dynamic_objects[j].bedTexture);
-      free(game->maps[i].dynamic_objects[j].task_queue.items);
+    if (&game->maps[i] != NULL) {
+      for (int j = 0; j < game->maps[i].dynamic_objects_count; i++) {
+        free(game->maps[i].dynamic_objects[j].task_queue.items);
+      }
     }
   }
   for (int i = 0; i < game->items_count; i++) {
@@ -151,6 +144,7 @@ void shutdownGame(Game *game) {
   free(game->quests);
   free(game->items);
   TTF_CloseFont(game->font);
+  SDL_DestroyRenderer(game->renderer); 
   SDL_DestroyWindow(game->window); 
 
   TTF_Quit();
