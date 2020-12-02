@@ -19,7 +19,13 @@ Item* load_items(char* file_path, int *items_count) {
   while (fgets(buffer, 1024, fp) != NULL) {
     char dataLineSymbol = buffer[0];
     if (dataLineSymbol == ITEM_ID) {
-      items = realloc(items , sizeof(items) + sizeof(buffer) * 2);
+      Item *tmp = realloc(items , sizeof(items) + sizeof(buffer) * 2);
+      if (tmp != NULL) {
+        items = tmp;
+      } else {
+        fprintf(stderr, "Error reallocating items \n");
+        exit(-1);
+      }
       items[i].id = i;
       continue;
     } 

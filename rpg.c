@@ -529,7 +529,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
 
       // Handle resetting dynamic object ids when movement occurs
       // Need to avoid this when an object is static i.e. door, event
-      if (previousTile != game->current_map->dynamic_objects[i].currentTile) {
+      if (previousTile != game->current_map->dynamic_objects[i].currentTile && game->status == IS_ACTIVE) {
         if (game->current_map->dynamic_objects[i].isMain) {
           /* printf("game current tile %d\n", game->current_map->dynamic_objects[i].currentTile); */
           /* printf("game starting tile %d\n", game->current_map->dynamic_objects[i].startingTile); */
@@ -539,6 +539,7 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           game->current_map->tiles[game->current_map->dynamic_objects[i].currentTile].dynamic_object_id = game->current_map->dynamic_objects[i].id;
         }
         if (game->current_map->tiles[previousTile].dynamic_object_type != DOOR && game->current_map->tiles[previousTile].dynamic_object_type != EVENT) {
+          printf("previous tile was what %d\n", previousTile);
           game->current_map->tiles[previousTile].dynamic_object_id = 0;
         } 
       } 
@@ -547,20 +548,9 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
         int tileIsSolid = game->current_map->tiles[tileIndex].tileState == IS_SOLID;
         int tileHasObject = game->current_map->tiles[tileIndex].dynamic_object_id >= 0;
         int tileHasEvent = game->current_map->tiles[tileIndex].dynamic_object_type == EVENT;
-        if (tileHasEvent) {
-          /* printf("current tile %d\n", game->mainCharacter->currentTile); */
-          /* printf("previousMainTile  %d\n", *previousMainTile); */
-          /* printf("tileIndex %d\n", tileIndex); */
-        }
         if (game->status != IS_CUTSCENE && tileHasEvent && tileIndex == game->mainCharacter->currentTile && previousMainTile > 0 && *previousMainTile != game->mainCharacter->currentTile) { 
           game->mainCharacter->currentTile = 0;
-          /* printf("my dude %d\n", game->mainCharacter->id); */
-          /* printf("current tile %d\n", game->mainCharacter->currentTile); */
-          /* printf("previousMainTile  %d\n", *previousMainTile); */
-          /* printf("tileIndex %d\n", tileIndex); */
           DynamicObject *event = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[tileIndex].dynamic_object_id);
-          /* printf("Sup %d \n", event->id); */
-          /* fflush(stdout); */
           triggerEvent(game, event);
           return;
         }
@@ -680,6 +670,8 @@ void toggleDoorStatus(DynamicObject *door) {
 // you try to interact with object
 void handleInteraction(Game *game) { 
   DynamicObject *dynamic_object = NULL;
+  printf("what is id here %d", game->current_map->tiles[game->mainCharacter->currentTile + 1].dynamic_object_id);
+  fflush(stdout);
   if (game->mainCharacter->direction == UP && game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width].dynamic_object_id) {
     dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile - game->current_map->width].dynamic_object_id);
   } else if (game->mainCharacter->direction == LEFT && game->current_map->tiles[game->mainCharacter->currentTile - 1].dynamic_object_id) {
@@ -697,9 +689,11 @@ void handleInteraction(Game *game) {
   } else if (game->mainCharacter->direction == DOWNRIGHT && game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width + 1].dynamic_object_id) {
     dynamic_object = getDynamicObjectFromMap(game->current_map, game->current_map->tiles[game->mainCharacter->currentTile + game->current_map->width + 1].dynamic_object_id);
   } else {
+    fflush(stdout);
     game->status = IS_ACTIVE;
     return;
   }
+
 
   if (dynamic_object != NULL) {
     if (dynamic_object->type == DOOR) {
@@ -788,14 +782,9 @@ void handleExternalEvent(Game *game, char* data) {
     doId[p] = data[p]; 
   }
   doId[3] = '\0';
-  printf("Look at the id %d\n", atoi(doId));
-  printf("Look at the data %s\n", data);
-  fflush(stdout);
-  TaskType task_type;
+  TaskType task_type = SPEAK;
   int r = 3;
   char e = data[r];
-  printf("what is it %c", e);
-  fflush(stdout);
   
   if ( e == '-') {
     r++;
@@ -1022,7 +1011,7 @@ void process(Game *game) {
         task_running = process_queue(dynamic_object, task_queue); 
       } 
       
-      printf("is task running %d\n", task_running);
+      /* printf("is task running %d\n", task_running); */
       no_tasks_left = 0;
     }
 

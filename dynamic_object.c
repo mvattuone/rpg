@@ -172,7 +172,7 @@ int removeObject(DynamicObject *dynamic_object) {
 int process_queue(DynamicObject *dynamic_object, Queue *queue) {
   int running;
   if (!queue->is_enqueuing) {
-    printf("processing queue\n");
+    /* printf("processing queue\n"); */
     QueueItem queue_item = queue->items[0];
     running = queue_item.action(dynamic_object, queue_item.arg1, queue_item.arg2, queue_item.arg3);
   } else {
