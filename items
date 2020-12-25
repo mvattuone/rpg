@@ -1,0 +1,24 @@
+[0m[35mdynamic_object.c[0m:[0m[32m169[0m:[0m8[0m:  if (![0m[1m[31mqueue-[0m>is_enqueuing) {
+[0m[35mdynamic_object.c[0m:[0m[32m171[0m:[0m28[0m:    QueueItem queue_item = [0m[1m[31mqueue-[0m>items[0];
+[0m[35mdynamic_object.c[0m:[0m[32m180[0m:[0m3[0m:  [0m[1m[31mqueue-[0m>is_enqueuing = 1;
+[0m[35mdynamic_object.c[0m:[0m[32m181[0m:[0m4[0m:   [0m[1m[31mqueue-[0m>items = realloc([0m[1m[31mqueue-[0m>items, sizeof([0m[1m[31mqueue-[0m>items) * 10);
+[0m[35mdynamic_object.c[0m:[0m[32m182[0m:[0m8[0m:   if ([0m[1m[31mqueue-[0m>size >= [0m[1m[31mqueue-[0m>capacity) {
+[0m[35mdynamic_object.c[0m:[0m[32m183[0m:[0m6[0m:     [0m[1m[31mqueue-[0m>capacity = [0m[1m[31mqueue-[0m>size * 2;
+[0m[35mdynamic_object.c[0m:[0m[32m185[0m:[0m4[0m:   [0m[1m[31mqueue-[0m>size++;
+[0m[35mdynamic_object.c[0m:[0m[32m186[0m:[0m4[0m:   [0m[1m[31mqueue-[0m>items[[0m[1m[31mqueue-[0m>size - 1].action = action;
+[0m[35mdynamic_object.c[0m:[0m[32m187[0m:[0m4[0m:   [0m[1m[31mqueue-[0m>items[[0m[1m[31mqueue-[0m>size - 1].arg1 = arg1;
+[0m[35mdynamic_object.c[0m:[0m[32m188[0m:[0m4[0m:   [0m[1m[31mqueue-[0m>items[[0m[1m[31mqueue-[0m>size - 1].arg2 = arg2;
+[0m[35mdynamic_object.c[0m:[0m[32m189[0m:[0m4[0m:   [0m[1m[31mqueue-[0m>items[[0m[1m[31mqueue-[0m>size - 1].arg3 = arg3;
+[0m[35mdynamic_object.c[0m:[0m[32m190[0m:[0m4[0m:   [0m[1m[31mqueue-[0m>is_enqueuing = 0;
+[0m[35mdynamic_object.c[0m:[0m[32m195[0m:[0m9[0m:    if ([0m[1m[31mqueue-[0m>size < 1) {
+[0m[35mdynamic_object.c[0m:[0m[32m202[0m:[0m31[0m:    new_queue.items = malloc(([0m[1m[31mqueue-[0m>size - 1) * sizeof(*new_queue.items)); 
+[0m[35mdynamic_object.c[0m:[0m[32m204[0m:[0m9[0m:    if ([0m[1m[31mqueue-[0m>size != 1) {
+[0m[35mdynamic_object.c[0m:[0m[32m205[0m:[0m34[0m:        memcpy(new_queue.items, &[0m[1m[31mqueue-[0m>items[1], ([0m[1m[31mqueue-[0m>size - 1) * sizeof(*new_queue.items)); 
+[0m[35mdynamic_object.c[0m:[0m[32m208[0m:[0m22[0m:    new_queue.size = [0m[1m[31mqueue-[0m>size - 1;
+[0m[35mdynamic_object.c[0m:[0m[32m209[0m:[0m26[0m:    new_queue.capacity = [0m[1m[31mqueue-[0m>capacity; 
+[0m[35mdynamic_object.c[0m:[0m[32m210[0m:[0m27[0m:    new_queue.prev_size = [0m[1m[31mqueue-[0m>size;
+[0m[35mdynamic_object.c[0m:[0m[32m213[0m:[0m13[0m:    /* free([0m[1m[31mqueue-[0m>items); */
+[0m[35mrpg.c[0m:[0m[32m1025[0m:[0m10[0m:    task_[0m[1m[31mqueue-[0m>prev_size = task_[0m[1m[31mqueue-[0m>size;
+[0m[35mrpg.c[0m:[0m[32m1036[0m:[0m32[0m:    if (!task_running && !task_[0m[1m[31mqueue-[0m>is_enqueuing && has_task) {
+[0m[35mrpg.c[0m:[0m[32m1040[0m:[0m16[0m:      if (task_[0m[1m[31mqueue-[0m>prev_size == 1 && task_[0m[1m[31mqueue-[0m>size == 0) {
+[0m[35mrpg.c[0m:[0m[32m1041[0m:[0m14[0m:        task_[0m[1m[31mqueue-[0m>prev_size = 0;

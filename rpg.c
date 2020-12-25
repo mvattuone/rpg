@@ -539,7 +539,6 @@ void handleObjectCollisions(Game *game, DynamicObject *active_dynamic_object) {
           game->current_map->tiles[game->current_map->dynamic_objects[i].currentTile].dynamic_object_id = game->current_map->dynamic_objects[i].id;
         }
         if (game->current_map->tiles[previousTile].dynamic_object_type != DOOR && game->current_map->tiles[previousTile].dynamic_object_type != EVENT) {
-          printf("previous tile was what %d\n", previousTile);
           game->current_map->tiles[previousTile].dynamic_object_id = 0;
         } 
       } 
@@ -872,13 +871,14 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           // @TODO - Create a lookup quest information function of some kind
           for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
             // @TODO Add the switch location
-            /* printf("this should work %d\n", quest->target_id); */
-            /* fflush(stdout); */
+            printf("this should work %d\n", quest->target_id);
             if (quest->target_id == game->current_map->dynamic_objects[i].id) {
-              /* printf("game current tile %d", game->current_map->dynamic_objects[i].currentTile); */
-              /* printf("game target tile %d", quest->target_tile); */
+              printf("game current tile %d", game->current_map->dynamic_objects[i].currentTile);
+              printf("game target tile %d", quest->target_tile);
               fflush(stdout);
               if (game->current_map->dynamic_objects[i].currentTile == quest->target_tile) {
+                printf("hey now you're an all star\n");
+                fflush(stdout);
                 completed_quest = 1;
                 quest->state = COMPLETED;
                 dynamic_object->state = QUEST_COMPLETED;
@@ -888,6 +888,7 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
         } else if (quest->type == TALK && quest->state == IN_PROGRESS) {
           for (int i = 0; i < game->current_map->dynamic_objects_count; i++) {
             if (game->current_map->dynamic_objects[i].id == quest->target_id && game->current_map->dynamic_objects[i].state != DEFAULT) {
+              fflush(stdout);
               completed_quest = 1;
               quest->state = COMPLETED;
               dynamic_object->state = QUEST_COMPLETED;
@@ -911,10 +912,15 @@ void triggerEvent(Game *game, DynamicObject *dynamic_object) {
           quest = &game->quests[i];
         }
       }
+      /* printf("what is dynamic_object state %d", dynamic_object->state); */
+      /* printf("what is quest %d", dynamic_object->quest); */
       if (quest && ((dynamic_object->state == DEFAULT && dynamic_object->interactions[SPOKEN].task_count == 0 ) || (dynamic_object->state == SPOKEN))) {
+        printf("adding new quest...");
+        fflush(stdout);
         add_quest(&game->active_quests, dynamic_object->id, quest);
         quest_active = 1;
       } 
+      fflush(stdout);
     }
   }
 

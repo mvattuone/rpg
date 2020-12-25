@@ -125,8 +125,8 @@ void loadMap(Game *game, char* filePath, int map_id, int startingTile, DynamicOb
 
 void shutdownGame(Game *game) {
   for (int i = 0; i < 2; i++) {
-    if (&game->maps[i] != NULL) {
-      for (int j = 0; j < game->maps[i].dynamic_objects_count; i++) {
+    if (strcmp(game->maps[i].name, "No Name") != 0) {
+      for (int j = 0; j < game->maps[i].dynamic_objects_count; j++) {
         free(game->maps[i].dynamic_objects[j].task_queue.items);
       }
     }

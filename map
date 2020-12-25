@@ -1,0 +1,372 @@
+[0m[35minventory.c[0m:[0m[32m31[0m:[0m40[0m:  new_inventory.items = malloc((sizeof([0m[1m[31mgame-[0m>inventory.items) * sizeof(Item)) - sizeof(Item));
+[0m[35minventory.c[0m:[0m[32m33[0m:[0m24[0m:  new_inventory.size = [0m[1m[31mgame-[0m>inventory.size - 1;
+[0m[35minventory.c[0m:[0m[32m34[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>inventory.size; i++) {
+[0m[35minventory.c[0m:[0m[32m35[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>inventory.items[i] != inventory_id) {
+[0m[35minventory.c[0m:[0m[32m36[0m:[0m32[0m:      new_inventory.items[i] = [0m[1m[31mgame-[0m>inventory.items[i];
+[0m[35minventory.c[0m:[0m[32m41[0m:[0m8[0m:  free([0m[1m[31mgame-[0m>inventory.items);
+[0m[35mgame.c[0m:[0m[32m7[0m:[0m3[0m:  [0m[1m[31mgame-[0m>dt = 1.0f/60.0f;
+[0m[35mgame.c[0m:[0m[32m8[0m:[0m3[0m:  [0m[1m[31mgame-[0m>font = initializeFont("fonts/slkscr.ttf", 24);
+[0m[35mgame.c[0m:[0m[32m10[0m:[0m3[0m:  [0m[1m[31mgame-[0m>dismissDialog = 0;
+[0m[35mgame.c[0m:[0m[32m11[0m:[0m3[0m:  [0m[1m[31mgame-[0m>active_quests.size = 0; 
+[0m[35mgame.c[0m:[0m[32m12[0m:[0m3[0m:  [0m[1m[31mgame-[0m>active_quests.capacity = sizeof(Quest); 
+[0m[35mgame.c[0m:[0m[32m13[0m:[0m3[0m:  [0m[1m[31mgame-[0m>active_quests.items = malloc(sizeof(Quest)); 
+[0m[35mgame.c[0m:[0m[32m17[0m:[0m3[0m:  [0m[1m[31mgame-[0m>terrainTexture = createTexture([0m[1m[31mgame-[0m>renderer, "images/terrain.png");
+[0m[35mgame.c[0m:[0m[32m18[0m:[0m3[0m:  [0m[1m[31mgame-[0m>indoorTexture = createTexture([0m[1m[31mgame-[0m>renderer, "images/indoor.png");
+[0m[35mgame.c[0m:[0m[32m19[0m:[0m3[0m:  [0m[1m[31mgame-[0m>status = IS_ACTIVE;
+[0m[35mgame.c[0m:[0m[32m20[0m:[0m3[0m:  [0m[1m[31mgame-[0m>items = load_items("data/items.dat", &[0m[1m[31mgame-[0m>items_count);
+[0m[35mgame.c[0m:[0m[32m21[0m:[0m3[0m:  [0m[1m[31mgame-[0m>inventory.size = 4;
+[0m[35mgame.c[0m:[0m[32m22[0m:[0m3[0m:  [0m[1m[31mgame-[0m>inventory.capacity = sizeof(Item) * [0m[1m[31mgame-[0m>inventory.size; 
+[0m[35mgame.c[0m:[0m[32m23[0m:[0m3[0m:  [0m[1m[31mgame-[0m>inventory.items = malloc(sizeof(Item) * [0m[1m[31mgame-[0m>inventory.size); 
+[0m[35mgame.c[0m:[0m[32m24[0m:[0m10[0m:  memset([0m[1m[31mgame-[0m>inventory.items, -1, sizeof(Item) * [0m[1m[31mgame-[0m>inventory.size);
+[0m[35mgame.c[0m:[0m[32m25[0m:[0m3[0m:  [0m[1m[31mgame-[0m>inventory.items[0] = 1;
+[0m[35mgame.c[0m:[0m[32m26[0m:[0m3[0m:  [0m[1m[31mgame-[0m>inventory.items[1] = 2;
+[0m[35mgame.c[0m:[0m[32m27[0m:[0m4[0m:  *[0m[1m[31mgame-[0m>inventory_menu = load_inventory_menu();
+[0m[35mgame.c[0m:[0m[32m28[0m:[0m3[0m:  [0m[1m[31mgame-[0m>quests = load_quests("data/quests.dat", &[0m[1m[31mgame-[0m>quests_count);
+[0m[35mgame.c[0m:[0m[32m31[0m:[0m12[0m:    strcpy([0m[1m[31mgame-[0m>maps[i].name, bufferPtr);
+[0m[35mgame.c[0m:[0m[32m34[0m:[0m3[0m:  [0m[1m[31mgame-[0m>camera.current_target = [0m[1m[31mgame-[0m>mainCharacter;
+[0m[35mgame.c[0m:[0m[32m38[0m:[0m3[0m:  [0m[1m[31mgame-[0m>status = IS_LOADING;
+[0m[35mgame.c[0m:[0m[32m40[0m:[0m35[0m:  printf("what is map name %s\n", [0m[1m[31mgame-[0m>maps[map_id].name);
+[0m[35mgame.c[0m:[0m[32m42[0m:[0m7[0m:  if ([0m[1m[31mgame-[0m>mainCharacter != NULL) {
+[0m[35mgame.c[0m:[0m[32m43[0m:[0m5[0m:    [0m[1m[31mgame-[0m>mainCharacter = NULL;
+[0m[35mgame.c[0m:[0m[32m44[0m:[0m5[0m:    [0m[1m[31mgame-[0m>camera.current_target = NULL;
+[0m[35mgame.c[0m:[0m[32m51[0m:[0m14[0m:  if (strcmp([0m[1m[31mgame-[0m>maps[map_id].name, "No Name") != 0) {
+[0m[35mgame.c[0m:[0m[32m54[0m:[0m5[0m:    [0m[1m[31mgame-[0m>current_map = &[0m[1m[31mgame-[0m>maps[map_id];
+[0m[35mgame.c[0m:[0m[32m55[0m:[0m25[0m:    for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mgame.c[0m:[0m[32m56[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMain) {
+[0m[35mgame.c[0m:[0m[32m58[0m:[0m11[0m:          [0m[1m[31mgame-[0m>current_map->dynamic_objects[i] = *mainCharacter;
+[0m[35mgame.c[0m:[0m[32m61[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter = &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i];
+[0m[35mgame.c[0m:[0m[32m63[0m:[0m11[0m:          [0m[1m[31mgame-[0m>mainCharacter->currentTile = [0m[1m[31mgame-[0m>mainCharacter->startingTile;
+[0m[35mgame.c[0m:[0m[32m64[0m:[0m11[0m:          [0m[1m[31mgame-[0m>mainCharacter->x = ([0m[1m[31mgame-[0m>mainCharacter->startingTile % [0m[1m[31mgame-[0m>current_map->width) * [0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mgame.c[0m:[0m[32m65[0m:[0m11[0m:          [0m[1m[31mgame-[0m>mainCharacter->y = ceil(([0m[1m[31mgame-[0m>mainCharacter->startingTile - ([0m[1m[31mgame-[0m>current_map->width * 2))/[0m[1m[31mgame-[0m>current_map->width) * [0m[1m[31mgame-[0m>current_map->tileSize; 
+[0m[35mgame.c[0m:[0m[32m67[0m:[0m11[0m:          [0m[1m[31mgame-[0m>mainCharacter->currentTile = startingTile;
+[0m[35mgame.c[0m:[0m[32m68[0m:[0m11[0m:          [0m[1m[31mgame-[0m>mainCharacter->x = (startingTile % [0m[1m[31mgame-[0m>current_map->width) * [0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mgame.c[0m:[0m[32m69[0m:[0m11[0m:          [0m[1m[31mgame-[0m>mainCharacter->y = ceil((startingTile/[0m[1m[31mgame-[0m>current_map->width)) * [0m[1m[31mgame-[0m>current_map->tileSize; 
+[0m[35mgame.c[0m:[0m[32m73[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isCamera) {
+[0m[35mgame.c[0m:[0m[32m74[0m:[0m9[0m:        [0m[1m[31mgame-[0m>camera.base = &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i];
+[0m[35mgame.c[0m:[0m[32m75[0m:[0m9[0m:        [0m[1m[31mgame-[0m>camera.base->currentTile = [0m[1m[31mgame-[0m>camera.base->startingTile;
+[0m[35mgame.c[0m:[0m[32m76[0m:[0m9[0m:        [0m[1m[31mgame-[0m>camera.base->x = (startingTile % [0m[1m[31mgame-[0m>current_map->width) * [0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mgame.c[0m:[0m[32m77[0m:[0m9[0m:        [0m[1m[31mgame-[0m>camera.base->y = ceil((startingTile/[0m[1m[31mgame-[0m>current_map->width)) * [0m[1m[31mgame-[0m>current_map->tileSize; 
+[0m[35mgame.c[0m:[0m[32m78[0m:[0m9[0m:        [0m[1m[31mgame-[0m>camera.base->w = 32;
+[0m[35mgame.c[0m:[0m[32m79[0m:[0m9[0m:        [0m[1m[31mgame-[0m>camera.base->h = 32;
+[0m[35mgame.c[0m:[0m[32m82[0m:[0m5[0m:    [0m[1m[31mgame-[0m>status = IS_ACTIVE;
+[0m[35mgame.c[0m:[0m[32m83[0m:[0m5[0m:    [0m[1m[31mgame-[0m>camera.current_target = [0m[1m[31mgame-[0m>mainCharacter;
+[0m[35mgame.c[0m:[0m[32m89[0m:[0m3[0m:  [0m[1m[31mgame-[0m>maps[map_id] = initializeMap(filePath, 32, startingTile, mainCharacter);
+[0m[35mgame.c[0m:[0m[32m90[0m:[0m3[0m:  [0m[1m[31mgame-[0m>current_map = &[0m[1m[31mgame-[0m>maps[map_id];
+[0m[35mgame.c[0m:[0m[32m91[0m:[0m39[0m:  printf("current map name is %s \n", [0m[1m[31mgame-[0m>current_map->name);
+[0m[35mgame.c[0m:[0m[32m93[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mgame.c[0m:[0m[32m94[0m:[0m23[0m:    ObjectType type = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].type;
+[0m[35mgame.c[0m:[0m[32m95[0m:[0m43[0m:    /* printf("what is the type here %d", [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].type); */
+[0m[35mgame.c[0m:[0m[32m100[0m:[0m21[0m:      HatType hat = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].equipment.hat;
+[0m[35mgame.c[0m:[0m[32m101[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i] = initialize_dynamic_object([0m[1m[31mgame-[0m>renderer, &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i], DOWN, 0, 70, 700, 800, IS_IDLE, RIGHT, MAN, hat);
+[0m[35mgame.c[0m:[0m[32m103[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i] = initialize_dynamic_object([0m[1m[31mgame-[0m>renderer, &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CRATE, -1);
+[0m[35mgame.c[0m:[0m[32m105[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i] = initialize_dynamic_object([0m[1m[31mgame-[0m>renderer, &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UPRIGHT, JAR, -1);
+[0m[35mgame.c[0m:[0m[32m107[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i] = initialize_dynamic_object([0m[1m[31mgame-[0m>renderer, &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, BED, -1);
+[0m[35mgame.c[0m:[0m[32m109[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i] = initialize_dynamic_object([0m[1m[31mgame-[0m>renderer, &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, EVENT, -1);
+[0m[35mgame.c[0m:[0m[32m111[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i] = initialize_dynamic_object([0m[1m[31mgame-[0m>renderer, &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, DOOR, -1);
+[0m[35mgame.c[0m:[0m[32m113[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i] = initialize_dynamic_object([0m[1m[31mgame-[0m>renderer, &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i], UP, 0, 80, 700, 600, IS_IDLE, UP, CAMERA, -1);
+[0m[35mgame.c[0m:[0m[32m115[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMain) {
+[0m[35mgame.c[0m:[0m[32m116[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter = &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i];
+[0m[35mgame.c[0m:[0m[32m118[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isCamera) {
+[0m[35mgame.c[0m:[0m[32m119[0m:[0m7[0m:      [0m[1m[31mgame-[0m>camera.base = &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i];
+[0m[35mgame.c[0m:[0m[32m122[0m:[0m3[0m:  [0m[1m[31mgame-[0m>status = IS_ACTIVE;
+[0m[35mgame.c[0m:[0m[32m123[0m:[0m3[0m:  [0m[1m[31mgame-[0m>camera.current_target = [0m[1m[31mgame-[0m>mainCharacter;
+[0m[35mgame.c[0m:[0m[32m128[0m:[0m10[0m:    if (&[0m[1m[31mgame-[0m>maps[i] != NULL) {
+[0m[35mgame.c[0m:[0m[32m129[0m:[0m27[0m:      for (int j = 0; j < [0m[1m[31mgame-[0m>maps[i].dynamic_objects_count; i++) {
+[0m[35mgame.c[0m:[0m[32m130[0m:[0m14[0m:        free([0m[1m[31mgame-[0m>maps[i].dynamic_objects[j].task_queue.items);
+[0m[35mgame.c[0m:[0m[32m134[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>items_count; i++) {
+[0m[35mgame.c[0m:[0m[32m135[0m:[0m10[0m:    free([0m[1m[31mgame-[0m>items[i].name);
+[0m[35mgame.c[0m:[0m[32m136[0m:[0m10[0m:    free([0m[1m[31mgame-[0m>items[i].description);
+[0m[35mgame.c[0m:[0m[32m137[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>inventory.items) {
+[0m[35mgame.c[0m:[0m[32m138[0m:[0m12[0m:      free([0m[1m[31mgame-[0m>inventory.items);
+[0m[35mgame.c[0m:[0m[32m141[0m:[0m7[0m:  if ([0m[1m[31mgame-[0m>active_quests.items) {
+[0m[35mgame.c[0m:[0m[32m142[0m:[0m10[0m:    free([0m[1m[31mgame-[0m>active_quests.items);
+[0m[35mgame.c[0m:[0m[32m144[0m:[0m8[0m:  free([0m[1m[31mgame-[0m>quests);
+[0m[35mgame.c[0m:[0m[32m145[0m:[0m8[0m:  free([0m[1m[31mgame-[0m>items);
+[0m[35mgame.c[0m:[0m[32m146[0m:[0m17[0m:  TTF_CloseFont([0m[1m[31mgame-[0m>font);
+[0m[35mgame.c[0m:[0m[32m147[0m:[0m23[0m:  SDL_DestroyRenderer([0m[1m[31mgame-[0m>renderer); 
+[0m[35mgame.c[0m:[0m[32m148[0m:[0m21[0m:  SDL_DestroyWindow([0m[1m[31mgame-[0m>window); 
+[0m[35mrpg.c[0m:[0m[32m14[0m:[0m8[0m:  if (![0m[1m[31mgame-[0m>is_paused) {
+[0m[35mrpg.c[0m:[0m[32m15[0m:[0m5[0m:    [0m[1m[31mgame-[0m>is_paused = 1;
+[0m[35mrpg.c[0m:[0m[32m17[0m:[0m5[0m:    [0m[1m[31mgame-[0m>is_paused =  0;
+[0m[35mrpg.c[0m:[0m[32m22[0m:[0m7[0m:  if ([0m[1m[31mgame-[0m>status == IS_MENU) {
+[0m[35mrpg.c[0m:[0m[32m23[0m:[0m5[0m:    [0m[1m[31mgame-[0m>status = IS_ACTIVE;
+[0m[35mrpg.c[0m:[0m[32m25[0m:[0m5[0m:    [0m[1m[31mgame-[0m>status = IS_MENU;
+[0m[35mrpg.c[0m:[0m[32m51[0m:[0m61[0m:            DynamicObject *target = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, 11);
+[0m[35mrpg.c[0m:[0m[32m52[0m:[0m32[0m:            set_current_target([0m[1m[31mgame-[0m>current_map, &[0m[1m[31mgame-[0m>camera, target, [0m[1m[31mgame-[0m>time);
+[0m[35mrpg.c[0m:[0m[32m56[0m:[0m17[0m:            if ([0m[1m[31mgame-[0m>status == IS_ACTIVE || [0m[1m[31mgame-[0m>status == IS_MENU) {
+[0m[35mrpg.c[0m:[0m[32m61[0m:[0m17[0m:            if ([0m[1m[31mgame-[0m>status == IS_MENU) {
+[0m[35mrpg.c[0m:[0m[32m62[0m:[0m15[0m:              [0m[1m[31mgame-[0m>inventory_menu->show_description = [0m[1m[31mgame-[0m>inventory_menu->show_description ? 0 : 1;
+[0m[35mrpg.c[0m:[0m[32m67[0m:[0m17[0m:            if ([0m[1m[31mgame-[0m>status == IS_MENU) {
+[0m[35mrpg.c[0m:[0m[32m68[0m:[0m38[0m:              MenuState menu_state = [0m[1m[31mgame-[0m>inventory_menu->state;
+[0m[35mrpg.c[0m:[0m[32m70[0m:[0m17[0m:                [0m[1m[31mgame-[0m>inventory_menu->selected_item_index = [0m[1m[31mgame-[0m>inventory_menu->active_item_index;
+[0m[35mrpg.c[0m:[0m[32m71[0m:[0m17[0m:                [0m[1m[31mgame-[0m>inventory_menu->state = ITEM_SELECTED;
+[0m[35mrpg.c[0m:[0m[32m73[0m:[0m27[0m:                swap_ints([0m[1m[31mgame-[0m>inventory.items, [0m[1m[31mgame-[0m>inventory_menu->selected_item_index, [0m[1m[31mgame-[0m>inventory_menu->active_item_index);
+[0m[35mrpg.c[0m:[0m[32m74[0m:[0m17[0m:                [0m[1m[31mgame-[0m>inventory_menu->selected_item_index = -1;
+[0m[35mrpg.c[0m:[0m[32m75[0m:[0m17[0m:                [0m[1m[31mgame-[0m>inventory_menu->state = DEFAULT_MENU;
+[0m[35mrpg.c[0m:[0m[32m77[0m:[0m24[0m:            } else if ([0m[1m[31mgame-[0m>mainCharacter->has_object) { 
+[0m[35mrpg.c[0m:[0m[32m79[0m:[0m24[0m:            } else if ([0m[1m[31mgame-[0m>status != IS_CUTSCENE) {
+[0m[35mrpg.c[0m:[0m[32m80[0m:[0m15[0m:              [0m[1m[31mgame-[0m>mainCharacter->isLifting = 1;
+[0m[35mrpg.c[0m:[0m[32m82[0m:[0m15[0m:              [0m[1m[31mgame-[0m>dismissDialog = 0;
+[0m[35mrpg.c[0m:[0m[32m84[0m:[0m15[0m:              [0m[1m[31mgame-[0m>dismissDialog = 1;
+[0m[35mrpg.c[0m:[0m[32m88[0m:[0m17[0m:            if ([0m[1m[31mgame-[0m>status == IS_MENU) {
+[0m[35mrpg.c[0m:[0m[32m89[0m:[0m19[0m:              if ([0m[1m[31mgame-[0m>inventory_menu->active_item_index) {
+[0m[35mrpg.c[0m:[0m[32m90[0m:[0m17[0m:                [0m[1m[31mgame-[0m>inventory_menu->active_item_index--;
+[0m[35mrpg.c[0m:[0m[32m95[0m:[0m17[0m:            if ([0m[1m[31mgame-[0m>status == IS_MENU) {
+[0m[35mrpg.c[0m:[0m[32m96[0m:[0m19[0m:              if ([0m[1m[31mgame-[0m>inventory_menu->active_item_index < [0m[1m[31mgame-[0m>inventory.size - 1) {
+[0m[35mrpg.c[0m:[0m[32m97[0m:[0m17[0m:                [0m[1m[31mgame-[0m>inventory_menu->active_item_index++;
+[0m[35mrpg.c[0m:[0m[32m107[0m:[0m13[0m:            [0m[1m[31mgame-[0m>mainCharacter->isRunning = 0;
+[0m[35mrpg.c[0m:[0m[32m132[0m:[0m7[0m:  if ([0m[1m[31mgame-[0m>status == IS_ACTIVE) {
+[0m[35mrpg.c[0m:[0m[32m135[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->isMoving = 1;
+[0m[35mrpg.c[0m:[0m[32m137[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->isPushing = 1;
+[0m[35mrpg.c[0m:[0m[32m139[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->isPushing = 0;
+[0m[35mrpg.c[0m:[0m[32m144[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->isPushing = 1;
+[0m[35mrpg.c[0m:[0m[32m146[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->isPushing = 0;
+[0m[35mrpg.c[0m:[0m[32m150[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->isRunning = 1;
+[0m[35mrpg.c[0m:[0m[32m153[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveLeft = 1;
+[0m[35mrpg.c[0m:[0m[32m155[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveLeft  = 0;
+[0m[35mrpg.c[0m:[0m[32m158[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveLeft = 0;
+[0m[35mrpg.c[0m:[0m[32m160[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveRight = 1;
+[0m[35mrpg.c[0m:[0m[32m162[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveRight = 0;
+[0m[35mrpg.c[0m:[0m[32m166[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveRight = 1;
+[0m[35mrpg.c[0m:[0m[32m168[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveRight = 0;
+[0m[35mrpg.c[0m:[0m[32m171[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveRight = 0;
+[0m[35mrpg.c[0m:[0m[32m173[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveLeft = 1;
+[0m[35mrpg.c[0m:[0m[32m175[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveLeft = 0;
+[0m[35mrpg.c[0m:[0m[32m179[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveUp = 1;
+[0m[35mrpg.c[0m:[0m[32m181[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveUp = 0;
+[0m[35mrpg.c[0m:[0m[32m184[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveUp = 0;
+[0m[35mrpg.c[0m:[0m[32m186[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveDown = 1;
+[0m[35mrpg.c[0m:[0m[32m188[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveDown = 0;
+[0m[35mrpg.c[0m:[0m[32m192[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveDown = 1;
+[0m[35mrpg.c[0m:[0m[32m194[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveDown = 0;
+[0m[35mrpg.c[0m:[0m[32m197[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveDown = 0;
+[0m[35mrpg.c[0m:[0m[32m199[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveUp = 1;
+[0m[35mrpg.c[0m:[0m[32m201[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveUp = 0;
+[0m[35mrpg.c[0m:[0m[32m202[0m:[0m9[0m:        [0m[1m[31mgame-[0m>mainCharacter->moveDown = 0;
+[0m[35mrpg.c[0m:[0m[32m207[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveUp = 0;
+[0m[35mrpg.c[0m:[0m[32m208[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveDown = 0;
+[0m[35mrpg.c[0m:[0m[32m212[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveLeft = 0;
+[0m[35mrpg.c[0m:[0m[32m213[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveRight = 0;
+[0m[35mrpg.c[0m:[0m[32m217[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->isMoving = 0;
+[0m[35mrpg.c[0m:[0m[32m218[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->isPushing = 0;
+[0m[35mrpg.c[0m:[0m[32m219[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->isRunning = 0;
+[0m[35mrpg.c[0m:[0m[32m220[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveLeft = 0;
+[0m[35mrpg.c[0m:[0m[32m221[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveRight = 0;
+[0m[35mrpg.c[0m:[0m[32m222[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveUp = 0;
+[0m[35mrpg.c[0m:[0m[32m223[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->moveDown = 0;
+[0m[35mrpg.c[0m:[0m[32m378[0m:[0m26[0m:  SDL_SetRenderDrawColor([0m[1m[31mgame-[0m>renderer, 0, 0, 0, 255);
+[0m[35mrpg.c[0m:[0m[32m379[0m:[0m19[0m:  SDL_RenderClear([0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m383[0m:[0m15[0m:  /* if (fmod([0m[1m[31mgame-[0m>time, 7.5) == 0) { */
+[0m[35mrpg.c[0m:[0m[32m384[0m:[0m32[0m:  /*   printf("mainX is %f\n", [0m[1m[31mgame-[0m>mainCharacter->x); */
+[0m[35mrpg.c[0m:[0m[32m385[0m:[0m32[0m:  /*   printf("mainY is %f\n", [0m[1m[31mgame-[0m>mainCharacter->y); */
+[0m[35mrpg.c[0m:[0m[32m386[0m:[0m36[0m:  /*   printf("camera->x is %f\n", [0m[1m[31mgame-[0m>camera.base->x); */
+[0m[35mrpg.c[0m:[0m[32m387[0m:[0m34[0m:  /*   printf("scrollY is %f\n", [0m[1m[31mgame-[0m>camera.base->y); */
+[0m[35mrpg.c[0m:[0m[32m391[0m:[0m17[0m:  for (int y = -[0m[1m[31mgame-[0m>camera.base->y/[0m[1m[31mgame-[0m>current_map->tileSize; y < (-[0m[1m[31mgame-[0m>camera.base->y + WINDOW_HEIGHT)/ [0m[1m[31mgame-[0m>current_map->tileSize; y++) {
+[0m[35mrpg.c[0m:[0m[32m392[0m:[0m19[0m:    for (int x = -[0m[1m[31mgame-[0m>camera.base->x/[0m[1m[31mgame-[0m>current_map->tileSize; x < (-[0m[1m[31mgame-[0m>camera.base->x + WINDOW_WIDTH)/ [0m[1m[31mgame-[0m>current_map->tileSize; x++) {
+[0m[35mrpg.c[0m:[0m[32m393[0m:[0m27[0m:      Tile *activeTile = &[0m[1m[31mgame-[0m>current_map->tiles[x+y*[0m[1m[31mgame-[0m>current_map->width];
+[0m[35mrpg.c[0m:[0m[32m394[0m:[0m25[0m:      if (x >= 0 && x < [0m[1m[31mgame-[0m>current_map->width && y>= 0 && y < [0m[1m[31mgame-[0m>current_map->height) {
+[0m[35mrpg.c[0m:[0m[32m396[0m:[0m26[0m:          renderTile(x * [0m[1m[31mgame-[0m>current_map->tileSize, y * [0m[1m[31mgame-[0m>current_map->tileSize, [0m[1m[31mgame-[0m>camera, [0m[1m[31mgame-[0m>current_map->tileSize, activeTile->tileId, [0m[1m[31mgame-[0m>indoorTexture, [0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m402[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m404[0m:[0m45[0m:    DynamicObject *active_dynamic_object = &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i];
+[0m[35mrpg.c[0m:[0m[32m408[0m:[0m65[0m:      renderMan(active_dynamic_object, active_dynamic_object->x+[0m[1m[31mgame-[0m>camera.base->x, active_dynamic_object->y+[0m[1m[31mgame-[0m>camera.base->y, [0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m411[0m:[0m38[0m:          active_dynamic_object->x = [0m[1m[31mgame-[0m>mainCharacter->x;
+[0m[35mrpg.c[0m:[0m[32m412[0m:[0m38[0m:          active_dynamic_object->y = [0m[1m[31mgame-[0m>mainCharacter->y - [0m[1m[31mgame-[0m>mainCharacter->h;
+[0m[35mrpg.c[0m:[0m[32m414[0m:[0m67[0m:        renderJar(active_dynamic_object, active_dynamic_object->x+[0m[1m[31mgame-[0m>camera.base->x, active_dynamic_object->y+[0m[1m[31mgame-[0m>camera.base->y, [0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m416[0m:[0m65[0m:      renderBed(active_dynamic_object, active_dynamic_object->x+[0m[1m[31mgame-[0m>camera.base->x, active_dynamic_object->y+[0m[1m[31mgame-[0m>camera.base->y, [0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m418[0m:[0m67[0m:      renderCrate(active_dynamic_object, active_dynamic_object->x+[0m[1m[31mgame-[0m>camera.base->x, active_dynamic_object->y+[0m[1m[31mgame-[0m>camera.base->y, [0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m420[0m:[0m66[0m:      renderDoor(active_dynamic_object, active_dynamic_object->x+[0m[1m[31mgame-[0m>camera.base->x, active_dynamic_object->y+[0m[1m[31mgame-[0m>camera.base->y, [0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m426[0m:[0m17[0m:  for (int y = -[0m[1m[31mgame-[0m>camera.base->y/[0m[1m[31mgame-[0m>current_map->tileSize; y < (-[0m[1m[31mgame-[0m>camera.base->y + WINDOW_HEIGHT)/ [0m[1m[31mgame-[0m>current_map->tileSize; y++) {
+[0m[35mrpg.c[0m:[0m[32m427[0m:[0m19[0m:    for (int x = -[0m[1m[31mgame-[0m>camera.base->x/[0m[1m[31mgame-[0m>current_map->tileSize; x < (-[0m[1m[31mgame-[0m>camera.base->x + WINDOW_WIDTH)/ [0m[1m[31mgame-[0m>current_map->tileSize; x++) {
+[0m[35mrpg.c[0m:[0m[32m428[0m:[0m27[0m:      Tile *activeTile = &[0m[1m[31mgame-[0m>current_map->tiles[x+y*[0m[1m[31mgame-[0m>current_map->width];
+[0m[35mrpg.c[0m:[0m[32m429[0m:[0m25[0m:      if (x >= 0 && x < [0m[1m[31mgame-[0m>current_map->width && y>= 0 && y < [0m[1m[31mgame-[0m>current_map->height) {
+[0m[35mrpg.c[0m:[0m[32m432[0m:[0m26[0m:          renderTile(x * [0m[1m[31mgame-[0m>current_map->tileSize, y * [0m[1m[31mgame-[0m>current_map->tileSize, [0m[1m[31mgame-[0m>camera, [0m[1m[31mgame-[0m>current_map->tileSize, activeTile->tileId, [0m[1m[31mgame-[0m>indoorTexture, [0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m439[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m441[0m:[0m27[0m:    char* currentDialog = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentDialog;
+[0m[35mrpg.c[0m:[0m[32m444[0m:[0m23[0m:      renderDialogBox([0m[1m[31mgame-[0m>renderer, dialogueCount);
+[0m[35mrpg.c[0m:[0m[32m446[0m:[0m18[0m:      renderText([0m[1m[31mgame-[0m>renderer, [0m[1m[31mgame-[0m>font, currentDialog, color, 25, WINDOW_HEIGHT - (180 * dialogueCount), NULL);
+[0m[35mrpg.c[0m:[0m[32m450[0m:[0m7[0m:  if ([0m[1m[31mgame-[0m>status == IS_MENU) {
+[0m[35mrpg.c[0m:[0m[32m451[0m:[0m16[0m:    renderMenu([0m[1m[31mgame-[0m>inventory_menu, [0m[1m[31mgame-[0m>items, [0m[1m[31mgame-[0m>inventory, [0m[1m[31mgame-[0m>font, [0m[1m[31mgame-[0m>renderer, [0m[1m[31mgame-[0m>items_count);
+[0m[35mrpg.c[0m:[0m[32m454[0m:[0m7[0m:  if ([0m[1m[31mgame-[0m>is_paused) {
+[0m[35mrpg.c[0m:[0m[32m455[0m:[0m22[0m:    renderPauseState([0m[1m[31mgame-[0m>renderer, [0m[1m[31mgame-[0m>font);
+[0m[35mrpg.c[0m:[0m[32m458[0m:[0m3[0m:  [0m[1m[31mgame-[0m>mainCharacter->isLifting = 0;
+[0m[35mrpg.c[0m:[0m[32m459[0m:[0m21[0m:  SDL_RenderPresent([0m[1m[31mgame-[0m>renderer);
+[0m[35mrpg.c[0m:[0m[32m480[0m:[0m12[0m:      if (![0m[1m[31mgame-[0m>mainCharacter->isPushing) {
+[0m[35mrpg.c[0m:[0m[32m510[0m:[0m17[0m:  for (int y = -[0m[1m[31mgame-[0m>camera.base->y/[0m[1m[31mgame-[0m>current_map->tileSize; y < (-[0m[1m[31mgame-[0m>camera.base->y + WINDOW_HEIGHT)/ [0m[1m[31mgame-[0m>current_map->tileSize; y++)
+[0m[35mrpg.c[0m:[0m[32m511[0m:[0m19[0m:    for (int x = -[0m[1m[31mgame-[0m>camera.base->x/[0m[1m[31mgame-[0m>current_map->tileSize; x < (-[0m[1m[31mgame-[0m>camera.base->x + WINDOW_WIDTH)/ [0m[1m[31mgame-[0m>current_map->tileSize; x++) {
+[0m[35mrpg.c[0m:[0m[32m512[0m:[0m29[0m:    int tileIndex = x + y * [0m[1m[31mgame-[0m>current_map->width;
+[0m[35mrpg.c[0m:[0m[32m517[0m:[0m25[0m:    for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m518[0m:[0m23[0m:      float objectX = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x;
+[0m[35mrpg.c[0m:[0m[32m519[0m:[0m23[0m:      float objectY = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y;
+[0m[35mrpg.c[0m:[0m[32m520[0m:[0m23[0m:      float objectW = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].w;
+[0m[35mrpg.c[0m:[0m[32m521[0m:[0m23[0m:      float objectH = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].h;
+[0m[35mrpg.c[0m:[0m[32m522[0m:[0m44[0m:      int doIndexX = (objectX + objectW/2)/[0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mrpg.c[0m:[0m[32m523[0m:[0m44[0m:      int doIndexY = (objectY + objectH/2)/[0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mrpg.c[0m:[0m[32m524[0m:[0m26[0m:      int previousTile = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile;
+[0m[35mrpg.c[0m:[0m[32m525[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMain) {
+[0m[35mrpg.c[0m:[0m[32m528[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile = doIndexX + doIndexY * [0m[1m[31mgame-[0m>current_map->width;
+[0m[35mrpg.c[0m:[0m[32m532[0m:[0m27[0m:      if (previousTile != [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile && [0m[1m[31mgame-[0m>status == IS_ACTIVE) {
+[0m[35mrpg.c[0m:[0m[32m533[0m:[0m13[0m:        if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMain) {
+[0m[35mrpg.c[0m:[0m[32m534[0m:[0m47[0m:          /* printf("game current tile %d\n", [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile); */
+[0m[35mrpg.c[0m:[0m[32m535[0m:[0m48[0m:          /* printf("game starting tile %d\n", [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].startingTile); */
+[0m[35mrpg.c[0m:[0m[32m538[0m:[0m13[0m:        if ([0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile].dynamic_object_type != DOOR && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile].dynamic_object_type != EVENT) {
+[0m[35mrpg.c[0m:[0m[32m539[0m:[0m11[0m:          [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile].dynamic_object_id = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].id;
+[0m[35mrpg.c[0m:[0m[32m541[0m:[0m13[0m:        if ([0m[1m[31mgame-[0m>current_map->tiles[previousTile].dynamic_object_type != DOOR && [0m[1m[31mgame-[0m>current_map->tiles[previousTile].dynamic_object_type != EVENT) {
+[0m[35mrpg.c[0m:[0m[32m543[0m:[0m11[0m:          [0m[1m[31mgame-[0m>current_map->tiles[previousTile].dynamic_object_id = 0;
+[0m[35mrpg.c[0m:[0m[32m547[0m:[0m25[0m:      if (x >= 0 && x < [0m[1m[31mgame-[0m>current_map->width && y>= 0 && y < [0m[1m[31mgame-[0m>current_map->height) {
+[0m[35mrpg.c[0m:[0m[32m548[0m:[0m27[0m:        int tileIsSolid = [0m[1m[31mgame-[0m>current_map->tiles[tileIndex].tileState == IS_SOLID;
+[0m[35mrpg.c[0m:[0m[32m549[0m:[0m29[0m:        int tileHasObject = [0m[1m[31mgame-[0m>current_map->tiles[tileIndex].dynamic_object_id >= 0;
+[0m[35mrpg.c[0m:[0m[32m550[0m:[0m28[0m:        int tileHasEvent = [0m[1m[31mgame-[0m>current_map->tiles[tileIndex].dynamic_object_type == EVENT;
+[0m[35mrpg.c[0m:[0m[32m551[0m:[0m13[0m:        if ([0m[1m[31mgame-[0m>status != IS_CUTSCENE && tileHasEvent && tileIndex == [0m[1m[31mgame-[0m>mainCharacter->currentTile && previousMainTile > 0 && *previousMainTile != [0m[1m[31mgame-[0m>mainCharacter->currentTile) { 
+[0m[35mrpg.c[0m:[0m[32m552[0m:[0m11[0m:          [0m[1m[31mgame-[0m>mainCharacter->currentTile = 0;
+[0m[35mrpg.c[0m:[0m[32m553[0m:[0m58[0m:          DynamicObject *event = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[tileIndex].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m558[0m:[0m25[0m:        int isNotSelf = [0m[1m[31mgame-[0m>current_map->tiles[tileIndex].dynamic_object_id != active_dynamic_object->id;
+[0m[35mrpg.c[0m:[0m[32m560[0m:[0m13[0m:        if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMovable && ![0m[1m[31mgame-[0m>mainCharacter->isPushing)  {
+[0m[35mrpg.c[0m:[0m[32m561[0m:[0m11[0m:          [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMoving = 0;
+[0m[35mrpg.c[0m:[0m[32m562[0m:[0m11[0m:          [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].moveUp = 0;
+[0m[35mrpg.c[0m:[0m[32m563[0m:[0m11[0m:          [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].moveLeft = 0;
+[0m[35mrpg.c[0m:[0m[32m564[0m:[0m11[0m:          [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].moveRight = 0;
+[0m[35mrpg.c[0m:[0m[32m565[0m:[0m11[0m:          [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].moveDown = 0;
+[0m[35mrpg.c[0m:[0m[32m572[0m:[0m61[0m:          detectTileCollision(game, active_dynamic_object, &[0m[1m[31mgame-[0m>current_map->tiles[tileIndex]);
+[0m[35mrpg.c[0m:[0m[32m575[0m:[0m13[0m:        if ([0m[1m[31mgame-[0m>status == IS_ACTIVE && ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isPassable == 0 || active_dynamic_object->isCamera)) {
+[0m[35mrpg.c[0m:[0m[32m576[0m:[0m63[0m:          detectObjectCollision(game, active_dynamic_object, &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i]);
+[0m[35mrpg.c[0m:[0m[32m581[0m:[0m35[0m:          int tileIsAboveObject = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - [0m[1m[31mgame-[0m>current_map->width && active_dynamic_object->direction == UP; 
+[0m[35mrpg.c[0m:[0m[32m582[0m:[0m35[0m:          int tileIsBelowObject = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + [0m[1m[31mgame-[0m>current_map->width && active_dynamic_object->direction == DOWN;
+[0m[35mrpg.c[0m:[0m[32m583[0m:[0m38[0m:          int tileIsToLeftOfObject = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - 1 && active_dynamic_object->direction == LEFT;
+[0m[35mrpg.c[0m:[0m[32m584[0m:[0m39[0m:          int tileIsToRightOfObject = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + 1 && active_dynamic_object->direction == RIGHT;
+[0m[35mrpg.c[0m:[0m[32m586[0m:[0m46[0m:          int tileIsAboveAndToLeftOfObject = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - [0m[1m[31mgame-[0m>current_map->width - 1 && active_dynamic_object->direction == UPLEFT;
+[0m[35mrpg.c[0m:[0m[32m587[0m:[0m46[0m:          int tileIsBelowAndToLeftOfObject = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + [0m[1m[31mgame-[0m>current_map->width - 1 && active_dynamic_object->direction == DOWNLEFT;
+[0m[35mrpg.c[0m:[0m[32m588[0m:[0m47[0m:          int tileIsAboveAndToRightOfObject = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile - [0m[1m[31mgame-[0m>current_map->width + 1 && active_dynamic_object->direction == UPRIGHT;
+[0m[35mrpg.c[0m:[0m[32m589[0m:[0m47[0m:          int tileIsBelowAndToRightOfObject = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == active_dynamic_object->currentTile + [0m[1m[31mgame-[0m>current_map->width + 1 && active_dynamic_object->direction == DOWNRIGHT;
+[0m[35mrpg.c[0m:[0m[32m591[0m:[0m15[0m:          if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isLiftable && active_dynamic_object->isLifting)  {
+[0m[35mrpg.c[0m:[0m[32m593[0m:[0m15[0m:              [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isLifted = 1;
+[0m[35mrpg.c[0m:[0m[32m595[0m:[0m15[0m:              [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isPassable = 1;
+[0m[35mrpg.c[0m:[0m[32m599[0m:[0m15[0m:          if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMovable && active_dynamic_object->isPushing)  {
+[0m[35mrpg.c[0m:[0m[32m600[0m:[0m13[0m:            [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMoving = active_dynamic_object->isPushing ? 1 : 0;
+[0m[35mrpg.c[0m:[0m[32m601[0m:[0m13[0m:            [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].moveLeft = tileIsToLeftOfObject ? 1 : 0;
+[0m[35mrpg.c[0m:[0m[32m602[0m:[0m13[0m:            [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].moveUp = tileIsAboveObject ? 1 : 0;
+[0m[35mrpg.c[0m:[0m[32m603[0m:[0m13[0m:            [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].moveRight = tileIsToRightOfObject ? 1 : 0;
+[0m[35mrpg.c[0m:[0m[32m604[0m:[0m13[0m:            [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].moveDown = tileIsBelowObject ? 1 : 0;
+[0m[35mrpg.c[0m:[0m[32m616[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m617[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isLifted) {
+[0m[35mrpg.c[0m:[0m[32m618[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isLifted = 0;
+[0m[35mrpg.c[0m:[0m[32m619[0m:[0m7[0m:      [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isPassable = 0;
+[0m[35mrpg.c[0m:[0m[32m620[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->has_object = 0;
+[0m[35mrpg.c[0m:[0m[32m621[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>mainCharacter->direction == UP) {
+[0m[35mrpg.c[0m:[0m[32m622[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x = [0m[1m[31mgame-[0m>mainCharacter->x;
+[0m[35mrpg.c[0m:[0m[32m623[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y = [0m[1m[31mgame-[0m>mainCharacter->y - [0m[1m[31mgame-[0m>current_map->tiles[0].h;
+[0m[35mrpg.c[0m:[0m[32m625[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>mainCharacter->direction == DOWN) {
+[0m[35mrpg.c[0m:[0m[32m626[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x = [0m[1m[31mgame-[0m>mainCharacter->x;
+[0m[35mrpg.c[0m:[0m[32m627[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y = [0m[1m[31mgame-[0m>mainCharacter->y + [0m[1m[31mgame-[0m>current_map->tiles[0].h;
+[0m[35mrpg.c[0m:[0m[32m629[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>mainCharacter->direction == RIGHT) {
+[0m[35mrpg.c[0m:[0m[32m630[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x = [0m[1m[31mgame-[0m>mainCharacter->x + [0m[1m[31mgame-[0m>current_map->tiles[0].w;
+[0m[35mrpg.c[0m:[0m[32m631[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y = [0m[1m[31mgame-[0m>mainCharacter->y;
+[0m[35mrpg.c[0m:[0m[32m633[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>mainCharacter->direction == LEFT) {
+[0m[35mrpg.c[0m:[0m[32m634[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x = [0m[1m[31mgame-[0m>mainCharacter->x - [0m[1m[31mgame-[0m>current_map->tiles[0].w;
+[0m[35mrpg.c[0m:[0m[32m635[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y = [0m[1m[31mgame-[0m>mainCharacter->y; 
+[0m[35mrpg.c[0m:[0m[32m637[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>mainCharacter->direction == UPRIGHT) {
+[0m[35mrpg.c[0m:[0m[32m638[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x = [0m[1m[31mgame-[0m>mainCharacter->x;
+[0m[35mrpg.c[0m:[0m[32m639[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y = [0m[1m[31mgame-[0m>mainCharacter->y - [0m[1m[31mgame-[0m>current_map->tiles[0].h + [0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mrpg.c[0m:[0m[32m641[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>mainCharacter->direction == DOWNRIGHT) {
+[0m[35mrpg.c[0m:[0m[32m642[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x = [0m[1m[31mgame-[0m>mainCharacter->x;
+[0m[35mrpg.c[0m:[0m[32m643[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y = [0m[1m[31mgame-[0m>mainCharacter->y + [0m[1m[31mgame-[0m>current_map->tiles[0].h + [0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mrpg.c[0m:[0m[32m645[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>mainCharacter->direction == UPLEFT) {
+[0m[35mrpg.c[0m:[0m[32m646[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x = [0m[1m[31mgame-[0m>mainCharacter->x;
+[0m[35mrpg.c[0m:[0m[32m647[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y = [0m[1m[31mgame-[0m>mainCharacter->y - [0m[1m[31mgame-[0m>current_map->tiles[0].h - [0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mrpg.c[0m:[0m[32m649[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>mainCharacter->direction == DOWNLEFT) {
+[0m[35mrpg.c[0m:[0m[32m650[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].x = [0m[1m[31mgame-[0m>mainCharacter->x;
+[0m[35mrpg.c[0m:[0m[32m651[0m:[0m9[0m:        [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].y = [0m[1m[31mgame-[0m>mainCharacter->y + [0m[1m[31mgame-[0m>current_map->tiles[0].h - [0m[1m[31mgame-[0m>current_map->tileSize;
+[0m[35mrpg.c[0m:[0m[32m673[0m:[0m32[0m:  printf("what is id here %d", [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + 1].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m675[0m:[0m7[0m:  if ([0m[1m[31mgame-[0m>mainCharacter->direction == UP && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile - [0m[1m[31mgame-[0m>current_map->width].dynamic_object_id) {
+[0m[35mrpg.c[0m:[0m[32m676[0m:[0m46[0m:    dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile - [0m[1m[31mgame-[0m>current_map->width].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m677[0m:[0m14[0m:  } else if ([0m[1m[31mgame-[0m>mainCharacter->direction == LEFT && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile - 1].dynamic_object_id) {
+[0m[35mrpg.c[0m:[0m[32m678[0m:[0m46[0m:    dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile - 1].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m679[0m:[0m14[0m:  } else if ([0m[1m[31mgame-[0m>mainCharacter->direction == DOWN && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + [0m[1m[31mgame-[0m>current_map->width].dynamic_object_id) {
+[0m[35mrpg.c[0m:[0m[32m680[0m:[0m46[0m:    dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + [0m[1m[31mgame-[0m>current_map->width].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m681[0m:[0m14[0m:  } else if ([0m[1m[31mgame-[0m>mainCharacter->direction == RIGHT && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + 1].dynamic_object_id) {
+[0m[35mrpg.c[0m:[0m[32m682[0m:[0m46[0m:    dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + 1].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m683[0m:[0m14[0m:  } else if ([0m[1m[31mgame-[0m>mainCharacter->direction == UPLEFT && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile - [0m[1m[31mgame-[0m>current_map->width - 1].dynamic_object_id) {
+[0m[35mrpg.c[0m:[0m[32m684[0m:[0m46[0m:    dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile - [0m[1m[31mgame-[0m>current_map->width - 1].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m685[0m:[0m14[0m:  } else if ([0m[1m[31mgame-[0m>mainCharacter->direction == UPRIGHT && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile - [0m[1m[31mgame-[0m>current_map->width + 1].dynamic_object_id) {
+[0m[35mrpg.c[0m:[0m[32m686[0m:[0m46[0m:    dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile - [0m[1m[31mgame-[0m>current_map->width + 1].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m687[0m:[0m14[0m:  } else if ([0m[1m[31mgame-[0m>mainCharacter->direction == DOWNLEFT && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + [0m[1m[31mgame-[0m>current_map->width - 1].dynamic_object_id) {
+[0m[35mrpg.c[0m:[0m[32m688[0m:[0m46[0m:    dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + [0m[1m[31mgame-[0m>current_map->width - 1].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m689[0m:[0m14[0m:  } else if ([0m[1m[31mgame-[0m>mainCharacter->direction == DOWNRIGHT && [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + [0m[1m[31mgame-[0m>current_map->width + 1].dynamic_object_id) {
+[0m[35mrpg.c[0m:[0m[32m690[0m:[0m46[0m:    dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, [0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>mainCharacter->currentTile + [0m[1m[31mgame-[0m>current_map->width + 1].dynamic_object_id);
+[0m[35mrpg.c[0m:[0m[32m693[0m:[0m5[0m:    [0m[1m[31mgame-[0m>status = IS_ACTIVE;
+[0m[35mrpg.c[0m:[0m[32m731[0m:[0m73[0m:      enqueue(&dynamic_object->task_queue, (void*)&speak, data, (void*)&[0m[1m[31mgame-[0m>dismissDialog, 0);
+[0m[35mrpg.c[0m:[0m[32m734[0m:[0m97[0m:      enqueue(&dynamic_object->task_queue, (void*)&walkLeft, (void*)(size_t)atoi(data), (void*)&[0m[1m[31mgame-[0m>current_map->tileSize, NULL);
+[0m[35mrpg.c[0m:[0m[32m737[0m:[0m98[0m:      enqueue(&dynamic_object->task_queue, (void*)&walkRight, (void*)(size_t)atoi(data), (void*)&[0m[1m[31mgame-[0m>current_map->tileSize, NULL);
+[0m[35mrpg.c[0m:[0m[32m740[0m:[0m95[0m:      enqueue(&dynamic_object->task_queue, (void*)&walkUp, (void*)(size_t)atoi(data), (void*)&[0m[1m[31mgame-[0m>current_map->tileSize, NULL);
+[0m[35mrpg.c[0m:[0m[32m743[0m:[0m97[0m:      enqueue(&dynamic_object->task_queue, (void*)&walkDown, (void*)(size_t)atoi(data), (void*)&[0m[1m[31mgame-[0m>current_map->tileSize, NULL);
+[0m[35mrpg.c[0m:[0m[32m746[0m:[0m96[0m:      enqueue(&dynamic_object->task_queue, (void*)&runLeft, (void*)(size_t)atoi(data), (void*)&[0m[1m[31mgame-[0m>current_map->tileSize, NULL);
+[0m[35mrpg.c[0m:[0m[32m749[0m:[0m97[0m:      enqueue(&dynamic_object->task_queue, (void*)&runRight, (void*)(size_t)atoi(data), (void*)&[0m[1m[31mgame-[0m>current_map->tileSize, NULL);
+[0m[35mrpg.c[0m:[0m[32m752[0m:[0m94[0m:      enqueue(&dynamic_object->task_queue, (void*)&runUp, (void*)(size_t)atoi(data), (void*)&[0m[1m[31mgame-[0m>current_map->tileSize, NULL);
+[0m[35mrpg.c[0m:[0m[32m755[0m:[0m96[0m:      enqueue(&dynamic_object->task_queue, (void*)&runDown, (void*)(size_t)atoi(data), (void*)&[0m[1m[31mgame-[0m>current_map->tileSize, NULL);
+[0m[35mrpg.c[0m:[0m[32m761[0m:[0m96[0m:      enqueue(&dynamic_object->task_queue, (void*)&addToInventory, (void*)(size_t)atoi(data), &[0m[1m[31mgame-[0m>inventory, NULL);
+[0m[35mrpg.c[0m:[0m[32m764[0m:[0m101[0m:      enqueue(&dynamic_object->task_queue, (void*)&removeFromInventory, (void*)(size_t)atoi(data), &[0m[1m[31mgame-[0m>inventory, NULL);
+[0m[35mrpg.c[0m:[0m[32m767[0m:[0m54[0m:      loadMap(game, filename, map_id, atoi(tile_id), [0m[1m[31mgame-[0m>mainCharacter);
+[0m[35mrpg.c[0m:[0m[32m778[0m:[0m3[0m:  [0m[1m[31mgame-[0m>status = IS_CUTSCENE;
+[0m[35mrpg.c[0m:[0m[32m779[0m:[0m3[0m:  [0m[1m[31mgame-[0m>camera.current_target = NULL;
+[0m[35mrpg.c[0m:[0m[32m856[0m:[0m59[0m:  DynamicObject *dynamic_object = getDynamicObjectFromMap([0m[1m[31mgame-[0m>current_map, atoi(doId));
+[0m[35mrpg.c[0m:[0m[32m867[0m:[0m25[0m:    for (int i = 0; i < [0m[1m[31mgame-[0m>active_quests.size; i++) {
+[0m[35mrpg.c[0m:[0m[32m868[0m:[0m36[0m:      if (dynamic_object->quest == [0m[1m[31mgame-[0m>active_quests.items[i].id) {
+[0m[35mrpg.c[0m:[0m[32m869[0m:[0m25[0m:        Quest *quest = &[0m[1m[31mgame-[0m>active_quests.items[i];
+[0m[35mrpg.c[0m:[0m[32m873[0m:[0m31[0m:          for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m877[0m:[0m37[0m:            if (quest->target_id == [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].id) {
+[0m[35mrpg.c[0m:[0m[32m878[0m:[0m49[0m:              /* printf("game current tile %d", [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile); */
+[0m[35mrpg.c[0m:[0m[32m881[0m:[0m19[0m:              if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile == quest->target_tile) {
+[0m[35mrpg.c[0m:[0m[32m889[0m:[0m31[0m:          for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m890[0m:[0m17[0m:            if ([0m[1m[31mgame-[0m>current_map->dynamic_objects[i].id == quest->target_id && [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].state != DEFAULT) {
+[0m[35mrpg.c[0m:[0m[32m897[0m:[0m15[0m:          if ([0m[1m[31mgame-[0m>inventory.items[0] == quest->target_id) {
+[0m[35mrpg.c[0m:[0m[32m901[0m:[0m13[0m:            [0m[1m[31mgame-[0m>inventory = removeFromInventory(NULL, game, 1);
+[0m[35mrpg.c[0m:[0m[32m909[0m:[0m27[0m:      for (int i = 0; i < [0m[1m[31mgame-[0m>quests_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m910[0m:[0m38[0m:        if (dynamic_object->quest == [0m[1m[31mgame-[0m>quests[i].id) {
+[0m[35mrpg.c[0m:[0m[32m911[0m:[0m20[0m:          quest = &[0m[1m[31mgame-[0m>quests[i];
+[0m[35mrpg.c[0m:[0m[32m915[0m:[0m20[0m:        add_quest(&[0m[1m[31mgame-[0m>active_quests, dynamic_object->id, quest);
+[0m[35mrpg.c[0m:[0m[32m923[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>mainCharacter->isMoving) {
+[0m[35mrpg.c[0m:[0m[32m924[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->isMoving = 0;
+[0m[35mrpg.c[0m:[0m[32m925[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->ax = 0;
+[0m[35mrpg.c[0m:[0m[32m926[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->ay = 0;
+[0m[35mrpg.c[0m:[0m[32m927[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->dx = 0;
+[0m[35mrpg.c[0m:[0m[32m928[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->dy = 0;
+[0m[35mrpg.c[0m:[0m[32m929[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->directionX = 0;
+[0m[35mrpg.c[0m:[0m[32m930[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->thrustX = 0;
+[0m[35mrpg.c[0m:[0m[32m931[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->frictionalForceX = 0;
+[0m[35mrpg.c[0m:[0m[32m932[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->directionY = 0;
+[0m[35mrpg.c[0m:[0m[32m933[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->thrustY = 0;
+[0m[35mrpg.c[0m:[0m[32m934[0m:[0m7[0m:      [0m[1m[31mgame-[0m>mainCharacter->frictionalForceY = 0;
+[0m[35mrpg.c[0m:[0m[32m943[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m944[0m:[0m31[0m:    if (dynamic_object->id == [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].id && dynamic_object->interactions[dynamic_object->state].task_count) {
+[0m[35mrpg.c[0m:[0m[32m945[0m:[0m7[0m:      [0m[1m[31mgame-[0m>status = IS_CUTSCENE;
+[0m[35mrpg.c[0m:[0m[32m994[0m:[0m3[0m:  [0m[1m[31mgame-[0m>time++;
+[0m[35mrpg.c[0m:[0m[32m998[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m999[0m:[0m38[0m:    DynamicObject *dynamic_object = &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i];
+[0m[35mrpg.c[0m:[0m[32m1001[0m:[0m20[0m:    int has_task = [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].task_queue.size > 0;
+[0m[35mrpg.c[0m:[0m[32m1003[0m:[0m14[0m:    if (fmod([0m[1m[31mgame-[0m>time, 180) == 0) {
+[0m[35mrpg.c[0m:[0m[32m1004[0m:[0m48[0m:      process_default_behavior(dynamic_object, [0m[1m[31mgame-[0m>current_map);
+[0m[35mrpg.c[0m:[0m[32m1010[0m:[0m11[0m:      if ([0m[1m[31mgame-[0m>status != IS_CUTSCENE || ([0m[1m[31mgame-[0m>status == IS_CUTSCENE && !task_running)) {
+[0m[35mrpg.c[0m:[0m[32m1033[0m:[0m29[0m:  if (no_tasks_left == 1 && [0m[1m[31mgame-[0m>status == IS_CUTSCENE) {
+[0m[35mrpg.c[0m:[0m[32m1035[0m:[0m5[0m:    [0m[1m[31mgame-[0m>status = IS_ACTIVE;
+[0m[35mrpg.c[0m:[0m[32m1036[0m:[0m5[0m:    [0m[1m[31mgame-[0m>camera.current_target = [0m[1m[31mgame-[0m>mainCharacter;
+[0m[35mrpg.c[0m:[0m[32m1039[0m:[0m23[0m:  for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m1040[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>status == IS_ACTIVE || ![0m[1m[31mgame-[0m>current_map->dynamic_objects[i].isMain || [0m[1m[31mgame-[0m>current_map->dynamic_objects[i].id != [0m[1m[31mgame-[0m>camera.base->id) {
+[0m[35mrpg.c[0m:[0m[32m1041[0m:[0m22[0m:      handlePhysics(&[0m[1m[31mgame-[0m>current_map->dynamic_objects[i], &[0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>current_map->dynamic_objects[i].currentTile], &[0m[1m[31mgame-[0m>dt, game);
+[0m[35mrpg.c[0m:[0m[32m1045[0m:[0m17[0m:  handlePhysics([0m[1m[31mgame-[0m>camera.base, &[0m[1m[31mgame-[0m>current_map->tiles[[0m[1m[31mgame-[0m>camera.base->currentTile], &[0m[1m[31mgame-[0m>dt, game);
+[0m[35mrpg.c[0m:[0m[32m1047[0m:[0m7[0m:  if ([0m[1m[31mgame-[0m>camera.current_target != NULL && ![0m[1m[31mgame-[0m>camera.base->isMoving) {
+[0m[35mrpg.c[0m:[0m[32m1049[0m:[0m5[0m:    [0m[1m[31mgame-[0m>camera.base->x = (WINDOW_WIDTH / 2) - [0m[1m[31mgame-[0m>camera.current_target->x;
+[0m[35mrpg.c[0m:[0m[32m1050[0m:[0m5[0m:    [0m[1m[31mgame-[0m>camera.base->y = (WINDOW_HEIGHT / 2) - [0m[1m[31mgame-[0m>camera.current_target->y;
+[0m[35mrpg.c[0m:[0m[32m1052[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>camera.current_target->x < 0) {
+[0m[35mrpg.c[0m:[0m[32m1053[0m:[0m7[0m:      [0m[1m[31mgame-[0m>camera.current_target->x = 0;
+[0m[35mrpg.c[0m:[0m[32m1056[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>camera.current_target->x > [0m[1m[31mgame-[0m>current_map->width * [0m[1m[31mgame-[0m>current_map->tileSize - [0m[1m[31mgame-[0m>camera.current_target->w) {
+[0m[35mrpg.c[0m:[0m[32m1057[0m:[0m7[0m:      [0m[1m[31mgame-[0m>camera.current_target->x = [0m[1m[31mgame-[0m>current_map->width * [0m[1m[31mgame-[0m>current_map->tileSize - [0m[1m[31mgame-[0m>camera.current_target->w;
+[0m[35mrpg.c[0m:[0m[32m1060[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>camera.current_target->y < 0) {
+[0m[35mrpg.c[0m:[0m[32m1061[0m:[0m7[0m:      [0m[1m[31mgame-[0m>camera.current_target->y = 0;
+[0m[35mrpg.c[0m:[0m[32m1064[0m:[0m9[0m:    if ([0m[1m[31mgame-[0m>camera.current_target->y > [0m[1m[31mgame-[0m>current_map->height * [0m[1m[31mgame-[0m>current_map->tileSize - [0m[1m[31mgame-[0m>camera.current_target->h) {
+[0m[35mrpg.c[0m:[0m[32m1065[0m:[0m7[0m:      [0m[1m[31mgame-[0m>camera.current_target->y = [0m[1m[31mgame-[0m>current_map->height * [0m[1m[31mgame-[0m>current_map->tileSize - [0m[1m[31mgame-[0m>camera.current_target->h;
+[0m[35mrpg.c[0m:[0m[32m1068[0m:[0m8[0m:    if([0m[1m[31mgame-[0m>camera.base->x < -[0m[1m[31mgame-[0m>current_map->width * [0m[1m[31mgame-[0m>current_map->tileSize+WINDOW_WIDTH) {
+[0m[35mrpg.c[0m:[0m[32m1069[0m:[0m7[0m:      [0m[1m[31mgame-[0m>camera.base->x = -[0m[1m[31mgame-[0m>current_map->width * [0m[1m[31mgame-[0m>current_map->tileSize+WINDOW_WIDTH;
+[0m[35mrpg.c[0m:[0m[32m1072[0m:[0m8[0m:    if([0m[1m[31mgame-[0m>camera.base->y < -[0m[1m[31mgame-[0m>current_map->height * [0m[1m[31mgame-[0m>current_map->tileSize+WINDOW_HEIGHT) {
+[0m[35mrpg.c[0m:[0m[32m1073[0m:[0m7[0m:      [0m[1m[31mgame-[0m>camera.base->y = -[0m[1m[31mgame-[0m>current_map->height * [0m[1m[31mgame-[0m>current_map->tileSize+WINDOW_HEIGHT;
+[0m[35mrpg.c[0m:[0m[32m1081[0m:[0m25[0m:    for (int i = 0; i < [0m[1m[31mgame-[0m>current_map->dynamic_objects_count; i++) {
+[0m[35mrpg.c[0m:[0m[32m1082[0m:[0m40[0m:      DynamicObject *current_object = &[0m[1m[31mgame-[0m>current_map->dynamic_objects[i];
+[0m[35mrpg.c[0m:[0m[32m1084[0m:[0m18[0m:        if (fmod([0m[1m[31mgame-[0m>time, 7.5) == 0) {

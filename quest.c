@@ -35,6 +35,7 @@ Quest* load_quests(char* file_path, int *quests_count) {
     char dataLineSymbol = buffer[0];
     if (dataLineSymbol == QUEST_ID) {
       quests = realloc(quests , sizeof(quests) + sizeof(buffer) * 2);
+      printf("what is i %d", i);
       quests[i].id = i;
       continue;
     } 
@@ -65,6 +66,8 @@ Quest* load_quests(char* file_path, int *quests_count) {
   }   
 
   fclose(fp);
+  printf("what is quest type of one %d", quests[2].type);
+  fflush(stdout);
   return quests;
 };
 

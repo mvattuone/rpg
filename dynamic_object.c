@@ -123,7 +123,6 @@ int runUp(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
 }
 
 int runDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
-  printf("i am trying to do this");
   if (fabs(dynamic_object->totalMovedY) >= (tileDistance * *(int*)tileSize)/2) {
     dynamic_object->isMoving = 0;
     dynamic_object->isRunning = 0;
@@ -142,10 +141,6 @@ int runDown(DynamicObject *dynamic_object, int tileDistance, int *tileSize) {
 }
 
 int speak(DynamicObject *dynamic_object, char* text, int *dismissDialog, time_t duration) {
-  if (text != NULL) {
-    printf("text is %s\n", text);
-  }
-  fflush(stdout);
   time_t timer = SDL_GetTicks() / 1000;
   time_t passedDuration = duration && timer - dynamic_object->task_queue.timer;
   if (*dismissDialog || passedDuration) {

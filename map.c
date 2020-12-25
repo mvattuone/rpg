@@ -85,7 +85,7 @@ Map initializeMap(char* filePath, int tileSize, int starting_tile, DynamicObject
         tiles[count] = malloc(sizeof(Tile));
         tiles[count]->tileIndex = count;
         tiles[count]->tileId = atoi(tempId);
-        printf("tempId for %d is %d\n",count, tiles[count]->tileId);
+        /* printf("tempId for %d is %d\n",count, tiles[count]->tileId); */
         tiles[count]->w = tileSize;
         tiles[count]->h = tileSize;
         tiles[count]->x = (count % map.width) * tileSize;
