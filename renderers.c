@@ -100,7 +100,7 @@ void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *render
   }
 }
 
-void renderMenu(Menu *inventory_menu, Item *items, DynamicArray inventory, TTF_Font *font, SDL_Renderer *renderer, int items_count) {
+void renderMenu(Menu inventory_menu, Item *items, DynamicArray inventory, TTF_Font *font, SDL_Renderer *renderer, int items_count) {
   SDL_Rect MenuRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 50);
   SDL_RenderFillRect(renderer, &MenuRect); 
@@ -113,15 +113,15 @@ void renderMenu(Menu *inventory_menu, Item *items, DynamicArray inventory, TTF_F
       for (int j = 0; j < items_count; j++) {
         if (inventory.items[i] == items[j].id) {
           char *name = items[j].name;
-          if (inventory_menu->state == ITEM_SELECTED && inventory_menu->selected_item_index == i) {
+          if (inventory_menu.state == ITEM_SELECTED && inventory_menu.selected_item_index == i) {
             SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(font, name, text_color, WINDOW_WIDTH - 50);
             SDL_Rect SelectedItemRect = {80, (i + 1) * 40, surface->w, surface->h};
             SDL_SetRenderDrawColor(renderer, 90, 110, 140, 100);
             SDL_RenderFillRect(renderer, &SelectedItemRect); 
           }
           renderText(renderer, font, name, text_color, 80, (i + 1) * 40, NULL);
-          renderCursor(renderer, 60, (inventory_menu->active_item_index + 1) * 40, 20, 20);
-          if (inventory_menu->show_description && i == inventory_menu->active_item_index) {
+          renderCursor(renderer, 60, (inventory_menu.active_item_index + 1) * 40, 20, 20);
+          if (inventory_menu.show_description && i == inventory_menu.active_item_index) {
             renderText(renderer, font, items[j].description, text_color, 80, WINDOW_HEIGHT - 100, NULL);
           }
           item_position_index++;

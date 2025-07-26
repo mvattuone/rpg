@@ -26,6 +26,6 @@ void renderJar(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *render
 
 void renderMan(DynamicObject *dynamic_object, int x, int y, SDL_Renderer *renderer); 
 
-void renderMenu(Menu *inventory_menu, Item *items, DynamicArray inventory, TTF_Font *font, SDL_Renderer *renderer, int items_count);
+void renderMenu(Menu inventory_menu, Item *items, DynamicArray inventory, TTF_Font *font, SDL_Renderer *renderer, int items_count);
 
 void renderTile(int x, int y, Camera camera, int tileSize, int tileId, SDL_Texture *texture, SDL_Renderer *renderer);
