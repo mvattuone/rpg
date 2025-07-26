@@ -13,7 +13,7 @@ typedef enum {
   IS_ABOVE
 } TileState;
 
-typedef struct {
+typedef struct Tile {
   int tileId;
   int tileIndex;
   TileState tileState;
