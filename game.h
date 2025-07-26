@@ -38,7 +38,7 @@ typedef struct {
   float dt;
   SDL_Texture *indoorTexture;
   SDL_Texture *terrainTexture;
-  Menu *inventory_menu;
+  Menu inventory_menu;
 } Game;
 
 void loadGame(Game *game); 

@@ -59,20 +59,20 @@ int handleEvents(Game *game) {
             break;
           case SDL_SCANCODE_X:
             if (game->status == IS_MENU) {
-              game->inventory_menu->show_description = game->inventory_menu->show_description ? 0 : 1;
+              game->inventory_menu.show_description = game->inventory_menu.show_description ? 0 : 1;
             }
             break;
           case SDL_SCANCODE_RETURN:
           case SDL_SCANCODE_A:
             if (game->status == IS_MENU) {
-              MenuState menu_state = game->inventory_menu->state;
+              MenuState menu_state = game->inventory_menu.state;
               if (menu_state == DEFAULT_MENU) {
-                game->inventory_menu->selected_item_index = game->inventory_menu->active_item_index;
-                game->inventory_menu->state = ITEM_SELECTED;
+                game->inventory_menu.selected_item_index = game->inventory_menu.active_item_index;
+                game->inventory_menu.state = ITEM_SELECTED;
               } else if (menu_state == ITEM_SELECTED) {
-                swap_ints(game->inventory.items, game->inventory_menu->selected_item_index, game->inventory_menu->active_item_index);
-                game->inventory_menu->selected_item_index = -1;
-                game->inventory_menu->state = DEFAULT_MENU;
+                swap_ints(game->inventory.items, game->inventory_menu.selected_item_index, game->inventory_menu.active_item_index);
+                game->inventory_menu.selected_item_index = -1;
+                game->inventory_menu.state = DEFAULT_MENU;
               }
             } else if (game->mainCharacter->has_object) { 
               triggerDrop(game);
@@ -86,15 +86,15 @@ int handleEvents(Game *game) {
             break;
           case SDL_SCANCODE_UP:
             if (game->status == IS_MENU) {
-              if (game->inventory_menu->active_item_index) {
-                game->inventory_menu->active_item_index--;
+              if (game->inventory_menu.active_item_index) {
+                game->inventory_menu.active_item_index--;
               }
             }
             break;
           case SDL_SCANCODE_DOWN:
             if (game->status == IS_MENU) {
-              if (game->inventory_menu->active_item_index < game->inventory.size - 1) {
-                game->inventory_menu->active_item_index++;
+              if (game->inventory_menu.active_item_index < game->inventory.size - 1) {
+                game->inventory_menu.active_item_index++;
               }
             }
             break;

@@ -24,7 +24,7 @@ void loadGame(Game *game) {
   memset(game->inventory.items, -1, sizeof(Item) * game->inventory.size);
   game->inventory.items[0] = 1;
   game->inventory.items[1] = 2;
-  *game->inventory_menu = load_inventory_menu();
+  game->inventory_menu = load_inventory_menu();
   game->quests = load_quests("data/quests.dat", &game->quests_count);
   char bufferPtr[10] = "No Name";
   for (int i = 0; i < 2; i++ ) {
