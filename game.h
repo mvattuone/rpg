@@ -15,7 +15,7 @@
 #define IS_MENU 5
 
 
-typedef struct {
+typedef struct Game {
   SDL_Window *window;
   DynamicObject *mainCharacter;
   Map maps[2];
